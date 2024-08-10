@@ -237,7 +237,9 @@ const VehicleComponent = () => {
                 </Grid>
               ))
             ) : (
-              <Typography variant="body1">Nenhum veículo encontrado.</Typography>
+              <Grid item xs={12}>
+                <Typography variant="body1" align="left">Nenhum veículo encontrado.</Typography>
+              </Grid>
             )}
           </Grid>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

@@ -46,17 +46,22 @@ O TravelBR é uma aplicação web desenvolvida para gerenciar viagens, pedidos e
 
 ## Instalação
 
-1. Navegue até o diretório do projeto:
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/lucaspianaro/travelbr.git
+   ```
+
+2. Navegue até o diretório do projeto:
    ```bash
    cd travelbr 
    ```
 
-2. Instale as dependências:
+3. Instale as dependências:
    ```bash
    npm install
    ```
 
-3. Instale os pacotes npm necessários:
+4. Instale os pacotes npm necessários:
    ```bash
    npm install @mui/material @emotion/react @emotion/styled
    npm install firebase
@@ -67,7 +72,7 @@ O TravelBR é uma aplicação web desenvolvida para gerenciar viagens, pedidos e
    npm install date-fns
    ```
 
-4. Configure o Firebase:
+5. Configure o Firebase:
    - Crie um arquivo `firebaseConfig.js` na pasta `src` com as suas configurações do Firebase, você consegue encontrá-las após configurar um projeto no Firebase:
      ```javascript
      import { initializeApp } from 'firebase/app';
@@ -117,3 +122,8 @@ Para fazer o deploy da aplicação no Firebase Hosting, siga as etapas abaixo:
    ```bash
    firebase deploy --only hosting
    ```
+
+## Contribuição
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
+```
