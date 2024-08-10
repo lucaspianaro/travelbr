@@ -234,7 +234,8 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
         travel.dataIda,
         travel.horarioIda,
         travel.dataRetorno,
-        travel.horarioRetorno
+        travel.horarioRetorno,
+        travel.somenteIda // Passa somenteIda aqui
       );
       setErrors((prevErrors) => ({
         ...prevErrors,

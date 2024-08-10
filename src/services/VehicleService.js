@@ -61,7 +61,7 @@ export const getVehicleTravels = async (vehicleId) => {
 };
 
 // Função para verificar se há conflitos de viagens para um veículo específico no Firestore
-export const checkVehicleTravelConflict = async (vehicleId, dataIda, horarioIda, dataRetorno, horarioRetorno) => {
+export const checkVehicleTravelConflict = async (vehicleId, dataIda, horarioIda, dataRetorno, horarioRetorno, somenteIda) => {
   try {
     const userId = auth.currentUser.uid;
     const userDocRef = doc(db, 'usuarios', userId);
@@ -69,7 +69,7 @@ export const checkVehicleTravelConflict = async (vehicleId, dataIda, horarioIda,
     const q = query(travelCollectionRef, where('veiculoId', '==', vehicleId));
     const snapshot = await getDocs(q);
     const newTravelStart = new Date(`${dataIda}T${horarioIda}`);
-    const newTravelEnd = new Date(`${dataRetorno}T${horarioRetorno}`);
+    const newTravelEnd = somenteIda ? newTravelStart : new Date(`${dataRetorno}T${horarioRetorno}`);
 
     for (const doc of snapshot.docs) {
       const travel = doc.data();
@@ -80,7 +80,7 @@ export const checkVehicleTravelConflict = async (vehicleId, dataIda, horarioIda,
       }
 
       const travelStart = new Date(`${travel.dataIda}T${travel.horarioIda}`);
-      const travelEnd = new Date(`${travel.dataRetorno}T${travel.horarioRetorno}`);
+      const travelEnd = travel.somenteIda ? travelStart : new Date(`${travel.dataRetorno}T${travel.horarioRetorno}`);
 
       // Verifica se há sobreposição entre as novas datas/horários da viagem e as viagens existentes
       if ((newTravelStart >= travelStart && newTravelStart <= travelEnd) ||
