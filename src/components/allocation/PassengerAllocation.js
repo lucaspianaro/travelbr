@@ -210,8 +210,8 @@ const PassengerAllocation = () => {
       error = 'CPF do pagador é obrigatório e deve ser válido.';
     } else if (name === 'metodoPagamento' && !value.trim()) {
       error = 'Método de pagamento é obrigatório.';
-    } else if (name === 'valorTotal' && (!value.trim() || parseFloat(value) <= 0)) {
-      error = 'Valor total é obrigatório e deve ser maior que 0.';
+    } else if (name === 'valorTotal' && parseFloat(value) < 0) {
+      error = 'Valor total não pode ser negativo.';
     } else if (name === 'informacoesAdicionais' && value.length > 255) {
       error = 'Informações adicionais de pagamento devem ter no máximo 255 caracteres.';
     }
@@ -228,17 +228,19 @@ const PassengerAllocation = () => {
         reservation.passengerId &&
         Object.keys(errors).every((key) => !errors[key])
     );
-
+  
     const detalhesPagamentoValid =
       detalhesPagamento.nomePagador &&
       detalhesPagamento.cpfPagador &&
       detalhesPagamento.metodoPagamento &&
       detalhesPagamento.valorTotal &&
-      detalhesPagamento.valorPago &&
       Object.keys(errors).every((key) => !errors[key]);
-
-    return passengerDetailsValid && detalhesPagamentoValid && !errors.paymentRecord;
+  
+    const paymentRecordsValid = !errors.paymentRecord; // Ensure no payment record error
+  
+    return passengerDetailsValid && detalhesPagamentoValid && paymentRecordsValid;
   };
+  
 
   const checkDuplicatePassengerInTrip = (
     newPassengerId,
@@ -311,7 +313,7 @@ const PassengerAllocation = () => {
   const handlePaymentDetailChange = (name, value) => {
     // Convert ',' to '.' for calculations
     const numericValue = parseFloat(value.replace(',', '.'));
-    
+
     setPaymentDetails((prevDetails) => {
       const updatedDetails = {
         ...prevDetails,
