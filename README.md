@@ -38,6 +38,14 @@ O TravelBR é uma aplicação web desenvolvida para gerenciar viagens, pedidos e
   - **utils/**: Servicos e componentes para utilização genérica.
   - **firebaseConfig.js**: Configurações do Firebase.
 
+## ScreenShots
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
+
 ## Pré-requisitos
 
 - Node.js v20.12.2
@@ -126,4 +134,3 @@ Para fazer o deploy da aplicação no Firebase Hosting, siga as etapas abaixo:
 ## Contribuição
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
-```
