@@ -211,6 +211,17 @@ function TravelDetails() {
     }
   };
 
+  const handleOpenGoogleMaps = () => {
+    if (travel && travel.origem && travel.destino) {
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(travel.origem)}&destination=${encodeURIComponent(travel.destino)}`;
+      window.open(url, '_blank');
+    } else {
+      setSnackbarMessage('Origem e destino são necessários para gerar a rota.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -246,6 +257,16 @@ function TravelDetails() {
                 <>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Chip label={travel.status} sx={{ backgroundColor: getStatusColor(travel.status), color: 'white' }} />
+                  <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={handleOpenGoogleMaps}
+                      startIcon={<LocationOnIcon />}
+                    >
+                      Ver Rota no Google Maps
+                    </Button>
+                  </Box>
                     {travel.identificador && (
                       <Chip label={`Identificador: ${travel.identificador}`} color="primary" />
                     )}
