@@ -6,7 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { formatCPF } from '../../utils/utils';
+import { formatCPF, formatDate } from '../../utils/utils';
 
 const ReservationCard = ({ reservation, passengers, travel, onEditReservation, onCancelReservation, onCardClick }) => {
   // Encontrar o passageiro correspondente à reserva
@@ -77,6 +77,9 @@ const ReservationCard = ({ reservation, passengers, travel, onEditReservation, o
                 </Typography>
                 <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
                   Destino: {travel?.destino || 'Não informado'}
+                </Typography>
+                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                  Data de Ida: {travel?.dataIda ? formatDate(travel.dataIda) : 'Não informada'}
                 </Typography>
               </Box>
             </Box>

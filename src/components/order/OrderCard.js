@@ -6,6 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import { formatDate } from '../../utils/utils';
 
 const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) => {
   // Detalhes de pagamento do pedido
@@ -75,6 +76,9 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
                 </Typography>
                 <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
                   Destino: {travel?.destino || 'Não informado'}
+                </Typography>
+                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                  Data de Ida: {travel?.dataIda ? formatDate(travel.dataIda) : 'Não informada'}
                 </Typography>
               </Box>
             </Box>

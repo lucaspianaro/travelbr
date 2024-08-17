@@ -7,7 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Layout from '../common/Layout';
-import PassengerList from './PassengerCard';
+import PassengerCard from './PassengerCard';
 import PassengerForm from './PassengerForm';
 import { getAllPassengers, deletePassengers } from '../../services/PassengerService';
 
@@ -16,7 +16,6 @@ const PassengerComponent = () => {
   const [openFormDialog, setOpenFormDialog] = useState(false);
   const [editedPassenger, setEditedPassenger] = useState({});
   const [errors, setErrors] = useState({});
-  const [selectedPassageiros, setSelectedPassageiros] = useState(new Set());
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -35,9 +34,16 @@ const PassengerComponent = () => {
 
   const fetchPassageiros = useCallback(async () => {
     setLoading(true);
-    const fetchedPassageiros = await getAllPassengers();
-    setPassageiros(fetchedPassageiros);
-    setLoading(false);
+    try {
+      const fetchedPassageiros = await getAllPassengers();
+      setPassageiros(fetchedPassageiros);
+    } catch (error) {
+      setSnackbarMessage('Erro ao buscar passageiros: ' + error.message);
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -93,10 +99,12 @@ const PassengerComponent = () => {
     try {
       await deletePassengers([id]);
       setSnackbarMessage('Passageiro excluído com sucesso.');
+      setSnackbarSeverity('success');
       setOpenSnackbar(true);
       fetchPassageiros();
     } catch (error) {
-      setSnackbarMessage('Erro ao excluir passageiro.');
+      setSnackbarMessage('Erro ao excluir passageiro: ' + error.message);
+      setSnackbarSeverity('error');
       setOpenSnackbar(true);
     } finally {
       setDeleting(false);
@@ -150,7 +158,7 @@ const PassengerComponent = () => {
             InputProps={{
               endAdornment: searchTerm ? clearButton(() => setSearchTerm('')) : null
             }}
-            autoComplete="off" // Desativa o preenchimento automático
+            autoComplete="off"
           />
           <TextField
             label="Nascidos a partir de"
@@ -162,7 +170,7 @@ const PassengerComponent = () => {
             InputProps={{
               endAdornment: startDate ? clearButton(() => setStartDate('')) : null
             }}
-            autoComplete="off" // Desativa o preenchimento automático
+            autoComplete="off"
           />
           <TextField
             label="Nascidos até"
@@ -174,7 +182,7 @@ const PassengerComponent = () => {
             InputProps={{
               endAdornment: endDate ? clearButton(() => setEndDate('')) : null
             }}
-            autoComplete="off" // Desativa o preenchimento automático
+            autoComplete="off"
           />
         </Box>
       </Collapse>
@@ -184,12 +192,10 @@ const PassengerComponent = () => {
         </Box>
       ) : (
         <>
-          <PassengerList
+          <PassengerCard
             passengers={currentPassengers}
             handleDeletePassenger={handleDeletePassenger}
-            selectedPassageiros={selectedPassageiros}
             startEditing={startEditing}
-            deleting={deleting}
           />
           <Pagination
             count={Math.ceil(filteredPassageiros.length / passengersPerPage)}
@@ -235,6 +241,6 @@ const PassengerComponent = () => {
       </Dialog>
     </Layout>
   );
-}
+};
 
 export default PassengerComponent;

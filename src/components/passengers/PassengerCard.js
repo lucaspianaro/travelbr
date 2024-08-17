@@ -53,7 +53,7 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
       setSnackbarMessage('Passageiro excluído com sucesso!');
       setSnackbarSeverity('success');
     } catch (error) {
-      console.error("Error deleting passenger: ", error);
+      console.error("Erro ao excluir passageiro: ", error);
       setSnackbarMessage('Erro ao excluir passageiro: ' + error.message);
       setSnackbarSeverity('error');
     } finally {
@@ -73,9 +73,14 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
     const fetchPassengers = async () => {
       try {
         const fetchedPassengers = await getAllPassengers();
-        setPassengers(fetchedPassengers);
+        if (setPassengers) {
+          setPassengers(fetchedPassengers);
+        }
       } catch (error) {
         console.error('Erro ao buscar passageiros:', error);
+        setSnackbarMessage('Erro ao buscar passageiros: ' + error.message);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
       }
     };
     fetchPassengers();

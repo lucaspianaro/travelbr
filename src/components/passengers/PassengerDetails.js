@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, CircularProgress, Pagination, Modal
+  Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, CircularProgress, Pagination, Modal, TextField, InputAdornment, IconButton, Snackbar, Alert
 } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import PersonIcon from '@mui/icons-material/Person';
@@ -9,20 +9,33 @@ import HomeIcon from '@mui/icons-material/Home';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import { formatCPF, formatDate, formatTelefone } from '../../utils/utils';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useNavigate } from 'react-router-dom';
+import { formatCPF, formatDate, formatTelefone, validateMasterPassword } from '../../utils/utils';
 import { getPassengerReservations } from '../../services/PassengerService';
-import { getTravelById } from '../../services/TravelService';
+import { getTravelById, getOrderById, cancelReservation } from '../../services/TravelService';
 import ReservationCard from '../reservation/ReservationCard';
 import ReservationDetails from '../reservation/ReservationDetails';
-import { getOrderById } from '../../services/TravelService';
 
-const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onCancelReservation }) => {
+const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReservationCancel }) => {
   const [reservas, setReservas] = useState([]);
   const [orders, setOrders] = useState({});
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReservationId, setCancelReservationId] = useState(null);
+  const [cancelOrderId, setCancelOrderId] = useState(null);
+  const [travelIdState, setTravelIdState] = useState(null);
+  const [masterPassword, setMasterPassword] = useState('');
+  const [showMasterPassword, setShowMasterPassword] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const navigate = useNavigate();
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -47,20 +60,27 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onCance
             }
 
             if (!groupedOrders[reserva.orderId].detalhesPagamento) {
-              try {
-                const orderDetails = await getOrderById(reserva.travelId, reserva.orderId);
-                groupedOrders[reserva.orderId].detalhesPagamento = orderDetails.detalhesPagamento;
-              } catch (error) {
-                console.error("Erro ao buscar detalhes do pedido:", error);
-              }
+              const orderDetails = await getOrderById(reserva.travelId, reserva.orderId);
+              groupedOrders[reserva.orderId].detalhesPagamento = orderDetails.detalhesPagamento;
             }
           }));
 
-          // Adicionar detalhes de pagamento e pagador às reservas
-          const reservasComDetalhes = fetchedReservations.map(reserva => ({
+          // Adicionar detalhes de pagamento às reservas
+          let reservasComDetalhes = fetchedReservations.map(reserva => ({
             ...reserva,
-            detalhesPagamento: groupedOrders[reserva.orderId]?.detalhesPagamento || {}
+            detalhesPagamento: groupedOrders[reserva.orderId]?.detalhesPagamento || {},
+            travel: groupedOrders[reserva.orderId]?.travel
           }));
+
+          // Ordenar as reservas
+          reservasComDetalhes = reservasComDetalhes.sort((a, b) => {
+            if (a.status === 'Cancelada' && b.status !== 'Cancelada') return 1;
+            if (a.status !== 'Cancelada' && b.status === 'Cancelada') return -1;
+
+            const dateA = new Date(a.travel?.dataIda);
+            const dateB = new Date(b.travel?.dataIda);
+            return dateA - dateB;
+          });
 
           setOrders(groupedOrders);
           setReservas(reservasComDetalhes);
@@ -88,9 +108,70 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onCance
     setSelectedReservation(null);
   };
 
+  const handleEditReservation = (reservation, orderId) => {
+    const passengerDetails = { ...passenger };
+    navigate(`/viagens/${reservation.travelId}/alocar-passageiros`, { 
+      state: { 
+        selectedSeats: [{ number: reservation.numeroAssento }],
+        editingReservation: { ...reservation, orderId, passenger: passengerDetails }, 
+        editingOrderId: orderId 
+      } 
+    });
+  };
+
+  const handleCancelReservation = (reservationId, orderId, travelId) => {
+    setCancelReservationId(reservationId);
+    setCancelOrderId(orderId);
+    setTravelIdState(travelId);
+    setCancelDialogOpen(true);
+  };
+
+  const confirmCancelReservation = async () => {
+    setCancelLoading(true);
+
+    try {
+      await validateMasterPassword(masterPassword);
+
+      if (cancelReservationId) {
+        await cancelReservation(travelIdState, cancelOrderId, cancelReservationId);
+
+        const updatedReservations = reservas.map(r =>
+          r.id === cancelReservationId ? { ...r, status: 'Cancelada' } : r
+        );
+        setReservas(updatedReservations);
+
+        setSnackbarMessage('Reserva cancelada com sucesso.');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+
+        if (onReservationCancel) {
+          onReservationCancel();
+        }
+      }
+
+      setCancelDialogOpen(false);
+      setMasterPassword(''); // Limpa o campo de senha master
+    } catch (err) {
+      console.error('Falha ao cancelar a reserva:', err);
+
+      setSnackbarMessage(err.message || 'Falha ao cancelar a reserva.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = reservas.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleClickShowMasterPassword = () => setShowMasterPassword(!showMasterPassword);
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+    setSnackbarMessage('');
+  };
 
   return (
     <Dialog
@@ -223,8 +304,8 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onCance
                     reservation={reserva}
                     passengers={[passenger]}  // Passando o passageiro atual
                     travel={orders[reserva.orderId]?.travel}
-                    onEditReservation={onEditReservation}
-                    onCancelReservation={onCancelReservation}
+                    onEditReservation={handleEditReservation}
+                    onCancelReservation={handleCancelReservation}
                     onCardClick={() => handleOpenModal(reserva)}  // Usando a função handleOpenModal
                   />
                 ))}
@@ -248,6 +329,60 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onCance
       <DialogActions>
         <Button onClick={onClose} variant='contained' color="primary">Fechar</Button>
       </DialogActions>
+
+      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
+        <DialogTitle>Confirmar Cancelamento</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.
+          </Typography>
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Senha Master"
+            type={showMasterPassword ? 'text' : 'password'}
+            value={masterPassword}
+            onChange={(e) => setMasterPassword(e.target.value)}
+            InputProps={{
+              autoComplete: 'new-password',
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle master password visibility"
+                    onClick={handleClickShowMasterPassword}
+                    edge="end"
+                  >
+                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            autoComplete="off"
+            disabled={cancelLoading}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
+            Não
+          </Button>
+          <Button 
+            onClick={confirmCancelReservation} 
+            variant="contained" 
+            color="confirmar" 
+            autoFocus
+            disabled={!masterPassword || cancelLoading}
+            sx={{ color: 'white' }} 
+          >
+            {cancelLoading ? <CircularProgress size={24} /> : 'Cancelar reserva'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
       <Modal
         open={modalOpen}
