@@ -139,7 +139,7 @@ const ReportComponent = () => {
 
         {/* Gráfico de reservas por mês */}
         <Paper elevation={3} sx={{ p: 2, mb: 3 }} className="chart-container">
-          <Typography variant="h6" gutterBottom>Reservas por Mês</Typography>
+          <Typography variant="h6" gutterBottom>Reservas feitas em cada Mês</Typography>
           <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
             <BarChart data={data.monthlyReservations}>
               <CartesianGrid strokeDasharray="3 3" />

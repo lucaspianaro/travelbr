@@ -1,54 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, Avatar,
-  List, ListItem, ListItemText, CircularProgress, Pagination
+  Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, CircularProgress, Pagination, Modal
 } from '@mui/material';
+import Avatar from '@mui/material/Avatar';
 import PersonIcon from '@mui/icons-material/Person';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import HomeIcon from '@mui/icons-material/Home';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { formatCPF, formatDate, formatTelefone } from '../../utils/utils';
 import { getPassengerReservations } from '../../services/PassengerService';
 import { getTravelById } from '../../services/TravelService';
+import ReservationCard from '../reservation/ReservationCard';
+import ReservationDetails from '../reservation/ReservationDetails';
+import { getOrderById } from '../../services/TravelService';
 
-// Componente que exibe os detalhes de um passageiro, incluindo suas reservas
-const PassengerDetails = ({ passenger, open, onClose }) => {
+const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onCancelReservation }) => {
   const [reservas, setReservas] = useState([]);
+  const [orders, setOrders] = useState({});
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
   const itemsPerPage = 5;
 
-  // Efeito que busca as reservas do passageiro quando o diálogo é aberto
   useEffect(() => {
     if (open && passenger) {
       const fetchReservations = async () => {
         setLoading(true);
         try {
           const fetchedReservations = await getPassengerReservations(passenger.id);
-          const reservationsWithTravelDetails = await Promise.all(
-            fetchedReservations.map(async (reserva) => {
+
+          const groupedOrders = {};
+
+          await Promise.all(fetchedReservations.map(async (reserva) => {
+            if (!groupedOrders[reserva.orderId]) {
+              groupedOrders[reserva.orderId] = { reservations: [], travel: null, detalhesPagamento: null };
+            }
+
+            groupedOrders[reserva.orderId].reservations.push(reserva);
+
+            if (!groupedOrders[reserva.orderId].travel) {
+              const travel = await getTravelById(reserva.travelId);
+              groupedOrders[reserva.orderId].travel = travel;
+            }
+
+            if (!groupedOrders[reserva.orderId].detalhesPagamento) {
               try {
-                const travel = await getTravelById(reserva.travelId);
-                return {
-                  ...reserva,
-                  travel
-                };
+                const orderDetails = await getOrderById(reserva.travelId, reserva.orderId);
+                groupedOrders[reserva.orderId].detalhesPagamento = orderDetails.detalhesPagamento;
               } catch (error) {
-                console.error(`Erro ao buscar detalhes da viagem para travelId ${reserva.travelId}:`, error);
-                return {
-                  ...reserva,
-                  travel: null
-                };
+                console.error("Erro ao buscar detalhes do pedido:", error);
               }
-            })
-          );
-          setReservas(reservationsWithTravelDetails);
+            }
+          }));
+
+          // Adicionar detalhes de pagamento e pagador às reservas
+          const reservasComDetalhes = fetchedReservations.map(reserva => ({
+            ...reserva,
+            detalhesPagamento: groupedOrders[reserva.orderId]?.detalhesPagamento || {}
+          }));
+
+          setOrders(groupedOrders);
+          setReservas(reservasComDetalhes);
         } catch (error) {
-          console.error('Erro ao buscar reservas do passageiro:', error);
+          console.error('Erro ao buscar reservas e pedidos do passageiro:', error);
         } finally {
           setLoading(false);
         }
@@ -57,9 +74,18 @@ const PassengerDetails = ({ passenger, open, onClose }) => {
     }
   }, [open, passenger]);
 
-  // Função para mudar a página da paginação
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
+  };
+
+  const handleOpenModal = (reservation) => {
+    setSelectedReservation(reservation);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedReservation(null);
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -89,31 +115,6 @@ const PassengerDetails = ({ passenger, open, onClose }) => {
                 <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
                   <strong>CPF:</strong> {passenger.cpf ? formatCPF(passenger.cpf) : 'Não informado'}
                 </Typography>
-                {passenger.menorDeIdade && passenger.estrangeiro ? (
-                  <>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                      <strong>Passaporte:</strong> {passenger.passaporte}
-                    </Typography>
-                  </>
-                ) : passenger.menorDeIdade ? (
-                  <>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                      <strong>RG ou Certidão de Nascimento:</strong> {passenger.rg}
-                    </Typography>
-                  </>
-                ) : passenger.estrangeiro ? (
-                  <>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                      <strong>Passaporte:</strong> {passenger.passaporte}
-                    </Typography>
-                  </>
-                ) : (
-                  <>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                      <strong>RG:</strong> {passenger.rg}
-                    </Typography>
-                  </>
-                )}
                 <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
                   <strong>Data de Nascimento:</strong> {formatDate(passenger.dataNascimento)}
                 </Typography>
@@ -216,19 +217,17 @@ const PassengerDetails = ({ passenger, open, onClose }) => {
                     <strong>Reservas:</strong>
                   </Typography>
                 </Box>
-                <List>
-                  {currentItems.map((reserva, index) => (
-                    <ListItem key={index} sx={{ backgroundColor: reserva.status === 'Cancelada' ? '#ffebee' : '#e8f5e9', borderRadius: 1, mb: 1 }}>
-                      <Avatar sx={{ bgcolor: reserva.status === 'Cancelada' ? '#f44336' : '#4caf50', mr: 2 }}>
-                        {reserva.status === 'Cancelada' ? <CancelIcon /> : <CheckCircleIcon />}
-                      </Avatar>
-                      <ListItemText
-                        primary={`${reserva.travel ? `${reserva.travel.identificador} - ${reserva.travel.origem} -> ${reserva.travel.destino}` : 'Informações da viagem não disponíveis'}`}
-                        secondary={`Data: ${reserva.travel ? formatDate(reserva.travel.dataIda) : 'N/A'} - Assento: ${reserva.numeroAssento} ${reserva.status === 'Cancelada' ? '(Cancelada)' : ''}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
+                {currentItems.map((reserva, index) => (
+                  <ReservationCard
+                    key={index}
+                    reservation={reserva}
+                    passengers={[passenger]}  // Passando o passageiro atual
+                    travel={orders[reserva.orderId]?.travel}
+                    onEditReservation={onEditReservation}
+                    onCancelReservation={onCancelReservation}
+                    onCardClick={() => handleOpenModal(reserva)}  // Usando a função handleOpenModal
+                  />
+                ))}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                   <Pagination
                     count={Math.ceil(reservas.length / itemsPerPage)}
@@ -249,6 +248,40 @@ const PassengerDetails = ({ passenger, open, onClose }) => {
       <DialogActions>
         <Button onClick={onClose} variant='contained' color="primary">Fechar</Button>
       </DialogActions>
+
+      <Modal
+        open={modalOpen}
+        onClose={handleCloseModal}
+      >
+        <Box sx={{ 
+          position: 'absolute', 
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(-50%, -50%)', 
+          width: { xs: '90%', sm: '80%', md: '60%' }, 
+          bgcolor: 'background.paper', 
+          boxShadow: 24, 
+          p: 4, 
+          maxHeight: '90vh', 
+          overflowY: 'auto',
+          borderRadius: 2,
+        }}>
+          <Typography variant="h5" gutterBottom>
+            Detalhes da Reserva
+          </Typography>
+          {selectedReservation && (
+            <ReservationDetails 
+              reservation={selectedReservation}
+              passengers={[passenger]}
+              travel={orders[selectedReservation.orderId]?.travel}
+              detalhesPagamento={selectedReservation.detalhesPagamento}  // Passando detalhes de pagamento
+            />
+          )}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            <Button onClick={handleCloseModal} variant="contained" color="primary">Fechar</Button>
+          </Box>
+        </Box>
+      </Modal>
     </Dialog>
   );
 };

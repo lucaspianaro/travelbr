@@ -120,22 +120,20 @@ const checkAndUpdateAdultStatus = async (passenger) => {
   return { ...passenger, menorDeIdade };
 };
 
-// Obtém as reservas de um passageiro específico
 export const getPassengerReservations = async (passengerId) => {
   try {
-    const userId = auth.currentUser.uid;
     const userDocRef = getUserDocRef();
     const travelCollectionRef = collection(userDocRef, 'viagens');
     const travelsSnapshot = await getDocs(travelCollectionRef);
     const reservations = [];
 
     for (const travelDoc of travelsSnapshot.docs) {
-      const travelData = travelDoc.data();
+      const travelId = travelDoc.id;
       const ordersCollectionRef = collection(travelDoc.ref, 'pedidos');
       const ordersSnapshot = await getDocs(ordersCollectionRef);
 
       for (const orderDoc of ordersSnapshot.docs) {
-        const orderData = orderDoc.data();
+        const orderId = orderDoc.id;
         const reservationCollectionRef = collection(orderDoc.ref, 'reservas');
         const reservationSnapshot = await getDocs(reservationCollectionRef);
 
@@ -145,8 +143,8 @@ export const getPassengerReservations = async (passengerId) => {
             reservations.push({
               id: reservationDoc.id,
               ...reservationData,
-              travelId: travelDoc.id,
-              orderId: orderDoc.id,
+              travelId,
+              orderId,
             });
           }
         });

@@ -340,8 +340,13 @@ export const getReservedSeats = async (travelId) => {
 
 // Função para obter um pedido pelo ID
 export const getOrderById = async (travelId, orderId) => {
+  if (!travelId || !orderId) {
+    throw new Error('travelId ou orderId não fornecido');
+  }
+
   const userId = auth.currentUser.uid;
   const orderDocRef = doc(db, 'usuarios', userId, 'viagens', travelId, 'pedidos', orderId);
+  
   const orderSnapshot = await getDoc(orderDocRef);
   if (orderSnapshot.exists()) {
     const order = { id: orderSnapshot.id, ...orderSnapshot.data() };
