@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Grid, CircularProgress, Box, Typography, IconButton, TextField, Button, Snackbar, Alert, Pagination,
-  InputAdornment, FormControl, InputLabel, Select, MenuItem, Dialog, DialogActions, DialogContent,
-  DialogContentText, DialogTitle, Modal, Card, Fade, Tabs, Tab
-} from '@mui/material';
+import { Grid, CircularProgress, Box, Typography, IconButton, TextField, Button, Snackbar, Alert, Pagination, InputAdornment, FormControl, InputLabel, Select, MenuItem, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Modal, Card, Fade, Tabs, Tab } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearIcon from '@mui/icons-material/Clear';
 import Visibility from '@mui/icons-material/Visibility';
@@ -16,7 +12,8 @@ import OrderCard from '../order/OrderCard';
 import ReservationCard from '../reservation/ReservationCard';
 import OrderDetails from '../order/OrderDetails';
 import ReservationDetails from '../reservation/ReservationDetails';
-import { getReservationsByTravelId, cancelOrder, cancelReservation, getTravelById } from '../../services/TravelService';
+import { getTravelById } from '../../services/TravelService';
+import { getReservationsByTravelId, cancelOrder, cancelReservation } from '../../services/OrderService';
 import { getAllPassengers } from '../../services/PassengerService';
 import { exportToPDF as exportReservationsToPDF } from '../../utils/ReservationsPDF';
 import { exportOrdersToPDF } from '../../utils/OrdersPDF';
@@ -52,11 +49,12 @@ const TravelOrderReservationPage = () => {
       try {
         const travelDetails = await getTravelById(travelId);
         setTravel(travelDetails);
-
+  
         const fetchedReservations = await getReservationsByTravelId(travelId);
         const fetchedPassengers = await getAllPassengers();
         setPassengers(fetchedPassengers);
-
+  
+        // Group orders by orderId using the status from the database
         const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
           const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
           if (orderIndex !== -1) {
@@ -66,13 +64,13 @@ const TravelOrderReservationPage = () => {
               id: reservation.orderId,
               reservations: [reservation],
               detalhesPagamento: reservation.detalhesPagamento,
-              status: reservation.status === 'Cancelada' ? 'Cancelada' : reservation.detalhesPagamento?.valorRestante > 0 ? 'Pagamento pendente' : 'Pago',
+              status: reservation.orderStatus, // Utilize o status diretamente do banco
               travelId: reservation.travelId,
             });
           }
           return acc;
         }, []);
-
+  
         setReservations(fetchedReservations);
         setOrders(groupedOrders);
         setFilteredData(tabIndex === 0 ? fetchedReservations : groupedOrders);
@@ -83,10 +81,11 @@ const TravelOrderReservationPage = () => {
         setLoading(false);
       }
     };
-
+  
     fetchOrdersAndReservations();
   }, [travelId, tabIndex]);
 
+  
   useEffect(() => {
     const lowercasedFilter = searchTerm.toLowerCase();
 
@@ -207,7 +206,7 @@ const TravelOrderReservationPage = () => {
             id: reservation.orderId,
             reservations: [reservation],
             detalhesPagamento: reservation.detalhesPagamento,
-            status: reservation.status === 'Cancelada' ? 'Cancelada' : reservation.detalhesPagamento?.valorRestante > 0 ? 'Pagamento pendente' : 'Pago',
+            status: reservation.orderStatus, // Utilize o status diretamente do banco
             travelId: reservation.travelId,
           });
         }

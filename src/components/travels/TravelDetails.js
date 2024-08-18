@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Card, CardContent, Collapse, Fade, Divider, Chip, Dialog, DialogContent, DialogActions, DialogTitle, Tooltip, TextField, InputAdornment
-} from '@mui/material';
+import { Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Card, CardContent, Collapse, Fade, Divider, Chip, Dialog, DialogContent, DialogActions, DialogTitle, Tooltip, TextField, InputAdornment } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import ListIcon from '@mui/icons-material/List';
@@ -15,13 +13,14 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatReclineNormal';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { getTravelById, updateTravel, getAvailableSeats, getReservedSeats, cancelTravel, deleteTravel } from '../../services/TravelService';
-import { addVehicle } from '../../services/VehicleService';
-import { validateMasterPassword, formatDate } from '../../utils/utils';
 import Layout from '../common/Layout';
 import TravelForm from './TravelForm';
 import SeatSelection from './SeatSelection';
 import VehicleForm from '../vehicles/VehicleForm';
+import { getTravelById, updateTravel, cancelTravel, deleteTravel } from '../../services/TravelService';
+import { getAvailableSeats, getReservedSeats } from '../../services/OrderService';
+import { addVehicle } from '../../services/VehicleService';
+import { validateMasterPassword, formatDate } from '../../utils/utils';
 import { useDrawer } from '../../contexts/DrawerContext';
 
 const drawerWidth = 240;

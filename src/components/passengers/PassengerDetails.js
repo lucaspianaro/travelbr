@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, CircularProgress, Pagination, Modal, TextField, InputAdornment, IconButton, Snackbar, Alert
-} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, CircularProgress, Pagination, Modal, TextField, InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import PersonIcon from '@mui/icons-material/Person';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
@@ -11,12 +10,12 @@ import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { useNavigate } from 'react-router-dom';
-import { formatCPF, formatDate, formatTelefone, validateMasterPassword } from '../../utils/utils';
-import { getPassengerReservations } from '../../services/PassengerService';
-import { getTravelById, getOrderById, cancelReservation } from '../../services/TravelService';
 import ReservationCard from '../reservation/ReservationCard';
 import ReservationDetails from '../reservation/ReservationDetails';
+import { formatCPF, formatDate, formatTelefone, validateMasterPassword } from '../../utils/utils';
+import { getPassengerReservations } from '../../services/PassengerService';
+import { getTravelById } from '../../services/TravelService';
+import { getOrderById, cancelReservation } from '../../services/OrderService';
 
 const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReservationCancel }) => {
   const [reservas, setReservas] = useState([]);

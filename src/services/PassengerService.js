@@ -1,7 +1,7 @@
 import { db } from '../firebaseConfig';
 import { collection, doc, addDoc, getDocs, updateDoc, query, orderBy, where, writeBatch, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { cancelReservation } from './TravelService';
+import { cancelReservation } from './OrderService';
 
 // Obtém a instância de autenticação do Firebase
 const auth = getAuth();

@@ -1,4 +1,5 @@
-import { getAllTravels, getReservationsByTravelId } from './TravelService';
+import { getAllTravels } from './TravelService';
+import { getReservationsByTravelId } from './OrderService';
 
 // Função principal para buscar os dados dos relatórios de viagens
 export const getTravelReportData = async (year) => {

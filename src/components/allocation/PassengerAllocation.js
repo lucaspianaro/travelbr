@@ -1,19 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Fade,
-  IconButton,
-  Snackbar,
-  Alert,
-  Button,
-  Dialog,
-  DialogContent,
-  Divider,
-  CircularProgress,
-} from '@mui/material';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Box, Card, CardContent, Typography, Fade, IconButton, Snackbar, Alert, Button, Dialog, DialogContent, Divider, CircularProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Layout from '../common/Layout';
 import PassengerSelection from './PassengerSelection';
@@ -21,18 +8,8 @@ import PaymentDetailsForm from './PaymentDetailsForm';
 import PaymentRecords from './PaymentRecords';
 import PassengerForm from '../passengers/PassengerForm';
 import SeatChangeDialog from './SeatChangeDialog';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import {
-  addOrder,
-  addReservation,
-  getReservationsByTravelId,
-  updateReservation,
-  updateOrder,
-  getOrderById,
-  getAvailableSeats,
-  getReservedSeats,
-  getTravelById,
-} from '../../services/TravelService';
+import { getTravelById } from '../../services/TravelService';
+import { addOrder, addReservation, getReservationsByTravelId, updateReservation, updateOrder, getOrderById, getAvailableSeats, getReservedSeats } from '../../services/OrderService';
 import { getAllPassengers } from '../../services/PassengerService';
 import { formatCPF, unformatCPF } from '../../utils/utils';
 

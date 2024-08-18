@@ -1,44 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  TextField,
-  Snackbar,
-  Alert,
-  Pagination,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Modal,
-  IconButton,
-  Grid,
-  Button,
-  Card,
-  CardContent,
-} from '@mui/material';
+import { Box, Typography, TextField, Snackbar, Alert, Pagination, InputAdornment, FormControl, InputLabel, Select, MenuItem, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Modal, IconButton, Grid, Button, Card, CardContent } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import {
-  getAllReservations,
-  getAllPassengers,
-  getTravelById,
-} from '../../services/PaymentService';
-import { cancelOrder, cancelReservation } from '../../services/TravelService';
-import { validateMasterPassword } from '../../utils/utils';
 import OrderCard from '../order/OrderCard';
 import OrderDetails from '../order/OrderDetails';
+import { getAllReservations, getAllPassengers, getTravelById } from '../../services/PaymentService';
+import { cancelOrder, cancelReservation } from '../../services/OrderService';
+import { validateMasterPassword } from '../../utils/utils';
 
 const Receivables = () => {
   const navigate = useNavigate();

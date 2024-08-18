@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Typography, IconButton, Box, Tooltip, Button, Grid, Card, CardContent, CardActions, Divider, Chip
-} from '@mui/material';
+import { Typography, IconButton, Box, Tooltip, Button, Grid, Card, CardContent, CardActions, Divider, Chip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,7 +10,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatReclineNormal';
-import { getReservedSeats } from '../../services/TravelService';
+import { getReservedSeats } from '../../services/OrderService';
 import { formatDate } from '../../utils/utils';
 
 const statusStyles = {

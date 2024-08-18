@@ -9,30 +9,29 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatDate } from '../../utils/utils';
 
 const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) => {
-  // Detalhes de pagamento do pedido
   const detalhesPagamento = order.detalhesPagamento || {};
   const valorTotal = Number(detalhesPagamento.valorTotal || 0);
   const valorPago = Number(detalhesPagamento.valorPago || 0);
   const valorRestante = valorTotal - valorPago;
 
-  // Define o rótulo para assentos (singular ou plural)
-  const seatLabel = order.reservations && order.reservations.length === 1 ? 'Assento' : 'Assentos';
-  
-  // Ordena e junta os números dos assentos
+  const seatLabel = order.reservations?.length === 1 ? 'Assento' : 'Assentos';
   const sortedSeats = order.reservations ? order.reservations.map(reservation => reservation.numeroAssento).sort((a, b) => a - b).join(', ') : 'Nenhum assento';
 
-  // Define a cor do status para exibição visual
-  const statusColor = order.status === 'Pago' ? 'green' : order.status === 'Cancelada' ? 'red' : 'gold';
+  // Status é diretamente do banco de dados (não calcular manualmente)
+  const orderStatus = order.status;
+
+  // Define a cor do status
+  const statusColor = orderStatus === 'Pago' ? 'green' : orderStatus === 'Cancelada' ? 'red' : 'gold';
 
   return (
     <Card
       onClick={() => onCardClick(order)}
       sx={{
         cursor: 'pointer',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', // Sombra padrão aumentada
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
         position: 'relative',
         transition: 'transform 0.2s, box-shadow 0.2s',
-        '&:hover': { transform: 'scale(1.02)', boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)' }, // Sombra aumentada no hover
+        '&:hover': { transform: 'scale(1.02)', boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)' },
         mb: 1,
         borderRadius: 2,
       }}
@@ -40,7 +39,6 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
       <CardContent sx={{ padding: '8px !important' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ width: '75%' }}>
-            {/* Exibe detalhes do pedido */}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <Avatar sx={{ bgcolor: '#191ad2', mr: 2 }}>
                 <AttachMoneyIcon />
@@ -64,7 +62,6 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
               {seatLabel}: {sortedSeats}
             </Typography>
-            {/* Exibe detalhes da viagem associada ao pedido */}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <LocationOnIcon sx={{ mr: 1 }} />
               <Box>
@@ -83,12 +80,11 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
               </Box>
             </Box>
           </Box>
-          {/* Ícones de status e ações */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip title={`Status: ${order.status}`}>
-              {order.status === 'Pago' ? (
+            <Tooltip title={`Status: ${orderStatus}`}>
+              {orderStatus === 'Pago' ? (
                 <CheckCircleIcon sx={{ color: statusColor }} />
-              ) : order.status === 'Cancelada' ? (
+              ) : orderStatus === 'Cancelada' ? (
                 <CancelIcon sx={{ color: statusColor }} />
               ) : (
                 <ErrorIcon sx={{ color: statusColor }} />
@@ -99,7 +95,7 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
                 <EditIcon />
               </IconButton>
             </Tooltip>
-            {order.status !== 'Cancelada' && (
+            {orderStatus !== 'Cancelada' && (
               <Tooltip title="Cancelar">
                 <IconButton edge="end" aria-label="delete" onClick={(e) => { e.stopPropagation(); onCancelOrder(order.id, order.travelId); }}>
                   <CancelIcon />

@@ -1,36 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  TextField,
-  Button,
-  Box,
-  Typography,
-  Grid,
-  Snackbar,
-  Alert,
-  Dialog,
-  DialogContent,
-  IconButton,
-  InputAdornment,
-  Tooltip,
-  CircularProgress,
-  Checkbox,
-  FormControlLabel,
-} from '@mui/material';
+import { TextField, Button, Box, Typography, Grid, Snackbar, Alert, Dialog, DialogContent, IconButton, InputAdornment, Tooltip, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
+import debounce from 'lodash.debounce';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
-import {
-  getAllVehicles,
-  checkVehicleTravelConflict,
-  addVehicle,
-} from '../../services/VehicleService';
-import {
-  checkTravelIdentifierUnique,
-  getMaxTravelIdentifier,
-  getReservationsByTravelId,
-} from '../../services/TravelService';
 import LocationSelector from './LocationSelector';
 import VehicleForm from '../vehicles/VehicleForm';
-import debounce from 'lodash.debounce';
+import { checkTravelIdentifierUnique, getMaxTravelIdentifier } from '../../services/TravelService';
+import { getReservationsByTravelId } from '../../services/OrderService';
+import { getAllVehicles, checkVehicleTravelConflict, addVehicle } from '../../services/VehicleService';
 
 const generateNextIdentifier = async () => {
   const maxIdentifier = await getMaxTravelIdentifier();

@@ -1,36 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth } from '../contexts/useAuthState';
-import {
-  Typography,
-  Box,
-  CircularProgress,
-  Button,
-  Grid,
-  Card,
-  Snackbar,
-  Alert,
-  Modal,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  TextField,
-  InputAdornment,
-  IconButton,
-} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import {
-  getAllTravels,
-  updateTravel,
-  deleteTravel,
-  cancelTravel,
-  getTravelById,
-  addTravel,
-} from '../services/TravelService';
-import { getAllReservations, getAllPassengers } from '../services/PaymentService';
-import { cancelOrder, cancelReservation } from '../services/TravelService';
-import { validateMasterPassword } from '../utils/utils';
+import { Typography, Box, CircularProgress, Button, Grid, Card, Snackbar, Alert, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, InputAdornment, IconButton } from '@mui/material';
+import { useAuth } from '../contexts/useAuthState';
 import Layout from '../components/common/Layout';
 import TravelCard from '../components/travels/TravelCard';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
@@ -40,6 +11,10 @@ import OrderDetails from '../components/order/OrderDetails';
 import TravelForm from '../components/travels/TravelForm';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { getAllTravels, updateTravel, deleteTravel, cancelTravel, getTravelById, addTravel } from '../services/TravelService';
+import { getAllReservations, getAllPassengers } from '../services/PaymentService';
+import { cancelOrder, cancelReservation } from '../services/OrderService';
+import { validateMasterPassword } from '../utils/utils';
 
 const HomePage = () => {
   const { currentUser } = useAuth();

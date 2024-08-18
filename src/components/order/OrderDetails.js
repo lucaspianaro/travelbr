@@ -14,7 +14,9 @@ const OrderDetails = ({ order, passengers, travel }) => {
   const valorPago = Number(detalhesPagamento.valorPago || 0);
   const valorRestante = valorTotal - valorPago;
 
-  const status = order.status === 'Cancelada' ? 'Cancelada' : valorRestante > 0 ? 'Pagamento pendente' : 'Pago';
+  // Verifica se todas as reservas estão canceladas
+  const allReservationsCancelled = order.reservations?.every(reservation => reservation.status === 'Cancelada');
+  const status = allReservationsCancelled ? 'Cancelada' : valorRestante > 0 ? 'Pagamento pendente' : 'Pago';
   const statusColor = status === 'Pago' ? 'success' : status === 'Cancelada' ? 'error' : 'warning';
 
   const activeReservations = order.reservations.filter(reservation => reservation.status !== 'Cancelada');
@@ -72,7 +74,6 @@ const OrderDetails = ({ order, passengers, travel }) => {
         </Grid>
       </Grid>
 
-      {/* Registros de Pagamentos */}
       {detalhesPagamento.pagamentos && detalhesPagamento.pagamentos.length > 0 && (
         <>
           <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2, mt: 2 }}>Registros de Pagamentos</Typography>
