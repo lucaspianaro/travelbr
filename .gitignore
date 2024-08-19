@@ -11,6 +11,8 @@
 # production
 /build
 src/firebaseConfig.js
+.firebase/hosting.YnVpbGQ.cache
+.firebase/hosting.cHVibGlj.cache
 
 # misc
 .DS_Store
