@@ -8,7 +8,7 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import OrderCard from '../order/OrderCard';
 import OrderDetails from '../order/OrderDetails';
-import { getAllReservations, getAllPassengers, getTravelById } from '../../services/PaymentService';
+import { getAllReservations, getAllPassengers, getTravelById, getAllOrders } from '../../services/PaymentService';
 import { cancelOrder, cancelReservation } from '../../services/OrderService';
 import { validateMasterPassword } from '../../utils/utils';
 
@@ -57,31 +57,12 @@ const Receivables = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const fetchedReservations = await getAllReservations();
+        const fetchedOrders = await getAllOrders();
         const fetchedPassengers = await getAllPassengers();
         setPassengers(fetchedPassengers);
+        setOrders(fetchedOrders);
 
-        const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
-          const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
-          if (orderIndex !== -1) {
-            acc[orderIndex].reservations.push(reservation);
-          } else {
-            acc.push({
-              id: reservation.orderId,
-              reservations: [reservation],
-              detalhesPagamento: reservation.detalhesPagamento,
-              status: reservation.status,
-              travelId: reservation.travelId,
-            });
-          }
-          return acc;
-        }, []);
-
-        setOrders(groupedOrders);
-
-        const travelIds = new Set(
-          fetchedReservations.map(reservation => reservation.travelId)
-        );
+        const travelIds = new Set(fetchedOrders.map(order => order.travelId));
         const travelData = {};
         for (const id of travelIds) {
           travelData[id] = await getTravelById(id);
@@ -229,29 +210,10 @@ const Receivables = () => {
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
 
-      const fetchedReservations = await getAllReservations();
-      const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
-        const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
-        if (orderIndex !== -1) {
-          acc[orderIndex].reservations.push(reservation);
-        } else {
-          acc.push({
-            id: reservation.orderId,
-            reservations: [reservation],
-            detalhesPagamento: reservation.detalhesPagamento,
-            status: reservation.status,
-            travelId: reservation.travelId,
-          });
-        }
-        return acc;
-      }, []);
-      setOrders(groupedOrders);
-      setFilteredPending(groupedOrders);
-      setFilteredPaid(groupedOrders);
+      const fetchedOrders = await getAllOrders();
+      setOrders(fetchedOrders);
 
-      const travelIds = new Set(
-        fetchedReservations.map(reservation => reservation.travelId)
-      );
+      const travelIds = new Set(fetchedOrders.map(order => order.travelId));
       const travelData = {};
       for (const id of travelIds) {
         travelData[id] = await getTravelById(id);

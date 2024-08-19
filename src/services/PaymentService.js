@@ -71,6 +71,68 @@ export const getAllReservations = async () => {
   return allReservations;
 };
 
+export const getAllOrders = async () => {
+  const userId = auth.currentUser.uid; // Obtém o ID do usuário atual
+  const userDocRef = doc(db, 'usuarios', userId); // Referência ao documento do usuário
+  const travelCollectionRef = collection(userDocRef, 'viagens'); // Referência à coleção de viagens do usuário
+  const travelSnapshot = await getDocs(travelCollectionRef); // Busca todos os documentos de viagens
+
+  const allOrders = []; // Array para armazenar todos os pedidos
+  const passengerMap = new Map(); // Mapa para armazenar dados dos passageiros
+
+  // Busca todos os passageiros uma vez
+  const passengerCollectionRef = collection(db, 'usuarios', userId, 'passageiros');
+  const passengersSnapshot = await getDocs(passengerCollectionRef);
+  passengersSnapshot.docs.forEach(doc => {
+    const passengerData = doc.data();
+    passengerMap.set(doc.id, { id: doc.id, ...passengerData });
+  });
+
+  // Itera sobre todas as viagens
+  for (const travelDoc of travelSnapshot.docs) {
+    const travelData = travelDoc.data();
+
+    // Filtra viagens que não estão ativas
+    if (!travelData.estaAtivo) continue;
+
+    const travelId = travelDoc.id;
+    const ordersCollectionRef = collection(travelDoc.ref, 'pedidos'); // Referência à coleção de pedidos
+    const ordersSnapshot = await getDocs(ordersCollectionRef); // Busca todos os pedidos da viagem
+
+    // Itera sobre todos os pedidos
+    for (const orderDoc of ordersSnapshot.docs) {
+      const orderData = orderDoc.data();
+      const detalhesPagamento = orderData.detalhesPagamento || {}; // Detalhes do pagamento do pedido
+      const reservationCollectionRef = collection(orderDoc.ref, 'reservas'); // Referência à coleção de reservas
+      const reservationSnapshot = await getDocs(reservationCollectionRef); // Busca todas as reservas do pedido
+
+      const reservations = reservationSnapshot.docs.map(doc => {
+        const reservationData = doc.data();
+        const passengerId = reservationData.passengerId;
+        const passenger = passengerMap.get(passengerId) || null; // Obtém dados do passageiro
+
+        return {
+          id: doc.id,
+          ...reservationData,
+          passenger,
+          status: reservationData.status || 'Indefinido', // Status da reserva
+        };
+      });
+
+      allOrders.push({
+        id: orderDoc.id,
+        ...orderData,
+        detalhesPagamento,
+        reservations,
+        travelId,
+        status: orderData.status || 'Indefinido' // Status do pedido
+      });
+    }
+  }
+
+  return allOrders;
+};
+
 // Função para obter todos os passageiros
 export const getAllPassengers = async () => {
   const userId = auth.currentUser.uid; // Obtém o ID do usuário atual

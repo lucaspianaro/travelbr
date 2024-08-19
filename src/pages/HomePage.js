@@ -12,8 +12,8 @@ import TravelForm from '../components/travels/TravelForm';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { getAllTravels, updateTravel, deleteTravel, cancelTravel, getTravelById, addTravel } from '../services/TravelService';
-import { getAllReservations, getAllPassengers } from '../services/PaymentService';
-import { cancelOrder, cancelReservation } from '../services/OrderService';
+import { getAllOrders, getAllPassengers } from '../services/PaymentService';
+import { cancelOrder } from '../services/OrderService';
 import { validateMasterPassword } from '../utils/utils';
 
 const HomePage = () => {
@@ -44,9 +44,8 @@ const HomePage = () => {
   const [editingTravel, setEditingTravel] = useState(null);
   const [openTravelModal, setOpenTravelModal] = useState(false);
 
-  // Current date variables for filtering
   const today = new Date();
-  const currentMonth = today.getMonth() + 1; // Months are zero-based in JS Date
+  const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
 
   // Fetch travels and orders
@@ -61,29 +60,12 @@ const HomePage = () => {
       });
       setTravels(sortedTravels.slice(0, 3));
 
-      const fetchedReservations = await getAllReservations();
+      const fetchedOrders = await getAllOrders();
       const fetchedPassengers = await getAllPassengers();
       setPassengers(fetchedPassengers);
+      setOrders(fetchedOrders);
 
-      const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
-        const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
-        if (orderIndex !== -1) {
-          acc[orderIndex].reservations.push(reservation);
-        } else {
-          acc.push({
-            id: reservation.orderId,
-            reservations: [reservation],
-            detalhesPagamento: reservation.detalhesPagamento,
-            status: reservation.status,
-            travelId: reservation.travelId,
-          });
-        }
-        return acc;
-      }, []);
-
-      setOrders(groupedOrders);
-
-      const travelIds = new Set(fetchedReservations.map(reservation => reservation.travelId));
+      const travelIds = new Set(fetchedOrders.map(order => order.travelId));
       const travelData = {};
       for (const id of travelIds) {
         travelData[id] = await getTravelById(id);
@@ -286,25 +268,10 @@ const HomePage = () => {
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
 
-      const fetchedReservations = await getAllReservations();
-      const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
-        const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
-        if (orderIndex !== -1) {
-          acc[orderIndex].reservations.push(reservation);
-        } else {
-          acc.push({
-            id: reservation.orderId,
-            reservations: [reservation],
-            detalhesPagamento: reservation.detalhesPagamento,
-            status: reservation.status,
-            travelId: reservation.travelId,
-          });
-        }
-        return acc;
-      }, []);
-      setOrders(groupedOrders);
+      const fetchedOrders = await getAllOrders();
+      setOrders(fetchedOrders);
 
-      const travelIds = new Set(fetchedReservations.map(reservation => reservation.travelId));
+      const travelIds = new Set(fetchedOrders.map(order => order.travelId));
       const travelData = {};
       for (const id of travelIds) {
         travelData[id] = await getTravelById(id);
