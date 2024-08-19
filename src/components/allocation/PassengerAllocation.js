@@ -48,7 +48,9 @@ const PassengerAllocation = () => {
   });
 
   const [detalhesPagamento, setPaymentDetails] = useState(
-    editingReservation ? editingReservation.detalhesPagamento : initialReservation
+    editingReservation && Array.isArray(editingReservation) && editingReservation[0].detalhesPagamento 
+    ? editingReservation[0].detalhesPagamento 
+    : initialReservation
   );
   const [errors, setErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -206,14 +208,14 @@ const PassengerAllocation = () => {
         Object.keys(errors).every((key) => !errors[key])
     );
   
-    const detalhesPagamentoValid =
+    const detalhesPagamentoValid = detalhesPagamento && // Adicionando verificação para garantir que detalhesPagamento existe
       detalhesPagamento.nomePagador &&
       detalhesPagamento.cpfPagador &&
       detalhesPagamento.metodoPagamento &&
       detalhesPagamento.valorTotal &&
       Object.keys(errors).every((key) => !errors[key]);
   
-    const paymentRecordsValid = !errors.paymentRecord; // Ensure no payment record error
+    const paymentRecordsValid = !errors.paymentRecord;
   
     return passengerDetailsValid && detalhesPagamentoValid && paymentRecordsValid;
   };
@@ -309,71 +311,76 @@ const PassengerAllocation = () => {
     event.preventDefault();
 
     if (!isFormValid()) {
-      setSnackbarMessage('Preencha todos os campos obrigatórios corretamente.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
+        setSnackbarMessage('Preencha todos os campos obrigatórios corretamente.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        return;
     }
 
     setLoading(true); // Set loading to true when submitting
 
     try {
-      let orderId = null;
-      if (!editingReservation) {
-        const order = {
-          travelId,
-          detalhesPagamento: {
-            ...detalhesPagamento,
-            criadoEm: new Date().toISOString().split('T')[0],
-            pagamentos: paymentRecords
-          }
-        };
-        orderId = await addOrder(order);
-      } else {
-        orderId = editingReservation.orderId;
-        await updateOrder(orderId, {
-          travelId,
-          detalhesPagamento: {
-            ...detalhesPagamento,
-            editadoEm: new Date().toISOString().split('T')[0],
-            pagamentos: paymentRecords
-          }
-        });
-      }
+        let orderId = editingOrderId || null;
 
-      for (const reservation of reservations) {
-        if (reservation.id) {
-          await updateReservation(reservation.id, {
-            ...reservation,
-            travelId,
-            orderId,
-            editadoEm: new Date().toISOString().split('T')[0]
-          });
+        if (!orderId) {
+            const order = {
+                travelId,
+                detalhesPagamento: {
+                    ...detalhesPagamento,
+                    criadoEm: new Date().toISOString().split('T')[0],
+                    pagamentos: paymentRecords
+                }
+            };
+            orderId = await addOrder(order);
         } else {
-          await addReservation(orderId, {
-            ...reservation,
-            travelId,
-            criadoEm: new Date().toISOString().split('T')[0]
-          });
+            // Garantir que `orderId` e `travelId` estejam definidos
+            if (!orderId || !travelId) {
+                throw new Error('orderId ou travelId está indefinido');
+            }
+            await updateOrder(orderId, {
+                travelId,
+                detalhesPagamento: {
+                    ...detalhesPagamento,
+                    editadoEm: new Date().toISOString().split('T')[0],
+                    pagamentos: paymentRecords
+                }
+            });
         }
-      }
-      setSnackbarMessage('Reservas salvas com sucesso!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-      if (previousPage) {
-        navigate(previousPage);
-      } else {
-        navigate(-1);
-      }
+
+        for (const reservation of reservations) {
+            if (reservation.id) {
+                await updateReservation(reservation.id, {
+                    ...reservation,
+                    travelId,
+                    orderId,
+                    editadoEm: new Date().toISOString().split('T')[0]
+                });
+            } else {
+                await addReservation(orderId, {
+                    ...reservation,
+                    travelId,
+                    criadoEm: new Date().toISOString().split('T')[0]
+                });
+            }
+        }
+        setSnackbarMessage('Reservas salvas com sucesso!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        if (previousPage) {
+            navigate(previousPage);
+        } else {
+            navigate(-1);
+        }
     } catch (err) {
-      console.error('Erro ao salvar reservas:', err);
-      setSnackbarMessage('Erro ao salvar reservas. Por favor, tente novamente.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+        console.error('Erro ao salvar reservas:', err);
+        setSnackbarMessage('Erro ao salvar reservas. Por favor, tente novamente.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
     } finally {
-      setLoading(false); // Reset loading state after the operation is complete
+        setLoading(false); // Reset loading state after the operation is complete
     }
-  };
+};
+
 
   const handleOpenFormDialog = () => {
     setOpenFormDialog(true);

@@ -13,7 +13,7 @@ import ReservationCard from '../reservation/ReservationCard';
 import OrderDetails from '../order/OrderDetails';
 import ReservationDetails from '../reservation/ReservationDetails';
 import { getTravelById } from '../../services/TravelService';
-import { getReservationsByTravelId, cancelOrder, cancelReservation } from '../../services/OrderService';
+import { getReservationsByTravelId, getOrdersByTravelId, cancelOrder, cancelReservation } from '../../services/OrderService';
 import { getAllPassengers } from '../../services/PassengerService';
 import { exportToPDF as exportReservationsToPDF } from '../../utils/ReservationsPDF';
 import { exportOrdersToPDF } from '../../utils/OrdersPDF';
@@ -49,39 +49,27 @@ const TravelOrderReservationPage = () => {
       try {
         const travelDetails = await getTravelById(travelId);
         setTravel(travelDetails);
-  
+    
         const fetchedReservations = await getReservationsByTravelId(travelId);
+        console.log("Reservas buscadas:", fetchedReservations);
+        
+        const fetchedOrders = await getOrdersByTravelId(travelId);
+        console.log("Pedidos buscados:", fetchedOrders);
+
         const fetchedPassengers = await getAllPassengers();
         setPassengers(fetchedPassengers);
   
-        // Group orders by orderId using the status from the database
-        const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
-          const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
-          if (orderIndex !== -1) {
-            acc[orderIndex].reservations.push(reservation);
-          } else {
-            acc.push({
-              id: reservation.orderId,
-              reservations: [reservation],
-              detalhesPagamento: reservation.detalhesPagamento,
-              status: reservation.orderStatus, // Utilize o status diretamente do banco
-              travelId: reservation.travelId,
-            });
-          }
-          return acc;
-        }, []);
-  
         setReservations(fetchedReservations);
-        setOrders(groupedOrders);
-        setFilteredData(tabIndex === 0 ? fetchedReservations : groupedOrders);
+        setOrders(fetchedOrders);
+        setFilteredData(tabIndex === 0 ? fetchedReservations : fetchedOrders);
         setError('');
       } catch (err) {
-        setError('Falha ao carregar reservas: ' + err.message);
+        setError('Falha ao carregar reservas e pedidos: ' + err.message);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchOrdersAndReservations();
   }, [travelId, tabIndex]);
 
@@ -168,7 +156,22 @@ const TravelOrderReservationPage = () => {
   };
 
   const handleEditOrder = (order) => {
-    order.reservations.forEach(reservation => handleEditReservation(reservation, order.id));
+    const editingReservations = order.reservations.map(reservation => {
+      const passenger = passengers.find(p => p.id === reservation.passengerId) || {};
+      return { 
+        ...reservation, 
+        passenger, 
+        detalhesPagamento: order.detalhesPagamento 
+      };
+    });
+  
+    navigate(`/viagens/${travelId}/alocar-passageiros`, { 
+      state: { 
+        selectedSeats: editingReservations.map(reservation => ({ number: reservation.numeroAssento })), 
+        editingReservation: editingReservations, // Passando todas as reservas associadas ao pedido como um array
+        editingOrderId: order.id 
+      } 
+    });
   };
 
   const handleCancelOrder = (orderId) => {
@@ -197,24 +200,11 @@ const TravelOrderReservationPage = () => {
       setSnackbarOpen(true);
 
       const fetchedReservations = await getReservationsByTravelId(travelId);
-      const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
-        const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
-        if (orderIndex !== -1) {
-          acc[orderIndex].reservations.push(reservation);
-        } else {
-          acc.push({
-            id: reservation.orderId,
-            reservations: [reservation],
-            detalhesPagamento: reservation.detalhesPagamento,
-            status: reservation.orderStatus, // Utilize o status diretamente do banco
-            travelId: reservation.travelId,
-          });
-        }
-        return acc;
-      }, []);
+      const fetchedOrders = await getOrdersByTravelId(travelId);
+      
       setReservations(fetchedReservations);
-      setOrders(groupedOrders);
-      setFilteredData(tabIndex === 0 ? fetchedReservations : groupedOrders);
+      setOrders(fetchedOrders);
+      setFilteredData(tabIndex === 0 ? fetchedReservations : fetchedOrders);
       setCancelDialogOpen(false);
       setCancelReservationId(null);
       setMasterPassword('');

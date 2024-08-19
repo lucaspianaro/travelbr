@@ -238,35 +238,32 @@ export const getOrderById = async (travelId, orderId) => {
   }
 };
 
-export const getOrderByTravelId = async (travelId) => {
-    try {
-      const userId = auth.currentUser.uid;
-      const travelDocRef = doc(db, 'usuarios', userId, 'viagens', travelId);
-      const ordersCollectionRef = collection(travelDocRef, 'pedidos');
-      const ordersSnapshot = await getDocs(ordersCollectionRef);
-  
-      const orders = [];
-  
-      for (const orderDoc of ordersSnapshot.docs) {
-        const orderData = { id: orderDoc.id, ...orderDoc.data() };
-        const reservationCollectionRef = collection(orderDoc.ref, 'reservas');
-        const reservationSnapshot = await getDocs(reservationCollectionRef);
-  
-        // Adicionar as reservas ao pedido
-        orderData.reservations = reservationSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
-        // Atualizar o status do pedido e suas reservas
-        await updateOrderAndReservationStatus(orderDoc.ref);
-  
-        orders.push(orderData);
-      }
-  
-      return orders;
-    } catch (error) {
-      console.error('Erro ao buscar pedidos por ID de viagem:', error);
-      throw error;
-    }
-  };
+// Função para obter todos os pedidos por ID de viagem
+export const getOrdersByTravelId = async (travelId) => {
+  const userId = auth.currentUser.uid;
+  const travelDocRef = doc(db, 'usuarios', userId, 'viagens', travelId);
+  const ordersCollectionRef = collection(travelDocRef, 'pedidos');
+  const ordersSnapshot = await getDocs(ordersCollectionRef);
+
+  const orders = [];
+
+  for (const orderDoc of ordersSnapshot.docs) {
+    const orderData = { id: orderDoc.id, ...orderDoc.data() };
+    const reservationCollectionRef = collection(orderDoc.ref, 'reservas');
+    const reservationSnapshot = await getDocs(reservationCollectionRef);
+
+    // Adicionar as reservas ao pedido
+    orderData.reservations = reservationSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Opcional: Atualizar o status do pedido e suas reservas se necessário
+    await updateOrderAndReservationStatus(orderDoc.ref);
+
+    orders.push(orderData);
+  }
+
+  return orders;
+};
+
 
   export const getReservationById = async (travelId, orderId, reservationId) => {
     if (!travelId || !orderId || !reservationId) {
