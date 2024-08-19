@@ -47,7 +47,6 @@ const faqData = [
             A funcionalidade de Veículos permite que você controle e gerencie sua frota. Aqui você pode:
             <ul>
               <li>Adicionar novos veículos à frota.</li>
-              <li>Manter registros de manutenção dos veículos.</li>
               <li>Verificar a disponibilidade dos veículos para as viagens.</li>
               <li>Associar veículos específicos a determinadas viagens para melhor organização.</li>
             </ul>
