@@ -21,6 +21,7 @@ import { getTravelById, updateTravel, cancelTravel, deleteTravel } from '../../s
 import { getAvailableSeats, getReservedSeats } from '../../services/OrderService';
 import { addVehicle } from '../../services/VehicleService';
 import { validateMasterPassword, formatDate } from '../../utils/utils';
+import { getMasterPasswordStatus } from '../../services/AuthService';  
 import { useDrawer } from '../../contexts/DrawerContext';
 
 const drawerWidth = 240;
@@ -43,6 +44,7 @@ function TravelDetails() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);  // Estado para controlar a senha master
   const navigate = useNavigate();
   const allocationButtonRef = useRef(null);
   const { openDrawer } = useDrawer();
@@ -75,6 +77,14 @@ function TravelDetails() {
     };
 
     fetchDetails();
+
+    const fetchMasterPasswordStatus = async () => {
+      const isActive = await getMasterPasswordStatus();  // Verifique o estado da senha master
+      setMasterPasswordActive(isActive);
+    };
+
+    fetchMasterPasswordStatus();
+
   }, [travelId]);
 
   const handleEditToggle = () => setEditing(!editing);
@@ -122,7 +132,9 @@ function TravelDetails() {
   const handleConfirmCancelTravel = async () => {
     setLoading(true);
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
       await cancelTravel(travelId);
       const travelData = await getTravelById(travelId);
       setTravel(travelData);
@@ -148,7 +160,9 @@ function TravelDetails() {
   const handleConfirmDeleteTravel = async () => {
     setLoading(true);
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
       await deleteTravel(travelId);
       navigate('/viagens');
     } catch (err) {
@@ -455,30 +469,32 @@ function TravelDetails() {
           <Typography variant="body1">
             Tem certeza que deseja cancelar esta viagem? Isso irá cancelar todas as reservas e pedidos. Esta ação não pode ser desfeita.
           </Typography>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={loading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }} >
@@ -488,7 +504,7 @@ function TravelDetails() {
             onClick={handleConfirmCancelTravel}
             variant="contained"
             color="confirmar"
-            disabled={!masterPassword || loading}
+            disabled={masterPasswordActive && !masterPassword || loading}
             sx={{ color: 'white' }} 
           >
             {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
@@ -504,30 +520,32 @@ function TravelDetails() {
           <Typography variant="body1">
             Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.
           </Typography>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={loading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }} >
@@ -537,7 +555,7 @@ function TravelDetails() {
             onClick={handleConfirmDeleteTravel}
             variant="contained"
             color="confirmar"
-            disabled={!masterPassword || loading}
+            disabled={masterPasswordActive && !masterPassword || loading}
             sx={{ color: 'white' }} 
           >
             {loading ? <CircularProgress size={24} /> : 'Excluir'}

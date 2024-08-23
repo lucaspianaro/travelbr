@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Typography, Button, Box, CircularProgress, Snackbar, Alert, Modal, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Pagination, MenuItem, Select, FormControl, InputLabel, InputAdornment, IconButton, Grid, Collapse
-} from '@mui/material';
+import { Typography, Button, Box, CircularProgress, Snackbar, Alert, Modal, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Pagination, MenuItem, Select, FormControl, InputLabel, InputAdornment, IconButton, Grid, Collapse } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import Layout from '../common/Layout';
 import VehicleDetails from './VehicleDetails';
 import VehicleCard from './VehicleCard';
+import VehicleForm from './VehicleForm';
 import { addVehicle, getAllVehicles, updateVehicle, deleteVehicle, getVehicleTravels } from '../../services/VehicleService';
 import { validateMasterPassword } from '../../utils/utils';
-import Layout from '../common/Layout';
-import VehicleForm from './VehicleForm';
+import { getMasterPasswordStatus } from '../../services/AuthService';
 
 const VehicleComponent = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -32,10 +31,17 @@ const VehicleComponent = () => {
   const [masterPassword, setMasterPassword] = useState('');
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
 
   useEffect(() => {
     fetchVehicles();
+    checkMasterPasswordStatus();
   }, []);
+
+  const checkMasterPasswordStatus = async () => {
+    const isActive = await getMasterPasswordStatus();
+    setMasterPasswordActive(isActive);
+  };
 
   const fetchVehicles = useCallback(async () => {
     setLoading(true);
@@ -96,7 +102,9 @@ const VehicleComponent = () => {
   const handleDeleteVehicle = async () => {
     setLoading(true);
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
       await deleteVehicle(vehicleToDelete.id);
       fetchVehicles();
       setSnackbarMessage('Veículo excluído com sucesso!');
@@ -265,31 +273,33 @@ const VehicleComponent = () => {
           <DialogContentText>
             Tem certeza que deseja excluir o veículo {vehicleToDelete?.identificadorVeiculo}? Esta ação não pode ser desfeita.
           </DialogContentText>
-          <TextField
-            variant="outlined"
-            margin="normal"
-            fullWidth
-            name="masterPassword"
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            id="masterPassword"
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+          {masterPasswordActive && (
+            <TextField
+              variant="outlined"
+              margin="normal"
+              fullWidth
+              name="masterPassword"
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              id="masterPassword"
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }} >
@@ -299,7 +309,7 @@ const VehicleComponent = () => {
             onClick={handleDeleteVehicle}
             variant="contained"
             color="confirmar"
-            disabled={!masterPassword || loading}
+            disabled={masterPasswordActive && !masterPassword || loading}
             sx={{ color: 'white' }} 
           >
             {loading ? <CircularProgress size={24} /> : 'Excluir'}

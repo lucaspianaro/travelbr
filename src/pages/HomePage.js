@@ -15,6 +15,7 @@ import { getAllTravels, updateTravel, deleteTravel, cancelTravel, getTravelById,
 import { getAllOrders, getAllPassengers } from '../services/PaymentService';
 import { cancelOrder } from '../services/OrderService';
 import { validateMasterPassword } from '../utils/utils';
+import { getMasterPasswordStatus } from '../services/AuthService';
 
 const HomePage = () => {
   const { currentUser } = useAuth();
@@ -43,12 +44,21 @@ const HomePage = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [editingTravel, setEditingTravel] = useState(null);
   const [openTravelModal, setOpenTravelModal] = useState(false);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
+
+  useEffect(() => {
+    const fetchMasterPasswordStatus = async () => {
+      const status = await getMasterPasswordStatus();
+      setMasterPasswordActive(status);
+    };
+
+    fetchMasterPasswordStatus();
+  }, []);
 
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
 
-  // Fetch travels and orders
   const fetchTravels = useCallback(async () => {
     setLoading(true);
     try {
@@ -83,7 +93,6 @@ const HomePage = () => {
     fetchTravels();
   }, [fetchTravels]);
 
-  // Calculate totals based on the same logic from Receivables
   const calculateTotals = (orders) => {
     let totalReceivable = 0;
     let totalReceived = 0;
@@ -106,7 +115,6 @@ const HomePage = () => {
 
   const { totalReceivable, totalReceived } = useMemo(() => calculateTotals(orders), [orders, travelsData, currentMonth, currentYear]);
 
-  // Filter orders for display
   const filteredPendingOrders = orders.filter(order => {
     const travelDate = travelsData[order.travelId]?.dataIda;
     if (!travelDate) return false;
@@ -177,7 +185,9 @@ const HomePage = () => {
     if (travelToDelete) {
       setLoading(true);
       try {
-        await validateMasterPassword(masterPassword);
+        if (masterPasswordActive) {
+          await validateMasterPassword(masterPassword);
+        }
         await deleteTravel(travelToDelete.id);
         await fetchTravels(); // Fetch all travels again after deletion
         setSnackbarMessage('Viagem excluída com sucesso!');
@@ -209,7 +219,9 @@ const HomePage = () => {
     if (travelToCancel) {
       setLoading(true);
       try {
-        await validateMasterPassword(masterPassword);
+        if (masterPasswordActive) {
+          await validateMasterPassword(masterPassword);
+        }
         await cancelTravel(travelToCancel.id);
         await fetchTravels(); // Fetch all travels again after cancellation
         setSnackbarMessage('Viagem cancelada com sucesso!');
@@ -255,7 +267,9 @@ const HomePage = () => {
     setCancelLoading(true);
 
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
 
       if (cancelReservationId) {
         await cancelReservation(travelIdState, cancelOrderId, cancelReservationId);
@@ -450,30 +464,32 @@ const HomePage = () => {
               ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
               : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
           </DialogContentText>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={cancelLoading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={cancelLoading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
@@ -484,7 +500,7 @@ const HomePage = () => {
             variant="contained"
             color="confirmar"
             autoFocus
-            disabled={!masterPassword || cancelLoading}
+            disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
             sx={{ color: 'white' }}
           >
             {cancelLoading ? <CircularProgress size={24} /> : cancelReservationId ? 'Cancelar reserva' : 'Cancelar pedido'}
@@ -497,36 +513,38 @@ const HomePage = () => {
           <DialogContentText>
             Tem certeza de que deseja cancelar esta viagem? Esta ação não pode ser desfeita.
           </DialogContentText>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={loading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }}>
             Não
           </Button>
-          <Button onClick={confirmCancel} variant="contained" color="confirmar" autoFocus disabled={!masterPassword || loading} sx={{ color: 'white' }}>
+          <Button onClick={confirmCancel} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white' }}>
             {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
           </Button>
         </DialogActions>
@@ -537,36 +555,38 @@ const HomePage = () => {
           <DialogContentText>
             Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.
           </DialogContentText>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={loading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }}>
             Não
           </Button>
-          <Button onClick={confirmDelete} variant="contained" color="confirmar" autoFocus disabled={!masterPassword || loading} sx={{ color: 'white' }}>
+          <Button onClick={confirmDelete} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white' }}>
             {loading ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>
         </DialogActions>

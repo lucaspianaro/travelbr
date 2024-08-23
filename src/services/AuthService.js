@@ -1,4 +1,4 @@
-import { auth, db } from '../../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
@@ -79,6 +79,43 @@ export const checkMasterPasswordExists = async () => {
   }
 };
 
+// Função para obter o status da senha master (ativa ou desativada)
+export const getMasterPasswordStatus = async () => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) throw new Error('Usuário não está autenticado.');
+
+    const userDocRef = doc(db, 'usuarios', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      return userDoc.data().masterPasswordActive || false;
+    }
+    return false;
+  } catch (error) {
+    console.error('Erro ao obter o status da senha master:', error);
+    throw new Error(mapFirebaseError(error));
+  }
+};
+
+// Função para alternar o status da senha master (ativar/desativar)
+export const toggleMasterPasswordActive = async (isActive) => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) throw new Error('Usuário não está autenticado.');
+
+    const userDocRef = doc(db, 'usuarios', user.uid);
+    await updateDoc(userDocRef, { masterPasswordActive: isActive });
+
+    console.log(`Senha master ${isActive ? 'ativada' : 'desativada'} com sucesso.`);
+  } catch (error) {
+    console.error('Erro ao alternar o status da senha master:', error);
+    throw new Error(mapFirebaseError(error));
+  }
+};
+
 // Função para atualizar a senha master do usuário
 export const updateMasterPassword = async (currentMasterPassword, masterPassword) => {
   try {
@@ -101,7 +138,7 @@ export const updateMasterPassword = async (currentMasterPassword, masterPassword
 
       await updateDoc(userDocRef, { masterPassword });
     } else {
-      await setDoc(userDocRef, { masterPassword });
+      await setDoc(userDocRef, { masterPassword, masterPasswordActive: true });
     }
 
     console.log('Senha master definida com sucesso');

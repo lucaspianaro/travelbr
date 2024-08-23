@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { loginWithEmailPassword, registerWithEmailPassword, resetPassword } from './authService';
 import { TextField, Button, Typography, Container, Box, Alert, Grid, CircularProgress, Collapse, Zoom, IconButton, InputAdornment, Avatar } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Layout from '../common/Layout';
 import logo3 from '../../assets/logo3.jpg'; // Certifique-se de que o caminho para o logo está correto
+import { loginWithEmailPassword, registerWithEmailPassword, resetPassword } from '../../services/AuthService';
 
 function LoginPage({ onLoginSuccess }) {
   // Estados para armazenar dados do formulário e mensagens de erro/sucesso

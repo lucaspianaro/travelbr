@@ -11,6 +11,7 @@ import OrderDetails from '../order/OrderDetails';
 import { getAllReservations, getAllPassengers, getTravelById } from '../../services/PaymentService';
 import { cancelOrder, cancelReservation } from '../../services/OrderService';
 import { validateMasterPassword } from '../../utils/utils';
+import { getMasterPasswordStatus } from '../../services/AuthService';
 
 const OrderReservationList = () => {
   const { travelId } = useParams();
@@ -38,9 +39,9 @@ const OrderReservationList = () => {
   const [masterPassword, setMasterPassword] = useState('');
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
   const itemsPerPage = 10;
 
-  // Efeito para buscar as reservas e pedidos
   useEffect(() => {
     const fetchOrdersAndReservations = async () => {
       try {
@@ -48,7 +49,6 @@ const OrderReservationList = () => {
         const fetchedPassengers = await getAllPassengers();
         setPassengers(fetchedPassengers);
 
-        // Agrupando pedidos por ID
         const groupedOrders = fetchedReservations.reduce((acc, reservation) => {
           const orderIndex = acc.findIndex(o => o.id === reservation.orderId);
           if (orderIndex !== -1) {
@@ -69,7 +69,6 @@ const OrderReservationList = () => {
         setOrders(groupedOrders);
         setFilteredData(filterType === 'reservas' ? fetchedReservations : groupedOrders);
 
-        // Carregando dados das viagens
         const travelIds = new Set(fetchedReservations.map(reservation => reservation.travelId));
         const travelData = {};
         for (const id of travelIds) {
@@ -87,7 +86,15 @@ const OrderReservationList = () => {
     fetchOrdersAndReservations();
   }, [filterType]);
 
-  // Efeito para aplicar filtros e busca
+  useEffect(() => {
+    const fetchMasterPasswordStatus = async () => {
+      const status = await getMasterPasswordStatus();
+      setMasterPasswordActive(status);
+    };
+
+    fetchMasterPasswordStatus();
+  }, []);
+
   useEffect(() => {
     const lowercasedFilter = searchTerm.toLowerCase();
 
@@ -132,7 +139,6 @@ const OrderReservationList = () => {
     }
   }, [searchTerm, orders, reservations, passengers, paymentStatusFilter, filterType]);
 
-  // Funções para manipulação de estados e filtros
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleClearSearch = () => setSearchTerm('');
   const handlePaymentStatusFilterChange = (e) => setPaymentStatusFilter(e.target.value);
@@ -161,12 +167,13 @@ const OrderReservationList = () => {
     setCancelDialogOpen(true);
   };
 
-  // Função para confirmar cancelamento de pedido ou reserva
   const confirmCancelOrder = async () => {
     setCancelLoading(true);
 
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
 
       if (cancelReservationId) {
         await cancelReservation(travelIdState, cancelOrderId, cancelReservationId);
@@ -356,30 +363,32 @@ const OrderReservationList = () => {
               ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
               : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
           </DialogContentText>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={cancelLoading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={cancelLoading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
@@ -390,7 +399,7 @@ const OrderReservationList = () => {
             variant="contained" 
             color="confirmar" 
             autoFocus
-            disabled={!masterPassword || cancelLoading}
+            disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
             sx={{ color: 'white' }} 
           >
             {cancelLoading ? <CircularProgress size={24} /> : cancelReservationId

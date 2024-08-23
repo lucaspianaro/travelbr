@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Typography, IconButton, Box, Tooltip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button,
-  Card, CardContent, Grid, Avatar, CircularProgress, TextField, InputAdornment, Snackbar, Alert, Divider
-} from '@mui/material';
+import { Typography, IconButton, Box, Tooltip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Card, CardContent, Grid, Avatar, CircularProgress, TextField, InputAdornment, Snackbar, Alert, Divider } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { formatCPF, formatDate, validateMasterPassword } from '../../utils/utils';
 import PassengerDetails from './PassengerDetails';
+import { formatCPF, formatDate, validateMasterPassword } from '../../utils/utils';
+import { getMasterPasswordStatus } from '../../services/AuthService';
 import { getAllPassengers } from '../../services/PassengerService';
 
 const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePassenger }) => {
@@ -22,6 +20,15 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
+
+  useEffect(() => {
+    const fetchMasterPasswordStatus = async () => {
+      const isActive = await getMasterPasswordStatus();
+      setMasterPasswordActive(isActive);
+    };
+    fetchMasterPasswordStatus();
+  }, []);
 
   const handleCardClick = (passenger) => {
     setSelectedPassenger(passenger);
@@ -47,7 +54,9 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
       await handleDeletePassenger(passengerToDelete.id);
       handleClose();
       setSnackbarMessage('Passageiro excluído com sucesso!');
@@ -164,30 +173,32 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
           <DialogContentText id="alert-dialog-description">
             Tem certeza de que deseja excluir o passageiro {passengerToDelete?.nome}? Esta ação irá cancelar todas as reservas deste passageiro e não pode ser desfeita.
           </DialogContentText>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="new-password"
-            disabled={isDeleting}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="new-password"
+              disabled={isDeleting}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="cancelar" variant="contained" disabled={isDeleting} sx={{ color: 'white' }} >
@@ -197,7 +208,7 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
             onClick={handleConfirmDelete} 
             variant="contained" 
             color="confirmar" 
-            disabled={!masterPassword || isDeleting} 
+            disabled={masterPasswordActive && !masterPassword || isDeleting} 
             autoFocus
             sx={{ color: 'white' }} 
           >

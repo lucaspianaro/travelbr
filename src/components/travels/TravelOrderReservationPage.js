@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Grid, CircularProgress, Box, Typography, IconButton, TextField, Button, Snackbar, Alert, Pagination, InputAdornment, FormControl, InputLabel, Select, MenuItem, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Modal, Card, Fade, Tabs, Tab } from '@mui/material';
+import {
+  Grid, CircularProgress, Box, Typography, IconButton, TextField, Button, Snackbar, Alert, Pagination,
+  InputAdornment, FormControl, InputLabel, Select, MenuItem, Dialog, DialogActions, DialogContent,
+  DialogContentText, DialogTitle, Modal, Card, Fade, Tabs, Tab
+} from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearIcon from '@mui/icons-material/Clear';
 import Visibility from '@mui/icons-material/Visibility';
@@ -18,6 +22,7 @@ import { getAllPassengers } from '../../services/PassengerService';
 import { exportToPDF as exportReservationsToPDF } from '../../utils/ReservationsPDF';
 import { exportOrdersToPDF } from '../../utils/OrdersPDF';
 import { validateMasterPassword } from '../../utils/utils';
+import { getMasterPasswordStatus } from '../../services/AuthService';  // Importando o serviço de verificação de senha master
 
 const TravelOrderReservationPage = () => {
   const { travelId } = useParams();
@@ -31,7 +36,7 @@ const TravelOrderReservationPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
-  const [tabIndex, setTabIndex] = useState(0); // 0 for Reservas, 1 for Pedidos
+  const [tabIndex, setTabIndex] = useState(0); // 0 para Reservas, 1 para Pedidos
   const [currentPage, setCurrentPage] = useState(1);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -42,6 +47,7 @@ const TravelOrderReservationPage = () => {
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);  // Estado para controle da senha master
   const itemsPerPage = 12;
 
   useEffect(() => {
@@ -49,16 +55,13 @@ const TravelOrderReservationPage = () => {
       try {
         const travelDetails = await getTravelById(travelId);
         setTravel(travelDetails);
-    
+
         const fetchedReservations = await getReservationsByTravelId(travelId);
-        console.log("Reservas buscadas:", fetchedReservations);
-        
         const fetchedOrders = await getOrdersByTravelId(travelId);
-        console.log("Pedidos buscados:", fetchedOrders);
 
         const fetchedPassengers = await getAllPassengers();
         setPassengers(fetchedPassengers);
-  
+
         setReservations(fetchedReservations);
         setOrders(fetchedOrders);
         setFilteredData(tabIndex === 0 ? fetchedReservations : fetchedOrders);
@@ -70,10 +73,15 @@ const TravelOrderReservationPage = () => {
       }
     };
 
+    const fetchMasterPasswordStatus = async () => {
+      const isActive = await getMasterPasswordStatus();
+      setMasterPasswordActive(isActive);
+    };
+
     fetchOrdersAndReservations();
+    fetchMasterPasswordStatus();
   }, [travelId, tabIndex]);
 
-  
   useEffect(() => {
     const lowercasedFilter = searchTerm.toLowerCase();
 
@@ -188,7 +196,9 @@ const TravelOrderReservationPage = () => {
   const confirmCancelOrder = async () => {
     setLoading(true);
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
       if (cancelReservationId) {
         await cancelReservation(travelId, cancelOrderId, cancelReservationId);
         setSnackbarMessage('Reserva cancelada com sucesso.');
@@ -209,7 +219,7 @@ const TravelOrderReservationPage = () => {
       setCancelReservationId(null);
       setMasterPassword('');
     } catch (err) {
-      setSnackbarMessage('Senha incorreta. Tente novamente.');
+      setSnackbarMessage('Erro ao cancelar: ' + err.message);
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -425,30 +435,32 @@ const TravelOrderReservationPage = () => {
                 ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
                 : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
             </DialogContentText>
-            <TextField
-              margin="normal"
-              fullWidth
-              label="Senha Master"
-              type={showMasterPassword ? 'text' : 'password'}
-              value={masterPassword}
-              onChange={(e) => setMasterPassword(e.target.value)}
-              InputProps={{
-                autoComplete: 'new-password',
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle master password visibility"
-                      onClick={() => setShowMasterPassword(!showMasterPassword)}
-                      edge="end"
-                    >
-                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              autoComplete="off"
-              disabled={loading}
-            />
+            {masterPasswordActive && (
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Senha Master"
+                type={showMasterPassword ? 'text' : 'password'}
+                value={masterPassword}
+                onChange={(e) => setMasterPassword(e.target.value)}
+                InputProps={{
+                  autoComplete: 'new-password',
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle master password visibility"
+                        onClick={() => setShowMasterPassword(!showMasterPassword)}
+                        edge="end"
+                      >
+                        {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                autoComplete="off"
+                disabled={loading}
+              />
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setCancelDialogOpen(false)} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }} >
@@ -458,7 +470,7 @@ const TravelOrderReservationPage = () => {
               onClick={confirmCancelOrder}
               variant="contained"
               color="confirmar"
-              disabled={!masterPassword || loading}
+              disabled={masterPasswordActive && !masterPassword || loading}
               sx={{ color: 'white' }} 
             >
               {loading ? <CircularProgress size={24} /> : cancelReservationId ? 'Cancelar reserva' : 'Cancelar pedido'}

@@ -16,6 +16,7 @@ import { formatCPF, formatDate, formatTelefone, validateMasterPassword } from '.
 import { getPassengerReservations } from '../../services/PassengerService';
 import { getTravelById } from '../../services/TravelService';
 import { getOrderById, cancelReservation } from '../../services/OrderService';
+import { getMasterPasswordStatus } from '../../services/AuthService';
 
 const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReservationCancel }) => {
   const [reservas, setReservas] = useState([]);
@@ -34,6 +35,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
   const navigate = useNavigate();
   const itemsPerPage = 5;
 
@@ -93,6 +95,15 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
     }
   }, [open, passenger]);
 
+  useEffect(() => {
+    const fetchMasterPasswordStatus = async () => {
+      const status = await getMasterPasswordStatus();
+      setMasterPasswordActive(status);
+    };
+
+    fetchMasterPasswordStatus();
+  }, []);
+
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
@@ -129,7 +140,9 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
     setCancelLoading(true);
 
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
 
       if (cancelReservationId) {
         await cancelReservation(travelIdState, cancelOrderId, cancelReservationId);
@@ -335,30 +348,32 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
           <Typography>
             Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.
           </Typography>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={cancelLoading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={cancelLoading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
@@ -369,7 +384,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
             variant="contained" 
             color="confirmar" 
             autoFocus
-            disabled={!masterPassword || cancelLoading}
+            disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
             sx={{ color: 'white' }} 
           >
             {cancelLoading ? <CircularProgress size={24} /> : 'Cancelar reserva'}

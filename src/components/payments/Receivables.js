@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Snackbar, Alert, Pagination, InputAdornment, FormControl, InputLabel, Select, MenuItem, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Modal, IconButton, Grid, Button, Card, CardContent } from '@mui/material';
+import { Box, Typography, TextField, Snackbar, Alert, Pagination, InputAdornment, FormControl, InputLabel, Select, MenuItem, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Modal, IconButton, Grid, Button, Card } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -8,9 +8,10 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import OrderCard from '../order/OrderCard';
 import OrderDetails from '../order/OrderDetails';
-import { getAllReservations, getAllPassengers, getTravelById, getAllOrders } from '../../services/PaymentService';
+import { getAllPassengers, getTravelById, getAllOrders } from '../../services/PaymentService';
 import { cancelOrder, cancelReservation } from '../../services/OrderService';
 import { validateMasterPassword } from '../../utils/utils';
+import { getMasterPasswordStatus } from '../../services/AuthService';
 
 const Receivables = () => {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const Receivables = () => {
   const [masterPassword, setMasterPassword] = useState('');
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
   const itemsPerPage = 10;
 
   const monthNames = [
@@ -77,6 +79,15 @@ const Receivables = () => {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchMasterPasswordStatus = async () => {
+      const status = await getMasterPasswordStatus();
+      setMasterPasswordActive(status);
+    };
+
+    fetchMasterPasswordStatus();
   }, []);
 
   useEffect(() => {
@@ -193,7 +204,9 @@ const Receivables = () => {
     setCancelLoading(true);
 
     try {
-      await validateMasterPassword(masterPassword);
+      if (masterPasswordActive) {
+        await validateMasterPassword(masterPassword);
+      }
 
       if (cancelReservationId) {
         await cancelReservation(
@@ -495,30 +508,32 @@ const Receivables = () => {
               ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
               : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
           </DialogContentText>
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Senha Master"
-            type={showMasterPassword ? 'text' : 'password'}
-            value={masterPassword}
-            onChange={e => setMasterPassword(e.target.value)}
-            InputProps={{
-              autoComplete: 'new-password',
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle master password visibility"
-                    onClick={handleClickShowMasterPassword}
-                    edge="end"
-                  >
-                    {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            autoComplete="off"
-            disabled={cancelLoading}
-          />
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={e => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={cancelLoading}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button
@@ -535,7 +550,7 @@ const Receivables = () => {
             variant="contained"
             color="confirmar"
             autoFocus
-            disabled={!masterPassword || cancelLoading}
+            disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
             sx={{ color: 'white' }}
           >
             {cancelLoading ? (

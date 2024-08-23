@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  AppBar, Toolbar, Typography, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton,
-  CssBaseline, Divider, CircularProgress, useMediaQuery, Tooltip, Snackbar, Alert, Link
-} from '@mui/material';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, CssBaseline, Divider, CircularProgress, useMediaQuery, Tooltip, Snackbar, Alert, Link } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import HomeIcon from '@mui/icons-material/Home';
 import PeopleIcon from '@mui/icons-material/People';
@@ -14,12 +12,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import HelpIcon from '@mui/icons-material/Help';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import PaymentIcon from '@mui/icons-material/Payment';
+import Logo from '../../assets/logo2.png';
+import { logout } from '../../services/AuthService';
 import { useAuth } from '../../contexts/useAuthState';
-import { logout } from '../auth/authService';
-import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useDrawer } from '../../contexts/DrawerContext';
 import { useIdleTimer } from 'react-idle-timer';
-import Logo from '../../assets/logo2.png';
 
 const drawerWidth = 240;
 
