@@ -1,8 +1,9 @@
 import { auth, db } from '../firebaseConfig';
 import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import {
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
-  sendEmailVerification, updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,
+  sendPasswordResetEmail, sendEmailVerification, updateProfile as firebaseUpdateProfile,
+  updatePassword, reauthenticateWithCredential, EmailAuthProvider
 } from 'firebase/auth';
 
 // Função para registrar um novo usuário com email e senha
@@ -10,10 +11,10 @@ export const registerWithEmailPassword = async (email, senha, displayName) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
-    
+
     // Atualizar o perfil do usuário
-    await updateProfile(user, { displayName });
-    
+    await firebaseUpdateProfile(user, { displayName });
+
     // Enviar e-mail de verificação
     await sendEmailVerification(user);
     console.log('E-mail de verificação enviado para:', user.email);
@@ -148,6 +149,21 @@ export const updateMasterPassword = async (currentMasterPassword, masterPassword
   }
 };
 
+// Função personalizada para atualizar o perfil do usuário
+export const updateUserProfile = async (profileUpdates) => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) throw new Error('Usuário não está autenticado.');
+
+    await firebaseUpdateProfile(user, profileUpdates);
+    console.log('Perfil atualizado com sucesso.');
+  } catch (error) {
+    console.error('Erro ao atualizar perfil do usuário:', error);
+    throw new Error(mapFirebaseError(error));
+  }
+};
+
 // Função para mapear os códigos de erro do Firebase para mensagens mais amigáveis
 const mapFirebaseError = (error) => {
   switch (error.code || error.message) {
@@ -172,7 +188,6 @@ const mapFirebaseError = (error) => {
 
 // Exportação de funções adicionais para atualização de perfil e senha
 export {
-  updateProfile,
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,

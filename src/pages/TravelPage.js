@@ -1,23 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Modal, Fade,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  TextField, Pagination, MenuItem, Select, FormControl, InputLabel, InputAdornment,
-  Collapse
-} from '@mui/material';
+import { Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Modal, Fade, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Pagination, MenuItem, Select, FormControl, InputLabel, InputAdornment, Collapse } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { addTravel, getAllTravels, updateTravel, deleteTravel, cancelTravel, updateInactiveTravels } from '../../services/TravelService';
-import { validateMasterPassword, formatDate } from '../../utils/utils';
-import { getMasterPasswordStatus } from '../../services/AuthService';  // Importação da função para verificar o status da senha master
-import TravelForm from './TravelForm';
-import TravelCard from './TravelCard';
-import Layout from '../common/Layout';
+import TravelForm from '../components/travels/TravelForm';
+import TravelCard from '../components/travels/TravelCard';
+import Layout from '../components/common/Layout';
+import { addTravel, getAllTravels, updateTravel, deleteTravel, cancelTravel, updateInactiveTravels } from '../services/TravelService';
+import { validateMasterPassword, formatDate } from '../utils/utils';
+import { getMasterPasswordStatus } from '../services/AuthService';  
 
-const TravelComponent = () => {
+const TravelPage = () => {
   const [travels, setTravels] = useState([]);
   const [filteredTravels, setFilteredTravels] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -468,4 +463,4 @@ const TravelComponent = () => {
   );
 };
 
-export default TravelComponent;
+export default TravelPage;

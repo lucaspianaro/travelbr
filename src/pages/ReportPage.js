@@ -3,14 +3,14 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { Box, Typography, CircularProgress, Paper, useMediaQuery, useTheme, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
-import { getTravelReportData } from '../../services/ReportService';
-import Layout from '../common/Layout';
+import { getTravelReportData } from '../services/ReportService';
+import Layout from '../components/common/Layout';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5499C7', '#48C9B0', '#F4D03F', '#DC7633', '#AF7AC5'];
 
-const ReportComponent = () => {
+const ReportPage = () => {
   // Estados do componente
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
@@ -181,4 +181,4 @@ const ReportComponent = () => {
   );
 };
 
-export default ReportComponent;
+export default ReportPage;

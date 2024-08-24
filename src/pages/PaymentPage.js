@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Box, Typography, Tabs, Tab, Fade } from '@mui/material';
-import Layout from '../common/Layout';
-import OrderReservationList from './OrderReservationList';
-import Receivables from './Receivables';
+import Layout from '../components/common/Layout';
+import OrderReservationList from '../components/payments/OrderReservationList';
+import Receivables from '../components/payments/Receivables';
 
-const PaymentComponent = () => {
+const PaymentPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabChange = (event, newValue) => {
@@ -38,4 +38,4 @@ const PaymentComponent = () => {
   );
 };
 
-export default PaymentComponent;
+export default PaymentPage;

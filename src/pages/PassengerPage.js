@@ -1,23 +1,21 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  Snackbar, Alert, Button, Typography, TextField, Box, Dialog, DialogActions, DialogTitle, DialogContent,
-  IconButton, InputAdornment, Select, MenuItem, FormControl, InputLabel, CircularProgress, Pagination, Collapse
-} from '@mui/material';
+import { Snackbar, Alert, Button, Typography, TextField, Box, Dialog, DialogActions, DialogTitle, DialogContent, IconButton, InputAdornment, Select, MenuItem, FormControl, InputLabel, CircularProgress, Pagination, Collapse } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import Layout from '../common/Layout';
-import PassengerCard from './PassengerCard';
-import PassengerForm from './PassengerForm';
-import { getAllPassengers, deletePassengers } from '../../services/PassengerService';
+import Layout from '../components/common/Layout';
+import PassengerCard from '../components/passengers/PassengerCard';
+import PassengerForm from '../components/passengers/PassengerForm';
+import { getAllPassengers, deletePassengers } from '../services/PassengerService';
 
-const PassengerComponent = () => {
+const PassengerPage = () => {
   const [passageiros, setPassageiros] = useState([]);
   const [openFormDialog, setOpenFormDialog] = useState(false);
   const [editedPassenger, setEditedPassenger] = useState({});
   const [errors, setErrors] = useState({});
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');  // Add this line to define the snackbar severity state
   const [openDialog, setOpenDialog] = useState(false);
   const [editing, setEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,7 +37,7 @@ const PassengerComponent = () => {
       setPassageiros(fetchedPassageiros);
     } catch (error) {
       setSnackbarMessage('Erro ao buscar passageiros: ' + error.message);
-      setSnackbarSeverity('error');
+      setSnackbarSeverity('error');  // Use setSnackbarSeverity here
       setOpenSnackbar(true);
     } finally {
       setLoading(false);
@@ -99,12 +97,12 @@ const PassengerComponent = () => {
     try {
       await deletePassengers([id]);
       setSnackbarMessage('Passageiro excluído com sucesso.');
-      setSnackbarSeverity('success');
+      setSnackbarSeverity('success');  // Use setSnackbarSeverity here
       setOpenSnackbar(true);
       fetchPassageiros();
     } catch (error) {
       setSnackbarMessage('Erro ao excluir passageiro: ' + error.message);
-      setSnackbarSeverity('error');
+      setSnackbarSeverity('error');  // Use setSnackbarSeverity here
       setOpenSnackbar(true);
     } finally {
       setDeleting(false);
@@ -227,7 +225,7 @@ const PassengerComponent = () => {
       </Dialog>
       
       <Snackbar open={openSnackbar} autoHideDuration={2000} onClose={() => setOpenSnackbar(false)}>
-        <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+        <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
@@ -243,4 +241,4 @@ const PassengerComponent = () => {
   );
 };
 
-export default PassengerComponent;
+export default PassengerPage;

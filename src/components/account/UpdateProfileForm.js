@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, CircularProgress, Alert, Collapse } from '@mui/material';
 import { useAuth } from '../../contexts/useAuthState';
-import { updateProfile } from '../../services/AuthService';
+import { updateUserProfile } from '../../services/AuthService';
 
 const mapFirebaseError = (error) => {
   switch (error.code || error.message) {
@@ -16,7 +16,7 @@ const mapFirebaseError = (error) => {
 
 const UpdateProfileForm = () => {
   const { currentUser } = useAuth();
-  const [displayName, setDisplayName] = useState(currentUser.displayName || '');
+  const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -29,7 +29,7 @@ const UpdateProfileForm = () => {
 
     try {
       if (displayName !== currentUser.displayName) {
-        await updateProfile({ displayName });
+        await updateUserProfile({ displayName });  // Corrected function call
       }
       setSuccessMessage('Informações atualizadas com sucesso!');
     } catch (error) {
@@ -49,7 +49,7 @@ const UpdateProfileForm = () => {
         label="Endereço de Email"
         name="email"
         autoComplete="email"
-        value={currentUser.email}
+        value={currentUser?.email || ''}
         disabled
       />
       <TextField

@@ -4,15 +4,15 @@ import AddIcon from '@mui/icons-material/Add';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import Layout from '../common/Layout';
-import VehicleDetails from './VehicleDetails';
-import VehicleCard from './VehicleCard';
-import VehicleForm from './VehicleForm';
-import { addVehicle, getAllVehicles, updateVehicle, deleteVehicle, getVehicleTravels } from '../../services/VehicleService';
-import { validateMasterPassword } from '../../utils/utils';
-import { getMasterPasswordStatus } from '../../services/AuthService';
+import Layout from '../components/common/Layout';
+import VehicleDetails from '../components/vehicles/VehicleDetails';
+import VehicleCard from '../components/vehicles/VehicleCard';
+import VehicleForm from '../components/vehicles/VehicleForm';
+import { addVehicle, getAllVehicles, updateVehicle, deleteVehicle, getVehicleTravels } from '../services/VehicleService';
+import { validateMasterPassword } from '../utils/utils';
+import { getMasterPasswordStatus } from '../services/AuthService';
 
-const VehicleComponent = () => {
+const VehiclePage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -332,4 +332,4 @@ const VehicleComponent = () => {
   );
 };
 
-export default VehicleComponent;
+export default VehiclePage;
