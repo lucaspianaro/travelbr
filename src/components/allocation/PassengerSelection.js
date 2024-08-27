@@ -1,17 +1,5 @@
 import React from 'react';
-import {
-  Grid,
-  Typography,
-  TextField,
-  CircularProgress,
-  FormControlLabel,
-  Checkbox,
-  IconButton,
-  Alert,
-  AlertTitle,
-  Autocomplete,
-  Tooltip,
-} from '@mui/material';
+import { Grid, Typography, TextField, CircularProgress, FormControlLabel, Checkbox, IconButton, Alert, AlertTitle, Autocomplete, Tooltip } from '@mui/material';
 import { formatCPF, formatRG } from '../../utils/utils';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import CloseIcon from '@mui/icons-material/Close';

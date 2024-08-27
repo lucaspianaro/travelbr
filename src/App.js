@@ -15,7 +15,7 @@ import VehiclePage from './pages/VehiclePage';
 import MyAccount from './pages/MyAccount';
 import HelpCenter from './pages/HelpCenter';
 import ReportPage from './pages/ReportPage';
-import PaymentPage from './pages/PaymentPage'; // Importe o componente de pagamentos
+import PaymentPage from './pages/PaymentPage'; 
 import './App.css';
 
 function AuthenticatedApp() {
@@ -33,7 +33,7 @@ function AuthenticatedApp() {
         <Route path="/viagens/:travelId/reservas" element={currentUser ? <TravelOrderReservationPage /> : <Navigate to="/login" />} />
         <Route path="/viagens/:travelId/editar-reserva" element={currentUser ? <PassengerAllocation /> : <Navigate to="/login" />} />
         <Route path="/veiculos" element={currentUser ? <VehiclePage /> : <Navigate to="/login" />} />
-        <Route path="/pagamentos" element={currentUser ? <PaymentPage /> : <Navigate to="/login" />} /> {/* Adicione esta linha */}
+        <Route path="/pagamentos" element={currentUser ? <PaymentPage /> : <Navigate to="/login" />} /> 
         <Route path="/relatorios" element={currentUser ? <ReportPage /> : <Navigate to="/login" />} />
         <Route path="/minha-conta" element={currentUser ? <MyAccount /> : <Navigate to="/login" />} />
         <Route path="/central-ajuda" element={<HelpCenter />} />

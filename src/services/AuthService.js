@@ -1,10 +1,6 @@
 import { auth, db } from '../firebaseConfig';
 import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
-import {
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,
-  sendPasswordResetEmail, sendEmailVerification, updateProfile as firebaseUpdateProfile,
-  updatePassword, reauthenticateWithCredential, EmailAuthProvider
-} from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification, updateProfile as firebaseUpdateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
 // Função para registrar um novo usuário com email e senha
 export const registerWithEmailPassword = async (email, senha, displayName) => {

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ResponsiveContainer, PieChart, Pie, Cell
-} from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Box, Typography, CircularProgress, Paper, useMediaQuery, useTheme, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import { getTravelReportData } from '../services/ReportService';
 import Layout from '../components/common/Layout';
