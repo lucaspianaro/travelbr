@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Card, CardContent, CardActions, Typography, Collapse, Button, Switch } from '@mui/material';
+import {
+  Container, Box, Card, CardContent, CardActions, Typography,
+  Collapse, Button, Switch, Dialog, DialogActions, DialogContent,
+  DialogContentText, TextField, DialogTitle, CircularProgress
+} from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -10,28 +14,60 @@ import UpdateProfileForm from '../components/account/UpdateProfileForm';
 import ChangePasswordForm from '../components/account/ChangePasswordForm';
 import SetMasterPasswordForm from '../components/account/SetMasterPasswordForm';
 import { getMasterPasswordStatus, toggleMasterPasswordActive } from '../services/AuthService';
+import { validateMasterPassword } from '../utils/utils';
 
 function MyAccount() {
   const [openProfile, setOpenProfile] = useState(false);
   const [openPassword, setOpenPassword] = useState(false);
   const [openMasterPassword, setOpenMasterPassword] = useState(false);
   const [masterPasswordActive, setMasterPasswordActive] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [masterPassword, setMasterPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [masterPasswordDefined, setMasterPasswordDefined] = useState(false);
 
   useEffect(() => {
-    // Verificar o status atual da senha master e atualizar o estado masterPasswordActive
     const fetchMasterPasswordStatus = async () => {
-      const isActive = await getMasterPasswordStatus();
+      const { isActive, isDefined } = await getMasterPasswordStatus(); // Ajuste para desestruturar a resposta detalhada
       setMasterPasswordActive(isActive);
+      setMasterPasswordDefined(isDefined);
     };
     fetchMasterPasswordStatus();
   }, []);
 
   const handleToggleMasterPasswordActive = async (event) => {
     const isActive = event.target.checked;
-    setMasterPasswordActive(isActive);
 
-    // Atualiza o estado no banco de dados
-    await toggleMasterPasswordActive(isActive);
+    if (!isActive) {
+      if (masterPasswordDefined) {
+        setConfirmDialogOpen(true);
+      } else {
+        await toggleMasterPasswordActive(false);
+        setMasterPasswordActive(false);
+      }
+    } else {
+      await toggleMasterPasswordActive(true);
+      setMasterPasswordActive(true);
+      setMasterPasswordDefined(true); // Considera a senha definida ao ativar
+    }
+  };
+
+  const handleConfirmToggle = async () => {
+    setIsProcessing(true);
+    try {
+      await validateMasterPassword(masterPassword);
+      await toggleMasterPasswordActive(false);
+      setMasterPasswordActive(false);
+      setMasterPasswordDefined(false); // Reseta a definição da senha
+      setConfirmDialogOpen(false);
+      setMasterPassword('');
+      setError('');
+    } catch (error) {
+      setError('Senha master incorreta. Tente novamente.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -137,6 +173,46 @@ function MyAccount() {
             )}
           </Card>
         </Box>
+
+        <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+          <DialogTitle>Desativar Senha Master</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Para desativar a senha master, insira a senha master atual.
+            </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Senha Master"
+              type="password"
+              fullWidth
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              error={!!error}
+              helperText={error}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setConfirmDialogOpen(false)}
+              color="cancelar"
+              variant="contained"
+              disabled={isProcessing}
+              sx={{ color: 'white' }}
+            >
+              Não
+            </Button>
+            <Button
+              onClick={handleConfirmToggle}
+              variant="contained"
+              color="confirmar"
+              disabled={!masterPassword || isProcessing}
+              sx={{ color: 'white' }}
+            >
+              {isProcessing ? <CircularProgress size={24} /> : 'Confirmar'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Layout>
   );

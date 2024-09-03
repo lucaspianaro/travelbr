@@ -87,9 +87,10 @@ export const getMasterPasswordStatus = async () => {
     const userDoc = await getDoc(userDocRef);
 
     if (userDoc.exists()) {
-      return userDoc.data().masterPasswordActive || false;
+      const data = userDoc.data();
+      return { isActive: data.masterPasswordActive || false, isDefined: !!data.masterPassword };
     }
-    return false;
+    return { isActive: false, isDefined: false };
   } catch (error) {
     console.error('Erro ao obter o status da senha master:', error);
     throw new Error(mapFirebaseError(error));
@@ -104,7 +105,18 @@ export const toggleMasterPasswordActive = async (isActive) => {
     if (!user) throw new Error('Usuário não está autenticado.');
 
     const userDocRef = doc(db, 'usuarios', user.uid);
-    await updateDoc(userDocRef, { masterPasswordActive: isActive });
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // Se o documento do usuário não existir, crie um novo documento
+      await setDoc(userDocRef, {
+        masterPasswordActive: isActive,
+        // Inicialize outros campos que possam ser necessários
+      });
+    } else {
+      // Se o documento existir, apenas atualize o campo
+      await updateDoc(userDocRef, { masterPasswordActive: isActive });
+    }
 
     console.log(`Senha master ${isActive ? 'ativada' : 'desativada'} com sucesso.`);
   } catch (error) {
