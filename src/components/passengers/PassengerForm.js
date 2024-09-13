@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, TextField, Button, Typography, Grid, Checkbox, FormControlLabel, CircularProgress } from '@mui/material';
-import { addPassenger, updatePassenger } from '../../services/PassengerService';
-import { formatCPF, formatTelefone, validarCPF, unformatCPF } from '../../utils/utils';
+import { Box, TextField, Button, Typography, CircularProgress, FormControlLabel, Checkbox, Snackbar, Alert, Radio, RadioGroup, FormControl, FormLabel, Autocomplete } from '@mui/material';
+import { addPassenger, updatePassenger, getPassengerById, validateDocumentDuplication } from '../../services/PassengerService';
+import { formatCPF, formatRG, formatTelefone, validarCPF, unformatCPF } from '../../utils/utils';
 
-// Função utilitária para renderizar um TextField
+// Função para renderizar um TextField com validação de erro
 const renderTextField = (label, field, value, onChange, error, helperText, required = false, type = 'text', inputProps = {}) => (
   <TextField
     key={field}
@@ -21,175 +21,254 @@ const renderTextField = (label, field, value, onChange, error, helperText, requi
   />
 );
 
+const documentAlreadyExists = (type, doc, excludeId, passageiros) => {
+  return passageiros.some(p => p[type] === doc && p.id !== excludeId);
+};
+
 const PassengerForm = ({
-  editedPassenger, setEditedPassenger, errors, setErrors, handleCloseFormDialog, fetchPassageiros, editing, passageiros, setOpenSnackbar, setSnackbarMessage
+  editedPassenger, setEditedPassenger, handleCloseFormDialog, fetchPassageiros, editing, passageiros
 }) => {
+  const [errors, setErrors] = useState({});
   const [isUnderage, setIsUnderage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [responsavelData, setResponsavelData] = useState({});
+  const [responsavelFlow, setResponsavelFlow] = useState('existing');
+  const [isForeign, setIsForeign] = useState(editedPassenger.estrangeiro || false);
+  const [responsavelIsForeign, setResponsavelIsForeign] = useState(false);
+  const [passengerIsForeign, setPassengerIsForeign] = useState(editedPassenger.estrangeiro || false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Efeito para verificar se o passageiro é menor de idade quando a data de nascimento é alterada
   useEffect(() => {
     if (editedPassenger.dataNascimento) {
       setIsUnderage(checkUnderage(editedPassenger.dataNascimento));
     }
-  }, [editedPassenger.dataNascimento]);
 
-  // Função para verificar se o passageiro é menor de idade
+    if (editedPassenger.menorDeIdade && editedPassenger.responsavelId) {
+      fetchResponsavelData(editedPassenger.responsavelId);
+    }
+  }, [editedPassenger.dataNascimento, editedPassenger.responsavelId]);
+
+  const fetchResponsavelData = async (responsavelId) => {
+    try {
+      if (responsavelId) {
+        const responsavel = await getPassengerById(responsavelId);
+        setResponsavelData({
+          responsavelId: responsavel.id,
+          nomeResponsavel: responsavel.nome,
+          cpfResponsavel: responsavel.cpf || '',
+          rgResponsavel: responsavel.rg || '',
+          passaporteResponsavel: responsavel.passaporte || '',
+          telefoneResponsavel: responsavel.telefone || '',
+          dataNascimentoResponsavel: responsavel.dataNascimento || '',
+          estrangeiroResponsavel: responsavel.estrangeiro || false,
+        });
+        setResponsavelIsForeign(responsavel.estrangeiro || false);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar responsável:', error);
+    }
+  };
+
   const checkUnderage = (dob) => {
     const today = new Date();
     const birthDate = new Date(dob);
-    const m = today.getMonth() - birthDate.getMonth();
     let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
     return age < 18;
   };
 
-  // Função para lidar com mudanças nos campos de entrada
-  const handleInputChange = (e, field) => {
-    let { value } = e.target;
+  const validateField = (field, value, entity) => {
     let error = '';
-    const documentAlreadyExists = (type, doc, excludeId) => {
-      return passageiros.some(p => p[type] === doc && p.id !== excludeId);
-    };
+    const documentExists = (type, doc) => documentAlreadyExists(type, doc, entity === 'passenger' ? editedPassenger.id : null, passageiros);
+
     switch (field) {
       case 'nome':
-      case 'nomeResponsavel':
-        value = value.replace(/[^a-zA-ZÀ-ú\s]/g, '');
-        if (value.length > 255) error = 'Nome deve ter no máximo 255 caracteres e apenas letras.';
+        if (value.length > 255) error = 'Nome deve ter no máximo 255 caracteres.';
         break;
       case 'cpf':
         const cleanedCPF = unformatCPF(value);
-        if (cleanedCPF && !validarCPF(cleanedCPF)) {
-          error = 'CPF inválido.';
-        } else if (cleanedCPF && documentAlreadyExists('cpf', cleanedCPF, editedPassenger.id)) {
-          error = 'Passageiro já cadastrado com este CPF.';
-        }
-        value = cleanedCPF;
-        break;
-      case 'passaporte':
-        if (value.length > 20) {
-          error = 'Número do Passaporte deve ter no máximo 20 caracteres.';
-        } else if (documentAlreadyExists('passaporte', value, editedPassenger.id)) {
-          error = 'Passageiro já cadastrado com este Número de Passaporte.';
-        }
-        if (value === editedPassenger.passaporteResponsavel) {
-          error = 'O número do passaporte do passageiro não pode ser o mesmo do responsável.';
-        }
-        break;
-      case 'cpfResponsavel':
-        const cleanedCPFResponsavel = unformatCPF(value);
-        if (cleanedCPFResponsavel && cleanedCPFResponsavel === editedPassenger.cpf) {
-          error = 'O CPF do responsável não pode ser o mesmo do passageiro.';
-        } else if (cleanedCPFResponsavel && !validarCPF(cleanedCPFResponsavel)) {
-          error = 'CPF inválido.';
-        }
-        value = cleanedCPFResponsavel;
-        break;
-      case 'passaporteResponsavel':
-        if (value.length > 20) {
-          error = 'Número do Passaporte do Responsável deve ter no máximo 20 caracteres.';
-        } else if (documentAlreadyExists('passaporteResponsavel', value, editedPassenger.id)) {
-          error = 'Passageiro já cadastrado com este Número de Passaporte do Responsável.';
-        }
-        if (value === editedPassenger.passaporte) {
-          error = 'O número do passaporte do responsável não pode ser o mesmo do passageiro.';
+        if (!isForeign && cleanedCPF) {
+          if (!validarCPF(cleanedCPF)) {
+            error = 'CPF inválido.';
+          } else if (documentExists('cpf', cleanedCPF)) {
+            error = 'Já existe um cadastro com este CPF.';
+          }
         }
         break;
       case 'rg':
-        if (value.length > 20) {
-          error = 'RG deve ter no máximo 20 caracteres.';
-        } else if (documentAlreadyExists('rg', value, editedPassenger.id)) {
-          error = 'Passageiro já cadastrado com este RG.';
+        if (value.length > 255) {
+          error = 'RG ou Certidão de Nascimento deve ter no máximo 255 caracteres.';
+        } else if (documentExists('rg', value)) {
+          error = 'Já existe um cadastro com este RG.';
         }
         break;
-      case 'rgResponsavel':
-        if (value.length > 20) {
-          error = 'RG deve ter no máximo 20 caracteres.';
-        } else if (value === editedPassenger.rg) {
-          error = 'O RG do responsável não pode ser o mesmo do passageiro.';
+      case 'passaporte':
+        if (documentExists('passaporte', value)) {
+          error = 'Já existe um cadastro com este Passaporte.';
         }
-        break;
-      case 'telefone':
-      case 'telefoneResponsavel':
-        value = value.replace(/[^0-9]/g, '');
-        if (value.length > 25) error = 'Telefone deve conter apenas números e ter no máximo 25 caracteres.';
-        break;
-      case 'endereco':
-        if (value.length > 255) error = 'Endereço deve ter no máximo 255 caracteres.';
         break;
       default:
         break;
     }
 
-    setEditedPassenger(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: error }));
+    setErrors(prevErrors => ({
+      ...prevErrors,
+      [entity === 'responsavel' ? `${field}Responsavel` : field]: error,
+    }));
 
-    if (field === 'dataNascimento') {
-      setIsUnderage(checkUnderage(value));
-    }
+    return error;
   };
 
-  // Função para verificar se todos os campos obrigatórios estão preenchidos corretamente
-  const canSave = () => {
-    const baseRequiredFields = editedPassenger.estrangeiro ? ['nome', 'passaporte', 'telefone', 'dataNascimento'] : isUnderage ? ['nome', 'rg', 'telefone', 'dataNascimento'] : ['nome', 'cpf', 'rg', 'telefone', 'dataNascimento'];
-    const underageRequiredFields = editedPassenger.estrangeiroResponsavel ? ['nomeResponsavel', 'passaporteResponsavel', 'telefoneResponsavel'] : ['nomeResponsavel', 'rgResponsavel', 'telefoneResponsavel'];
-    let requiredFields = [...baseRequiredFields];
+  const handleInputChange = (e, field, entity) => {
+    const { value } = e.target;
+    if (entity === 'passenger') {
+      setEditedPassenger(prev => ({ ...prev, [field]: value }));
+    } else {
+      setResponsavelData(prev => ({ ...prev, [field]: value }));
+    }
+    validateField(field, value, entity);
+  };
 
-    if (isUnderage) {
-      requiredFields = [...requiredFields, ...underageRequiredFields];
+  const handleForeignChange = (e, entity) => {
+    const isForeign = e.target.checked;
+    if (entity === 'passenger') {
+      setPassengerIsForeign(isForeign);
+      setEditedPassenger(prev => ({ ...prev, estrangeiro: isForeign, cpf: '', rg: '', passaporte: '' }));
+    } else {
+      setResponsavelIsForeign(isForeign);
+      setResponsavelData(prev => ({ ...prev, estrangeiro: isForeign, cpf: '', rg: '', passaporte: '' }));
+    }
+    // Reset errors for documents
+    setErrors(prev => ({
+      ...prev,
+      cpf: '',
+      rg: '',
+      passaporte: '',
+      cpfResponsavel: '',
+      rgResponsavel: '',
+      passaporteResponsavel: '',
+    }));
+  };
+
+  const validateUniqueDocuments = () => {
+    const passengerDocuments = {
+      cpf: editedPassenger.cpf || '',
+      rg: editedPassenger.rg || '',
+      passaporte: editedPassenger.passaporte || '',
+    };
+    const responsavelDocuments = {
+      cpf: responsavelData.cpfResponsavel || '',
+      rg: responsavelData.rgResponsavel || '',
+      passaporte: responsavelData.passaporteResponsavel || '',
+    };
+
+    const newErrors = { ...errors };
+    let hasError = false;
+
+    if (passengerDocuments.cpf && passengerDocuments.cpf === responsavelDocuments.cpf) {
+      newErrors.cpf = 'O CPF do passageiro e do responsável não podem ser iguais.';
+      newErrors.cpfResponsavel = 'O CPF do passageiro e do responsável não podem ser iguais.';
+      hasError = true;
     }
 
+    if (passengerDocuments.rg && passengerDocuments.rg === responsavelDocuments.rg) {
+      newErrors.rg = 'O RG do passageiro e do responsável não podem ser iguais.';
+      newErrors.rgResponsavel = 'O RG do passageiro e do responsável não podem ser iguais.';
+      hasError = true;
+    }
+
+    if (passengerDocuments.passaporte && passengerDocuments.passaporte === responsavelDocuments.passaporte) {
+      newErrors.passaporte = 'O Passaporte do passageiro e do responsável não podem ser iguais.';
+      newErrors.passaporteResponsavel = 'O Passaporte do passageiro e do responsável não podem ser iguais.';
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+    return !hasError;
+  };
+
+  const canSave = () => {
+    const baseRequiredFields = passengerIsForeign
+      ? ['nome', 'passaporte', 'telefone', 'dataNascimento']
+      : isUnderage
+      ? ['nome', 'rg', 'telefone', 'dataNascimento']
+      : ['nome', 'cpf', 'rg', 'telefone', 'dataNascimento'];
+
     const hasErrors = Object.values(errors).some(e => e.length > 0);
-    const hasAllFieldsFilled = requiredFields.every(field => editedPassenger[field] && editedPassenger[field].trim() !== '');
+    const hasAllFieldsFilled = baseRequiredFields.every(field => editedPassenger[field] && editedPassenger[field].trim() !== '');
+
+    if (isUnderage && responsavelData) {
+      const responsavelFields = ['nomeResponsavel', 'dataNascimentoResponsavel', 'telefoneResponsavel'];
+      if (responsavelIsForeign) {
+        responsavelFields.push('passaporteResponsavel');
+      } else {
+        responsavelFields.push('cpfResponsavel', 'rgResponsavel');
+      }
+
+      const responsavelFilled = responsavelFields.every(field => responsavelData[field] && responsavelData[field].trim() !== '');
+      const responsavelIsValidAge = !checkUnderage(responsavelData.dataNascimentoResponsavel);
+
+      return !hasErrors && hasAllFieldsFilled && responsavelFilled && responsavelIsValidAge;
+    }
 
     return !hasErrors && hasAllFieldsFilled;
   };
 
-  // Função para adicionar ou atualizar um passageiro
   const handleAddOrUpdatePassenger = async () => {
+    if (!validateUniqueDocuments()) {
+      return;
+    }
+  
     if (!canSave() || isSubmitting) {
-      setSnackbarMessage('Preencha todos os campos obrigatórios corretamente.');
-      setOpenSnackbar(true);
       return;
     }
-
+  
     setIsSubmitting(true);
-
-    const cpfExists = passageiros.some(p => p.cpf === editedPassenger.cpf && p.id !== editedPassenger.id);
-    const rgExists = passageiros.some(p => p.rg === editedPassenger.rg && p.id !== editedPassenger.id);
-    const passaporteExists = passageiros.some(p => p.passaporte === editedPassenger.passaporte && p.id !== editedPassenger.id);
-    const passaporteResponsavelExists = passageiros.some(p => p.passaporteResponsavel === editedPassenger.passaporteResponsavel && p.id !== editedPassenger.id);
-
-    if (isUnderage && editedPassenger.cpf && editedPassenger.cpf === editedPassenger.cpfResponsavel) {
-      setSnackbarMessage('O CPF do passageiro não pode ser o mesmo do responsável.');
-      setOpenSnackbar(true);
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (isUnderage && !editedPassenger.estrangeiroResponsavel && (!editedPassenger.nomeResponsavel || (editedPassenger.cpfResponsavel && !validarCPF(editedPassenger.cpfResponsavel)) || !editedPassenger.rgResponsavel || !editedPassenger.telefoneResponsavel)) {
-      setSnackbarMessage('Dados do responsável são obrigatórios para menores de 18 anos.');
-      setOpenSnackbar(true);
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (isUnderage && editedPassenger.estrangeiroResponsavel && (!editedPassenger.nomeResponsavel || !editedPassenger.passaporteResponsavel || !editedPassenger.telefoneResponsavel)) {
-      setSnackbarMessage('Dados do responsável estrangeiro são obrigatórios para menores de 18 anos.');
-      setOpenSnackbar(true);
-      setIsSubmitting(false);
-      return;
-    }
-
+  
     try {
+      let responsavelId = editedPassenger.responsavelId || null;
+  
+      // Validação de duplicidade para o passageiro
+      await validateDocumentDuplication(editedPassenger, editedPassenger.id, 'passageiro');
+  
+      if (isUnderage) {
+        if (responsavelFlow === 'existing' && responsavelData && responsavelData.responsavelId) {
+          responsavelId = responsavelData.responsavelId;
+        } else if (responsavelFlow === 'new' && responsavelData && !responsavelId) {
+          // Validação de duplicidade para o responsável
+          await validateDocumentDuplication(responsavelData, null, 'responsável');
+  
+          const responsavel = {
+            nome: responsavelData.nomeResponsavel,
+            ...(responsavelData.cpfResponsavel && { cpf: responsavelData.cpfResponsavel }), // Adiciona CPF apenas se existir
+            ...(responsavelData.rgResponsavel && { rg: responsavelData.rgResponsavel }),
+            ...(responsavelData.passaporteResponsavel && { passaporte: responsavelData.passaporteResponsavel }),
+            telefone: responsavelData.telefoneResponsavel,
+            endereco: responsavelData.enderecoResponsavel || null,
+            dataNascimento: responsavelData.dataNascimentoResponsavel,
+            estrangeiro: responsavelIsForeign || false,
+            menorDeIdade: false,
+          };
+  
+          const responsavelResponse = await addPassenger(responsavel);
+          responsavelId = responsavelResponse.id;
+        }
+      }
+  
       const passengerData = {
         ...editedPassenger,
         menorDeIdade: isUnderage,
-        dataAdicionado: editedPassenger.dataAdicionado || new Date().toISOString()
+        responsavelId: responsavelId || null,
+        dataAdicionado: editedPassenger.dataAdicionado || new Date().toISOString(),
+        ...(editedPassenger.cpf && { cpf: editedPassenger.cpf }), // Adiciona CPF apenas se existir
+        ...(editedPassenger.rg && { rg: editedPassenger.rg }),
+        ...(editedPassenger.passaporte && { passaporte: editedPassenger.passaporte })
       };
-
+  
       if (!editedPassenger.id) {
         await addPassenger(passengerData);
         setSnackbarMessage('Passageiro adicionado com sucesso!');
@@ -197,92 +276,154 @@ const PassengerForm = ({
         await updatePassenger(editedPassenger.id, passengerData);
         setSnackbarMessage('Passageiro atualizado com sucesso!');
       }
-
-      setOpenSnackbar(true);
+  
+      setSnackbarOpen(true);
       handleCloseFormDialog();
       fetchPassageiros();
     } catch (error) {
       console.error('Erro ao salvar passageiro:', error);
-      setSnackbarMessage('Erro ao salvar passageiro. Por favor, tente novamente.');
-      setOpenSnackbar(true);
+  
+      if (error.message.includes('CPF')) {
+        setSnackbarMessage(error.message.includes('responsável')
+          ? 'Erro: O CPF do responsável já está cadastrado.'
+          : 'Erro: O CPF do responsável já está cadastrado.');
+      } else if (error.message.includes('RG')) {
+        setSnackbarMessage(error.message.includes('responsável')
+          ? 'Erro: O RG do responsável já está cadastrado.'
+          : 'Erro: O RG do responsável já está cadastrado.');
+      } else if (error.message.includes('PASSAPORTE')) {
+        setSnackbarMessage(error.message.includes('responsável')
+          ? 'Erro: O Passaporte do responsável já está cadastrado.'
+          : 'Erro: O Passaporte do responsável já está cadastrado.');
+      } else {
+        setSnackbarMessage(error.message || 'Erro ao salvar passageiro. Por favor, tente novamente.');
+      }
+  
+      setSnackbarOpen(true);
     } finally {
       setIsSubmitting(false);
     }
+  };  
+  
+  const handlePassengerSelect = (event, newValue) => {
+    if (newValue) {
+      setResponsavelData(prev => ({
+        ...prev,
+        responsavelId: newValue.id,
+        nomeResponsavel: newValue.nome,
+        cpfResponsavel: newValue.cpf || '',
+        rgResponsavel: newValue.rg || '',
+        passaporteResponsavel: newValue.passaporte || '',
+        telefoneResponsavel: newValue.telefone || '',
+        dataNascimentoResponsavel: newValue.dataNascimento || '',
+        estrangeiroResponsavel: newValue.estrangeiro || false,
+      }));
+      setResponsavelIsForeign(newValue.estrangeiro || false);
+    }
   };
 
-  // Função para lidar com a mudança na checkbox de estrangeiro
-  const handleForeignChange = (e) => {
-    setEditedPassenger(prev => ({ ...prev, estrangeiro: e.target.checked, cpf: '', rg: '', passaporte: '' }));
-    setErrors(prev => ({ ...prev, cpf: '', rg: '', passaporte: '' }));
-  };
-
-  const handleForeignResponsavelChange = (e) => {
-    setEditedPassenger(prev => ({ ...prev, estrangeiroResponsavel: e.target.checked, cpfResponsavel: '', rgResponsavel: '', passaporteResponsavel: '' }));
-    setErrors(prev => ({ ...prev, cpfResponsavel: '', rgResponsavel: '', passaporteResponsavel: '' }));
-  };
+  const filteredPassageiros = passageiros
+    .filter(p => !p.menorDeIdade)
+    .sort((a, b) => a.nome.localeCompare(b.nome));
 
   return (
     <>
       <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
         {editing ? 'Editar Passageiro' : 'Cadastrar Novo Passageiro'}
       </Typography>
-      <Grid item xs={12} style={{ marginTop: '10px', textAlign: 'right' }}>
-        <Typography variant="caption" display="block" gutterBottom>
-          * Campos Obrigatórios
-        </Typography>
-      </Grid>
-      {renderTextField("Nome Completo", "nome", editedPassenger.nome, e => handleInputChange(e, 'nome'), errors.nome, errors.nome, true)}
-      {renderTextField("Data de Nascimento", "dataNascimento", editedPassenger.dataNascimento, e => handleInputChange(e, 'dataNascimento'), errors.dataNascimento, errors.dataNascimento, true, 'date', { max: new Date().toISOString().split("T")[0] })}
       <FormControlLabel
-        control={
-          <Checkbox
-            checked={editedPassenger.estrangeiro}
-            onChange={handleForeignChange}
-            name="estrangeiro"
-            color="primary"
-          />
-        }
+        control={<Checkbox checked={passengerIsForeign} onChange={(e) => handleForeignChange(e, 'passenger')} name="estrangeiro" color="primary" />}
         label="Estrangeiro"
       />
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          {renderTextField("CPF", "cpf", formatCPF(editedPassenger.cpf), e => handleInputChange(e, 'cpf'), errors.cpf, errors.cpf, !editedPassenger.estrangeiro && !isUnderage)}
-        </Grid>
-        <Grid item xs={6}>
-          {renderTextField(editedPassenger.estrangeiro ? "Número do Passaporte" : isUnderage ? "RG ou Certidão de Nascimento" : "RG", editedPassenger.estrangeiro ? "passaporte" : "rg", editedPassenger.estrangeiro ? editedPassenger.passaporte : editedPassenger.rg, e => handleInputChange(e, editedPassenger.estrangeiro ? 'passaporte' : 'rg'), editedPassenger.estrangeiro ? errors.passaporte : errors.rg, editedPassenger.estrangeiro ? errors.passaporte : errors.rg, true, 'text', editedPassenger.estrangeiro ? { maxLength: 20 } : {})}
-        </Grid>
-      </Grid>
+      {renderTextField("Nome Completo", "nome", editedPassenger.nome, e => handleInputChange(e, 'nome', 'passenger'), errors.nome, errors.nome, true)}
+      {renderTextField("Data de Nascimento", "dataNascimento", editedPassenger.dataNascimento, e => handleInputChange(e, 'dataNascimento', 'passenger'), errors.dataNascimento, errors.dataNascimento, true, 'date', { max: new Date().toISOString().split("T")[0] })}
 
-      {renderTextField("Telefone", "telefone", formatTelefone(editedPassenger.telefone), e => handleInputChange(e, 'telefone'), errors.telefone, errors.telefone, true)}
-      {renderTextField("Endereço", "endereco", editedPassenger.endereco, e => handleInputChange(e, 'endereco'), errors.endereco, errors.endereco)}
-
-      {isUnderage && (
+      {!passengerIsForeign && (
         <>
-          {renderTextField("Nome do Responsável", "nomeResponsavel", editedPassenger.nomeResponsavel, e => handleInputChange(e, 'nomeResponsavel'), errors.nomeResponsavel, errors.nomeResponsavel, true)}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={editedPassenger.estrangeiroResponsavel}
-                onChange={handleForeignResponsavelChange}
-                name="estrangeiroResponsavel"
-                color="primary"
-              />
-            }
-            label="Responsável Estrangeiro"
-          />
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              {renderTextField("CPF do Responsável", "cpfResponsavel", formatCPF(editedPassenger.cpfResponsavel), e => handleInputChange(e, 'cpfResponsavel'), errors.cpfResponsavel, errors.cpfResponsavel, !editedPassenger.estrangeiroResponsavel)}
-            </Grid>
-            <Grid item xs={6}>
-              {renderTextField(editedPassenger.estrangeiroResponsavel ? "Número do Passaporte do Responsável" : "RG do Responsável", editedPassenger.estrangeiroResponsavel ? "passaporteResponsavel" : "rgResponsavel", editedPassenger.estrangeiroResponsavel ? editedPassenger.passaporteResponsavel : editedPassenger.rgResponsavel, e => handleInputChange(e, editedPassenger.estrangeiroResponsavel ? 'passaporteResponsavel' : 'rgResponsavel'), editedPassenger.estrangeiroResponsavel ? errors.passaporteResponsavel : errors.rgResponsavel, editedPassenger.estrangeiroResponsavel ? errors.passaporteResponsavel : errors.rgResponsavel, true, 'text', editedPassenger.estrangeiroResponsavel ? { maxLength: 20 } : {})}
-            </Grid>
-          </Grid>
-          {renderTextField("Telefone do Responsável", "telefoneResponsavel", formatTelefone(editedPassenger.telefoneResponsavel), e => handleInputChange(e, 'telefoneResponsavel'), errors.telefoneResponsavel, errors.telefoneResponsavel, true)}
+          {renderTextField("CPF", "cpf", formatCPF(editedPassenger.cpf), e => handleInputChange(e, 'cpf', 'passenger'), errors.cpf, errors.cpf, !isUnderage)}
+          {renderTextField(isUnderage ? "RG ou Certidão de Nascimento" : "RG", "rg", editedPassenger.rg, e => handleInputChange(e, 'rg', 'passenger'), errors.rg, errors.rg, true)}
         </>
       )}
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>    
+      {passengerIsForeign && (
+        renderTextField("Número do Passaporte", "passaporte", editedPassenger.passaporte, e => handleInputChange(e, 'passaporte', 'passenger'), errors.passaporte, errors.passaporte, true)
+      )}
+
+      {renderTextField("Telefone", "telefone", formatTelefone(editedPassenger.telefone), e => handleInputChange(e, 'telefone', 'passenger'), errors.telefone, errors.telefone, true)}
+      {renderTextField("Endereço", "endereco", editedPassenger.endereco, e => handleInputChange(e, 'endereco', 'passenger'), errors.endereco, errors.endereco)}
+
+      {isUnderage && (
+        <>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, marginTop: 2 }}>
+            Dados do Responsável
+          </Typography>
+
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Selecione o fluxo:</FormLabel>
+            <RadioGroup
+              row
+              aria-label="responsavelFlow"
+              name="responsavelFlow"
+              value={responsavelFlow}
+              onChange={(e) => setResponsavelFlow(e.target.value)}
+            >
+              <FormControlLabel value="existing" control={<Radio />} label="Selecionar Responsável Existente" />
+              <FormControlLabel value="new" control={<Radio />} label="Criar Novo Responsável" />
+            </RadioGroup>
+          </FormControl>
+
+          {responsavelFlow === 'existing' && (
+            <Autocomplete
+              options={filteredPassageiros}
+              getOptionLabel={(option) => `${option.nome} - ${option.cpf ? `CPF: ${formatCPF(option.cpf)}` : `RG: ${formatRG(option.rg)}`}`}
+              loading={isSubmitting}
+              value={filteredPassageiros.find((p) => p.id === responsavelData.responsavelId) || null}
+              onChange={handlePassengerSelect}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Buscar Responsável"
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {isSubmitting ? (
+                          <CircularProgress color="inherit" size={20} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
+          )}
+
+          {responsavelFlow === 'new' && (
+            <>
+              {renderTextField("Nome do Responsável", "nomeResponsavel", responsavelData.nomeResponsavel, e => handleInputChange(e, 'nomeResponsavel', 'responsavel'), errors.nomeResponsavel, errors.nomeResponsavel, true)}
+              {renderTextField("Data de Nascimento", "dataNascimentoResponsavel", responsavelData.dataNascimentoResponsavel, e => handleInputChange(e, 'dataNascimentoResponsavel', 'responsavel'), errors.dataNascimentoResponsavel, errors.dataNascimentoResponsavel, true, 'date', { max: new Date().toISOString().split("T")[0] })}
+              {checkUnderage(responsavelData.dataNascimentoResponsavel) && <Typography color="error">O responsável deve ter 18 anos ou mais.</Typography>}
+              <FormControlLabel
+                control={<Checkbox checked={responsavelIsForeign} onChange={(e) => handleForeignChange(e, 'responsavel')} name="estrangeiroResponsavel" color="primary" />}
+                label="Responsável Estrangeiro"
+              />
+              {!responsavelIsForeign && (
+                <>
+                  {renderTextField("CPF do Responsável", "cpfResponsavel", formatCPF(responsavelData.cpfResponsavel), e => handleInputChange(e, 'cpfResponsavel', 'responsavel'), errors.cpfResponsavel, errors.cpfResponsavel, true)}
+                  {renderTextField("RG do Responsável", "rgResponsavel", responsavelData.rgResponsavel, e => handleInputChange(e, 'rgResponsavel', 'responsavel'), errors.rgResponsavel, errors.rgResponsavel, true)}
+                </>
+              )}
+              {responsavelIsForeign && renderTextField("Passaporte do Responsável", "passaporteResponsavel", responsavelData.passaporteResponsavel, e => handleInputChange(e, 'passaporteResponsavel', 'responsavel'), errors.passaporteResponsavel, errors.passaporteResponsavel, true)}
+              {renderTextField("Telefone do Responsável", "telefoneResponsavel", formatTelefone(responsavelData.telefoneResponsavel), e => handleInputChange(e, 'telefoneResponsavel', 'responsavel'), errors.telefoneResponsavel, errors.telefoneResponsavel, true)}
+              {renderTextField("Endereço do Responsável", "enderecoResponsavel", responsavelData.enderecoResponsavel, e => handleInputChange(e, 'enderecoResponsavel', 'responsavel'), errors.enderecoResponsavel, errors.enderecoResponsavel, false)}
+            </>
+          )}
+        </>
+      )}
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
         <Button onClick={handleCloseFormDialog} color="error" disabled={isSubmitting}>
           {editing ? 'Descartar Alterações' : 'Descartar'}
         </Button>
@@ -296,6 +437,16 @@ const PassengerForm = ({
           {editing ? 'Salvar Alterações' : 'Adicionar Passageiro'}
         </Button>
       </Box>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarMessage.includes('sucesso') ? 'success' : 'error'}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

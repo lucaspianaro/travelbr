@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Typography, Divider, Grid, Avatar, List, ListItem, ListItemIcon, ListItemText, Card, CardContent, Alert, Button } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Typography, Divider, Grid, Avatar, List, ListItem, ListItemIcon, ListItemText, Card, CardContent, Alert, Button, CircularProgress } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import PaymentIcon from '@mui/icons-material/Payment';
@@ -7,9 +7,13 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { formatCPF, formatTelefone, formatDate } from '../../utils/utils';
+import { getPassengerById } from '../../services/PassengerService';
 import exportReservationToPDF from '../../utils/ReservationExporter';
 
 const ReservationDetails = ({ reservation, passengers, travel }) => {
+  const [responsavel, setResponsavel] = useState(null);
+  const [loadingResponsavel, setLoadingResponsavel] = useState(false);
+
   // Encontrar o passageiro correspondente à reserva
   const passenger = passengers.find(p => p.id === reservation.passengerId) || {};
 
@@ -21,9 +25,29 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
   const status = reservation.status;
   const statusColor = status === 'Pago' ? 'success' : status === 'Cancelada' ? 'error' : 'warning';
 
+  // Função para exportar para PDF
   const handleExportPDF = () => {
     exportReservationToPDF(reservation, passenger, travel);
   };
+
+  // Buscar as informações do responsável quando o passageiro for menor de idade e tiver um responsavelId
+  useEffect(() => {
+    const fetchResponsavel = async () => {
+      if (passenger.responsavelId) {
+        setLoadingResponsavel(true);
+        try {
+          const fetchedResponsavel = await getPassengerById(passenger.responsavelId);
+          setResponsavel(fetchedResponsavel);
+        } catch (error) {
+          console.error('Erro ao buscar responsável:', error);
+        } finally {
+          setLoadingResponsavel(false);
+        }
+      }
+    };
+
+    fetchResponsavel();
+  }, [passenger.responsavelId]);
 
   return (
     <Box key={reservation.id} sx={{ p: 2, backgroundColor: '#f4f4f4', borderRadius: 1, mb: 2 }}>
@@ -41,6 +65,7 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
           Exportar para PDF
         </Button>
       </Box>
+      
       {/* Informações do Passageiro */}
       <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2 }}>Informações do Passageiro</Typography>
       <Card sx={{ mb: 2, p: 1 }}>
@@ -66,7 +91,7 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
                 {passenger.endereco && (
                   <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Endereço:</strong> {passenger.endereco}</Typography>
                 )}
-                {passenger.isMinor && (
+                {passenger.menorDeIdade && (
                   <Typography variant="body2" color="error" sx={{ wordBreak: 'break-word' }}>
                     <strong>Menor de Idade</strong>
                   </Typography>
@@ -81,8 +106,11 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
           </Grid>
         </CardContent>
       </Card>
+
       {/* Informações do Responsável */}
-      {passenger.nomeResponsavel && (
+      {loadingResponsavel ? (
+        <CircularProgress />
+      ) : responsavel && (
         <>
           <Divider sx={{ my: 2 }} />
           <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2 }}>Informações do Responsável</Typography>
@@ -96,15 +124,15 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
                 </Grid>
                 <Grid item xs={12} sm={10}>
                   <Box display="flex" flexDirection="column" sx={{ ml: 1 }}>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Nome do Responsável:</strong> {passenger.nomeResponsavel}</Typography>
-                    {passenger.cpfResponsavel && (
-                      <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>CPF do Responsável:</strong> {formatCPF(passenger.cpfResponsavel)}</Typography>
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Nome do Responsável:</strong> {responsavel.nome}</Typography>
+                    {responsavel.cpf && (
+                      <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>CPF do Responsável:</strong> {formatCPF(responsavel.cpf)}</Typography>
                     )}
                     <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                      <strong>{passenger.estrangeiroResponsavel ? 'Passaporte do Responsável:' : 'RG do Responsável:'}</strong> {passenger.estrangeiroResponsavel ? passenger.passaporteResponsavel : passenger.rgResponsavel || 'Não informado'}
+                      <strong>{responsavel.estrangeiro ? 'Passaporte do Responsável:' : 'RG do Responsável:'}</strong> {responsavel.estrangeiro ? responsavel.passaporte : responsavel.rg || 'Não informado'}
                     </Typography>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Telefone do Responsável:</strong> {formatTelefone(passenger.telefoneResponsavel)}</Typography>
-                    {passenger.estrangeiroResponsavel && (
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Telefone do Responsável:</strong> {formatTelefone(responsavel.telefone)}</Typography>
+                    {responsavel.estrangeiro && (
                       <Typography variant="body2" color="error" sx={{ wordBreak: 'break-word' }}>
                         <strong>Responsável Estrangeiro</strong>
                       </Typography>
@@ -116,6 +144,7 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
           </Card>
         </>
       )}
+
       {/* Informações da Viagem */}
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2 }}>Informações da Viagem</Typography>
@@ -177,6 +206,7 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
           </Grid>
         </CardContent>
       </Card>
+
       {/* Detalhes do Pagamento */}
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2 }}>Detalhes do Pagamento</Typography>
@@ -212,6 +242,7 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
           </Card>
         </Grid>
       </Grid>
+
       {/* Registros de Pagamentos */}
       {detalhesPagamento.pagamentos && detalhesPagamento.pagamentos.length > 0 && (
         <>
@@ -235,40 +266,7 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
           </List>
         </>
       )}
-      {/* Informações do Pagador */}
-      <Divider sx={{ my: 2 }} />
-      <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2 }}>Informações do Pagador</Typography>
-      <Card sx={{ mb: 2, p: 1 }}>
-        <CardContent sx={{ paddingBottom: '8px !important' }}>
-          <Grid container spacing={2}>
-            {detalhesPagamento.nomePagador && (
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Nome do Pagador:</strong> {detalhesPagamento.nomePagador}</Typography>
-              </Grid>
-            )}
-            {detalhesPagamento.cpfPagador && (
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>CPF do Pagador:</strong> {formatCPF(detalhesPagamento.cpfPagador)}</Typography>
-              </Grid>
-            )}
-            {detalhesPagamento.rgPagador && (
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>RG do Pagador:</strong> {detalhesPagamento.rgPagador}</Typography>
-              </Grid>
-            )}
-            {detalhesPagamento.metodoPagamento && (
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Método de Pagamento:</strong> {detalhesPagamento.metodoPagamento}</Typography>
-              </Grid>
-            )}
-            {detalhesPagamento.informacoesAdicionais && (
-              <Grid item xs={12}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Informações Adicionais:</strong> {detalhesPagamento.informacoesAdicionais}</Typography>
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
+
       {/* Informações do Pedido */}
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid #ccc', mb: 2 }}>Informações do Pedido</Typography>

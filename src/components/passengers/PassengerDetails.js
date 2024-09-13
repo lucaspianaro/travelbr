@@ -13,7 +13,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import ReservationCard from '../reservation/ReservationCard';
 import ReservationDetails from '../reservation/ReservationDetails';
 import { formatCPF, formatDate, formatTelefone, validateMasterPassword } from '../../utils/utils';
-import { getPassengerReservations } from '../../services/PassengerService';
+import { getPassengerReservations, getPassengerById } from '../../services/PassengerService';
 import { getTravelById } from '../../services/TravelService';
 import { getOrderById, cancelReservation } from '../../services/OrderService';
 import { getMasterPasswordStatus } from '../../services/AuthService';
@@ -36,6 +36,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [masterPasswordActive, setMasterPasswordActive] = useState(false);
+  const [responsavel, setResponsavel] = useState(null); // Armazenar dados do responsável
   const navigate = useNavigate();
   const itemsPerPage = 5;
 
@@ -66,25 +67,8 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
             }
           }));
 
-          // Adicionar detalhes de pagamento às reservas
-          let reservasComDetalhes = fetchedReservations.map(reserva => ({
-            ...reserva,
-            detalhesPagamento: groupedOrders[reserva.orderId]?.detalhesPagamento || {},
-            travel: groupedOrders[reserva.orderId]?.travel
-          }));
-
-          // Ordenar as reservas
-          reservasComDetalhes = reservasComDetalhes.sort((a, b) => {
-            if (a.status === 'Cancelada' && b.status !== 'Cancelada') return 1;
-            if (a.status !== 'Cancelada' && b.status === 'Cancelada') return -1;
-
-            const dateA = new Date(a.travel?.dataIda);
-            const dateB = new Date(b.travel?.dataIda);
-            return dateA - dateB;
-          });
-
           setOrders(groupedOrders);
-          setReservas(reservasComDetalhes);
+          setReservas(fetchedReservations);
         } catch (error) {
           console.error('Erro ao buscar reservas e pedidos do passageiro:', error);
         } finally {
@@ -92,6 +76,19 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
         }
       };
       fetchReservations();
+
+      // Se o passageiro for menor de idade, buscar as informações do responsável
+      if (passenger.menorDeIdade && passenger.responsavelId) {
+        const fetchResponsavel = async () => {
+          try {
+            const responsavelData = await getPassengerById(passenger.responsavelId);
+            setResponsavel(responsavelData); // Armazenar as informações do responsável
+          } catch (error) {
+            console.error('Erro ao buscar informações do responsável:', error);
+          }
+        };
+        fetchResponsavel();
+      }
     }
   }, [open, passenger]);
 
@@ -120,12 +117,12 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
 
   const handleEditReservation = (reservation, orderId) => {
     const passengerDetails = { ...passenger };
-    navigate(`/viagens/${reservation.travelId}/alocar-passageiros`, { 
-      state: { 
+    navigate(`/viagens/${reservation.travelId}/alocar-passageiros`, {
+      state: {
         selectedSeats: [{ number: reservation.numeroAssento }],
-        editingReservation: { ...reservation, orderId, passenger: passengerDetails }, 
-        editingOrderId: orderId 
-      } 
+        editingReservation: { ...reservation, orderId, passenger: passengerDetails },
+        editingOrderId: orderId,
+      },
     });
   };
 
@@ -147,7 +144,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
       if (cancelReservationId) {
         await cancelReservation(travelIdState, cancelOrderId, cancelReservationId);
 
-        const updatedReservations = reservas.map(r =>
+        const updatedReservations = reservas.map((r) =>
           r.id === cancelReservationId ? { ...r, status: 'Cancelada' } : r
         );
         setReservas(updatedReservations);
@@ -186,13 +183,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      aria-labelledby="passenger-details-title"
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={onClose} aria-labelledby="passenger-details-title" maxWidth="sm" fullWidth>
       <DialogTitle id="passenger-details-title">Detalhes do Passageiro</DialogTitle>
       <DialogContent>
         {passenger && (
@@ -208,6 +199,16 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
                 <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
                   <strong>CPF:</strong> {passenger.cpf ? formatCPF(passenger.cpf) : 'Não informado'}
                 </Typography>
+                {passenger.rg && (
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
+                    <strong>RG:</strong> {passenger.rg}
+                  </Typography>
+                )}
+                {passenger.passaporte && (
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
+                    <strong>Passaporte:</strong> {passenger.passaporte}
+                  </Typography>
+                )}
                 <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
                   <strong>Data de Nascimento:</strong> {formatDate(passenger.dataNascimento)}
                 </Typography>
@@ -252,7 +253,8 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
               </>
             )}
 
-            {(passenger.nomeResponsavel || passenger.cpfResponsavel || passenger.rgResponsavel || passenger.passaporteResponsavel || passenger.telefoneResponsavel) && (
+            {/* Exibição das informações do responsável */}
+            {passenger.menorDeIdade && responsavel && (
               <>
                 <Divider sx={{ mb: 2 }} />
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -260,31 +262,31 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
                     <AccountCircleIcon />
                   </Avatar>
                   <Box>
-                    {passenger.nomeResponsavel && (
+                    {responsavel.nome && (
                       <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                        <strong>Nome do Responsável:</strong> {passenger.nomeResponsavel}
+                        <strong>Nome do Responsável:</strong> {responsavel.nome}
                       </Typography>
                     )}
-                    {passenger.cpfResponsavel && (
+                    {responsavel.cpf && (
                       <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                        <strong>CPF do Responsável:</strong> {formatCPF(passenger.cpfResponsavel)}
+                        <strong>CPF do Responsável:</strong> {formatCPF(responsavel.cpf)}
                       </Typography>
                     )}
-                    {passenger.estrangeiroResponsavel ? (
+                    {responsavel.estrangeiro ? (
                       <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                        <strong>Passaporte do Responsável:</strong> {passenger.passaporteResponsavel}
+                        <strong>Passaporte do Responsável:</strong> {responsavel.passaporte}
                       </Typography>
                     ) : (
                       <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                        <strong>RG do Responsável:</strong> {passenger.rgResponsavel}
+                        <strong>RG do Responsável:</strong> {responsavel.rg}
                       </Typography>
                     )}
-                    {passenger.telefoneResponsavel && (
+                    {responsavel.telefone && (
                       <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                        <strong>Telefone do Responsável:</strong> {formatTelefone(passenger.telefoneResponsavel)}
+                        <strong>Telefone do Responsável:</strong> {formatTelefone(responsavel.telefone)}
                       </Typography>
                     )}
-                    {passenger.estrangeiroResponsavel && (
+                    {responsavel.estrangeiro && (
                       <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', wordBreak: 'break-word', mb: 1 }}>
                         <strong>Responsável Estrangeiro</strong> <VerifiedUserIcon sx={{ ml: 1, color: 'green' }} />
                       </Typography>
@@ -314,11 +316,11 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
                   <ReservationCard
                     key={index}
                     reservation={reserva}
-                    passengers={[passenger]}  // Passando o passageiro atual
+                    passengers={[passenger]} // Passando o passageiro atual
                     travel={orders[reserva.orderId]?.travel}
                     onEditReservation={handleEditReservation}
                     onCancelReservation={handleCancelReservation}
-                    onCardClick={() => handleOpenModal(reserva)}  // Usando a função handleOpenModal
+                    onCardClick={() => handleOpenModal(reserva)} // Usando a função handleOpenModal
                   />
                 ))}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -339,15 +341,15 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant='contained' color="primary">Fechar</Button>
+        <Button onClick={onClose} variant="contained" color="primary">
+          Fechar
+        </Button>
       </DialogActions>
 
       <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
         <DialogTitle>Confirmar Cancelamento</DialogTitle>
         <DialogContent>
-          <Typography>
-            Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.
-          </Typography>
+          <Typography>Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.</Typography>
           {masterPasswordActive && (
             <TextField
               margin="normal"
@@ -360,11 +362,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
                 autoComplete: 'new-password',
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle master password visibility"
-                      onClick={handleClickShowMasterPassword}
-                      edge="end"
-                    >
+                    <IconButton aria-label="toggle master password visibility" onClick={handleClickShowMasterPassword} edge="end">
                       {showMasterPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -379,13 +377,13 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
           <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
             Não
           </Button>
-          <Button 
-            onClick={confirmCancelReservation} 
-            variant="contained" 
-            color="confirmar" 
+          <Button
+            onClick={confirmCancelReservation}
+            variant="contained"
+            color="confirmar"
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
-            sx={{ color: 'white' }} 
+            sx={{ color: 'white' }}
           >
             {cancelLoading ? <CircularProgress size={24} /> : 'Cancelar reserva'}
           </Button>
@@ -398,36 +396,37 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
         </Alert>
       </Snackbar>
 
-      <Modal
-        open={modalOpen}
-        onClose={handleCloseModal}
-      >
-        <Box sx={{ 
-          position: 'absolute', 
-          top: '50%', 
-          left: '50%', 
-          transform: 'translate(-50%, -50%)', 
-          width: { xs: '90%', sm: '80%', md: '60%' }, 
-          bgcolor: 'background.paper', 
-          boxShadow: 24, 
-          p: 4, 
-          maxHeight: '90vh', 
-          overflowY: 'auto',
-          borderRadius: 2,
-        }}>
+      <Modal open={modalOpen} onClose={handleCloseModal}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: { xs: '90%', sm: '80%', md: '60%' },
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            borderRadius: 2,
+          }}
+        >
           <Typography variant="h5" gutterBottom>
             Detalhes da Reserva
           </Typography>
           {selectedReservation && (
-            <ReservationDetails 
+            <ReservationDetails
               reservation={selectedReservation}
               passengers={[passenger]}
               travel={orders[selectedReservation.orderId]?.travel}
-              detalhesPagamento={selectedReservation.detalhesPagamento}  // Passando detalhes de pagamento
+              detalhesPagamento={selectedReservation.detalhesPagamento} // Passando detalhes de pagamento
             />
           )}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button onClick={handleCloseModal} variant="contained" color="primary">Fechar</Button>
+            <Button onClick={handleCloseModal} variant="contained" color="primary">
+              Fechar
+            </Button>
           </Box>
         </Box>
       </Modal>

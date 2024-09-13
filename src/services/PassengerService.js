@@ -11,12 +11,14 @@ const getUserDocRef = () => doc(db, 'usuarios', auth.currentUser.uid);
 
 // Adiciona um novo passageiro à coleção de passageiros do usuário
 export const addPassenger = async (passenger) => {
-  const userId = auth.currentUser.uid;
   const userDocRef = getUserDocRef();
   const passengerCollectionRef = collection(userDocRef, 'passageiros');
-  
+
+  // Valida a duplicidade dos documentos
+  await validateDocumentDuplication(passenger);
+
   passenger = await checkAndUpdateAdultStatus(passenger);
-  
+
   return await addDoc(passengerCollectionRef, {
     ...passenger,
     estaAtivo: true,
@@ -27,15 +29,39 @@ export const addPassenger = async (passenger) => {
 
 // Atualiza os dados de um passageiro específico
 export const updatePassenger = async (passengerId, passengerData) => {
-  try {
-    const passengerDocRef = doc(getUserDocRef(), 'passageiros', passengerId);
-    
-    passengerData = await checkAndUpdateAdultStatus(passengerData);
-    
-    await updateDoc(passengerDocRef, passengerData);
-  } catch (error) {
-    console.error("Failed to update passenger:", error);
-    throw error;
+  const passengerDocRef = doc(getUserDocRef(), 'passageiros', passengerId);
+
+  // Valida a duplicidade dos documentos
+  await validateDocumentDuplication(passengerData, passengerId);
+
+  passengerData = await checkAndUpdateAdultStatus(passengerData);
+
+  await updateDoc(passengerDocRef, passengerData);
+};
+
+// Função para validar a duplicidade de documentos (CPF, RG, Passaporte)
+export const validateDocumentDuplication = async (passenger, excludeId = null, entity = 'passageiro') => {
+  const userDocRef = getUserDocRef();
+  const passengerCollectionRef = collection(userDocRef, 'passageiros');
+
+  const queries = [];
+  if (passenger.cpf) {
+    queries.push({ field: 'cpf', query: query(passengerCollectionRef, where('cpf', '==', passenger.cpf)) });
+  }
+  if (passenger.rg) {
+    queries.push({ field: 'rg', query: query(passengerCollectionRef, where('rg', '==', passenger.rg)) });
+  }
+  if (passenger.passaporte) {
+    queries.push({ field: 'passaporte', query: query(passengerCollectionRef, where('passaporte', '==', passenger.passaporte)) });
+  }
+
+  for (const { field, query } of queries) {
+    const snapshot = await getDocs(query);
+    const existingDoc = snapshot.docs.find(doc => doc.id !== excludeId);
+    if (existingDoc) {
+      // Retornar um erro específico de acordo com a entidade (passageiro ou responsável)
+      throw new Error(`O ${field.toUpperCase()} já está cadastrado para o ${entity}.`);
+    }
   }
 };
 
@@ -105,18 +131,31 @@ export const getAllPassengers = async (sortOrder = 'desc') => {
 const checkAndUpdateAdultStatus = async (passenger) => {
   const today = new Date();
   const birthDate = new Date(passenger.dataNascimento);
-  const m = today.getMonth() - birthDate.getMonth();
+
+  // Cálculo da idade
   let age = today.getFullYear() - birthDate.getFullYear();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const dayDiff = today.getDate() - birthDate.getDate();
+
+  // Ajuste a idade se o mês e o dia ainda não tiverem ocorrido este ano
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
     age--;
   }
+
+  // Verificação se o passageiro é menor de idade
   const menorDeIdade = age < 18;
 
+  // Se o passageiro for maior ou igual a 18 anos, menorDeIdade será false
   if (passenger.menorDeIdade !== menorDeIdade) {
-    const passengerDocRef = doc(getUserDocRef(), 'passageiros', passenger.id);
-    await updateDoc(passengerDocRef, { menorDeIdade });
+    try {
+      const passengerDocRef = doc(getUserDocRef(), 'passageiros', passenger.id);
+      await updateDoc(passengerDocRef, { menorDeIdade });
+    } catch (error) {
+      console.error('Erro ao atualizar status de menor de idade:', error);
+    }
   }
 
+  // Retorne o passageiro com o status atualizado (menorDeIdade será false se tiver 18 anos ou mais)
   return { ...passenger, menorDeIdade };
 };
 

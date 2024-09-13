@@ -2,8 +2,9 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { formatCPF, formatTelefone, formatDate } from './utils';
 import logo from '../assets/logo4.png';
+import { getPassengerById } from '../services/PassengerService';  // Serviço para buscar o responsável
 
-const exportReservationToPDF = (reservation, passenger, travel) => {
+const exportReservationToPDF = async (reservation, passenger, travel) => {
   const doc = new jsPDF();
 
   const addWrappedText = (text, x, y, maxWidth, lineHeight) => {
@@ -34,7 +35,9 @@ const exportReservationToPDF = (reservation, passenger, travel) => {
 
   const img = new Image();
   img.src = logo;
-  img.onload = () => {
+  
+  // Inicializando o doc depois de carregar a logo
+  img.onload = async () => {
     doc.addImage(img, 'PNG', 14, 5, 50, 40);
 
     doc.setFontSize(18);
@@ -48,6 +51,7 @@ const exportReservationToPDF = (reservation, passenger, travel) => {
 
     let currentY = 56;
 
+    // Assento
     const assentoHeight = 16;
     drawSectionBorder(12, currentY, 180, assentoHeight);
     doc.setFontSize(14);
@@ -56,6 +60,7 @@ const exportReservationToPDF = (reservation, passenger, travel) => {
     currentY = addWrappedText(`Assento: ${reservation.numeroAssento}`, 14, currentY + 12, 180, 6);
     currentY += 4;
 
+    // Informações da viagem
     const viagemHeight = travel.somenteIda ? 40 : 48;
     drawSectionBorder(12, currentY, 180, viagemHeight);
     doc.setFontSize(14);
@@ -76,6 +81,7 @@ const exportReservationToPDF = (reservation, passenger, travel) => {
 
     currentY += 8;
 
+    // Informações do passageiro
     const passageiroHeight = 80;
     drawSectionBorder(12, currentY, 88, passageiroHeight);
     doc.setFontSize(14);
@@ -102,22 +108,29 @@ const exportReservationToPDF = (reservation, passenger, travel) => {
       doc.setTextColor('black');
     }
 
-    if (passenger.nomeResponsavel) {
-      drawSectionBorder(105, currentY, 88, passageiroHeight);
-      let responsavelStartX = 105;
-      startY = currentY + 12;
-      startY = addWrappedText(`Nome do Responsável: ${passenger.nomeResponsavel}`, responsavelStartX, startY, 88, 6);
-      startY = addWrappedText(`CPF do Responsável: ${passenger.cpfResponsavel ? formatCPF(passenger.cpfResponsavel) : ''}`, responsavelStartX, startY, 88, 6);
-      startY = addWrappedText(`${passenger.estrangeiroResponsavel ? 'Passaporte' : 'RG'} do Responsável: ${passenger.estrangeiroResponsavel ? passenger.passaporteResponsavel || 'Não informado' : passenger.rgResponsavel || 'Não informado'}`, responsavelStartX, startY, 88, 6);
-      startY = addWrappedText(`Telefone do Responsável: ${formatTelefone(passenger.telefoneResponsavel)}`, responsavelStartX, startY, 88, 6);
-      if (passenger.estrangeiroResponsavel) {
-        doc.setTextColor('blue');
-        startY = addWrappedText('Estrangeiro', responsavelStartX, startY, 88, 6);
-        doc.setTextColor('black');
+    // Verificar se há responsavelId e buscar o responsável
+    if (passenger.responsavelId) {
+      const responsavel = await getPassengerById(passenger.responsavelId); // Buscando os dados do responsável
+
+      if (responsavel) {
+        drawSectionBorder(105, currentY, 88, passageiroHeight);
+        let responsavelStartX = 105;
+        startY = currentY + 12;
+        startY = addWrappedText(`Nome do Responsável: ${responsavel.nome}`, responsavelStartX, startY, 88, 6);
+        startY = addWrappedText(`CPF do Responsável: ${responsavel.cpf ? formatCPF(responsavel.cpf) : 'Não informado'}`, responsavelStartX, startY, 88, 6);
+        startY = addWrappedText(`${responsavel.estrangeiro ? 'Passaporte' : 'RG'} do Responsável: ${responsavel.estrangeiro ? responsavel.passaporte || 'Não informado' : responsavel.rg || 'Não informado'}`, responsavelStartX, startY, 88, 6);
+        startY = addWrappedText(`Telefone do Responsável: ${formatTelefone(responsavel.telefone)}`, responsavelStartX, startY, 88, 6);
+        if (responsavel.estrangeiro) {
+          doc.setTextColor('blue');
+          startY = addWrappedText('Estrangeiro', responsavelStartX, startY, 88, 6);
+          doc.setTextColor('black');
+        }
       }
     }
+
     currentY += passageiroHeight + 8;
 
+    // Informações de pagamento e status
     const pagadorHeight = 72;
     drawSectionBorder(12, currentY, 180, pagadorHeight);
     doc.setFontSize(14);
@@ -146,6 +159,7 @@ const exportReservationToPDF = (reservation, passenger, travel) => {
     }
     pagadorStartY = addWrappedText(`Status: ${reservation.status}`, 14, pagadorStartY, 180, 6);
 
+    // Salvar o PDF
     const fileName = passenger.nome ? `Reserva_${passenger.nome}.pdf` : `Reserva_${reservation.id}.pdf`;
     doc.save(fileName);
   };
