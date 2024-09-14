@@ -4,10 +4,9 @@ import { formatCPF, unformatCPF } from '../../utils/utils';
 
 const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, errors, validatePaymentField }) => {
 
-  // Helper function to ensure input contains only valid numbers
   const handleNumberInput = (e) => {
     const char = String.fromCharCode(e.which);
-    const isAllowed = /^\d|\.|-$/; // Allow digits, dot, and minus
+    const isAllowed = /^\d|\.|-$/; 
     if (!isAllowed.test(char)) {
       e.preventDefault();
     }
@@ -67,9 +66,9 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             name="valorTotal"
             type="text"
             value={detalhesPagamento.valorTotal}
-            onChange={(e) => handlePaymentDetailChange('valorTotal', e.target.value.replace(',', '.'))} // Convert ',' to '.'
+            onChange={(e) => handlePaymentDetailChange('valorTotal', e.target.value.replace(',', '.'))} 
             onBlur={(e) => validatePaymentField('valorTotal', e.target.value)}
-            onKeyPress={handleNumberInput} // Only allow numbers and dots
+            onKeyPress={handleNumberInput} 
             error={!!errors['valorTotal']}
             helperText={errors['valorTotal']}
             fullWidth

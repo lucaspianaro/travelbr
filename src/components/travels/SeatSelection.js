@@ -4,7 +4,6 @@ import { Box, Button, Grid, Typography, Tooltip } from '@mui/material';
 const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }) => {
   const [selectedSeats, setSelectedSeats] = useState([]);
 
-  // Ensure the selectedSeats is an array to prevent map errors
   useEffect(() => {
     onSelectSeat(Array.isArray(selectedSeats) ? selectedSeats : []);
   }, [selectedSeats, onSelectSeat]);

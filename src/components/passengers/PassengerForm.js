@@ -3,7 +3,7 @@ import { Box, TextField, Button, Typography, CircularProgress, FormControlLabel,
 import { addPassenger, updatePassenger, getPassengerById, validateDocumentDuplication } from '../../services/PassengerService';
 import { formatCPF, formatRG, formatTelefone, validarCPF, unformatCPF } from '../../utils/utils';
 
-// Função para renderizar um TextField com validação de erro
+// Função para criar um campo de texto com validação e atributos personalizados
 const renderTextField = (label, field, value, onChange, error, helperText, required = false, type = 'text', inputProps = {}) => (
   <TextField
     key={field}
@@ -21,6 +21,7 @@ const renderTextField = (label, field, value, onChange, error, helperText, requi
   />
 );
 
+// Função para verificar se o documento (CPF, RG, etc.) já está cadastrado
 const documentAlreadyExists = (type, doc, excludeId, passageiros) => {
   return passageiros.some(p => p[type] === doc && p.id !== excludeId);
 };
@@ -28,7 +29,7 @@ const documentAlreadyExists = (type, doc, excludeId, passageiros) => {
 const PassengerForm = ({
   editedPassenger, setEditedPassenger, handleCloseFormDialog, fetchPassageiros, editing, passageiros
 }) => {
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({}); // useState para armazenar os erros de validação do formulário
   const [isUnderage, setIsUnderage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [responsavelData, setResponsavelData] = useState({});
@@ -39,6 +40,7 @@ const PassengerForm = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
+  // useEffect que executa sempre que a data de nascimento ou o responsável do passageiro é alterado
   useEffect(() => {
     if (editedPassenger.dataNascimento) {
       setIsUnderage(checkUnderage(editedPassenger.dataNascimento));
@@ -49,6 +51,7 @@ const PassengerForm = ({
     }
   }, [editedPassenger.dataNascimento, editedPassenger.responsavelId]);
 
+  // Função para buscar os dados do responsável
   const fetchResponsavelData = async (responsavelId) => {
     try {
       if (responsavelId) {
@@ -70,6 +73,7 @@ const PassengerForm = ({
     }
   };
 
+  // Função para verificar se o passageiro é menor de idade baseado na data de nascimento
   const checkUnderage = (dob) => {
     const today = new Date();
     const birthDate = new Date(dob);
@@ -81,6 +85,7 @@ const PassengerForm = ({
     return age < 18;
   };
 
+  // Função para validar os campos do formulário (nome, CPF, RG, etc.)
   const validateField = (field, value, entity) => {
     let error = '';
     const documentExists = (type, doc) => documentAlreadyExists(type, doc, entity === 'passenger' ? editedPassenger.id : null, passageiros);
@@ -123,6 +128,7 @@ const PassengerForm = ({
     return error;
   };
 
+  // Função chamada quando há alteração nos campos do formulário
   const handleInputChange = (e, field, entity) => {
     const { value } = e.target;
     if (entity === 'passenger') {
@@ -133,6 +139,7 @@ const PassengerForm = ({
     validateField(field, value, entity);
   };
 
+  // Função para lidar com a alteração se o passageiro ou responsável for estrangeiro
   const handleForeignChange = (e, entity) => {
     const isForeign = e.target.checked;
     if (entity === 'passenger') {
@@ -154,6 +161,7 @@ const PassengerForm = ({
     }));
   };
 
+  // Função para validar se os documentos (CPF, RG, passaporte) são únicos
   const validateUniqueDocuments = () => {
     const passengerDocuments = {
       cpf: editedPassenger.cpf || '',
@@ -191,6 +199,7 @@ const PassengerForm = ({
     return !hasError;
   };
 
+  // Função para checar se todos os campos obrigatórios estão preenchidos e o formulário pode ser salvo
   const canSave = () => {
     const baseRequiredFields = passengerIsForeign
       ? ['nome', 'passaporte', 'telefone', 'dataNascimento']
@@ -218,6 +227,7 @@ const PassengerForm = ({
     return !hasErrors && hasAllFieldsFilled;
   };
 
+  // Função para adicionar ou atualizar o passageiro no banco de dados
   const handleAddOrUpdatePassenger = async () => {
     if (!validateUniqueDocuments()) {
       return;
@@ -305,6 +315,7 @@ const PassengerForm = ({
     }
   };  
   
+  // Função para selecionar um responsável existente para um menor de idade
   const handlePassengerSelect = (event, newValue) => {
     if (newValue) {
       setResponsavelData(prev => ({
@@ -322,15 +333,28 @@ const PassengerForm = ({
     }
   };
 
+  // Filtra os passageiros para remover os menores de idade e ordena por nome
   const filteredPassageiros = passageiros
     .filter(p => !p.menorDeIdade)
     .sort((a, b) => a.nome.localeCompare(b.nome));
 
+  // Função para garantir que somente números sejam permitidos no campo
+  const handleNumericInputChange = (e, field, entity) => {
+    const { value } = e.target;
+    const numericValue = value.replace(/\D/g, ''); // Remove qualquer caractere não numérico
+    handleInputChange({ target: { value: numericValue } }, field, entity);
+  };  
+
   return (
     <>
-      <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-        {editing ? 'Editar Passageiro' : 'Cadastrar Novo Passageiro'}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" component="div">
+          {editing ? 'Editar Passageiro' : 'Cadastrar Novo Passageiro'}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          * Campos obrigatórios
+        </Typography>
+      </Box>
       <FormControlLabel
         control={<Checkbox checked={passengerIsForeign} onChange={(e) => handleForeignChange(e, 'passenger')} name="estrangeiro" color="primary" />}
         label="Estrangeiro"
@@ -340,7 +364,7 @@ const PassengerForm = ({
 
       {!passengerIsForeign && (
         <>
-          {renderTextField("CPF", "cpf", formatCPF(editedPassenger.cpf), e => handleInputChange(e, 'cpf', 'passenger'), errors.cpf, errors.cpf, !isUnderage)}
+          {renderTextField("CPF", "cpf", formatCPF(editedPassenger.cpf), e => handleNumericInputChange(e, 'cpf', 'passenger'), errors.cpf, errors.cpf, !isUnderage, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
           {renderTextField(isUnderage ? "RG ou Certidão de Nascimento" : "RG", "rg", editedPassenger.rg, e => handleInputChange(e, 'rg', 'passenger'), errors.rg, errors.rg, true)}
         </>
       )}
@@ -349,7 +373,7 @@ const PassengerForm = ({
         renderTextField("Número do Passaporte", "passaporte", editedPassenger.passaporte, e => handleInputChange(e, 'passaporte', 'passenger'), errors.passaporte, errors.passaporte, true)
       )}
 
-      {renderTextField("Telefone", "telefone", formatTelefone(editedPassenger.telefone), e => handleInputChange(e, 'telefone', 'passenger'), errors.telefone, errors.telefone, true)}
+      {renderTextField("Telefone", "telefone", formatTelefone(editedPassenger.telefone), e => handleNumericInputChange(e, 'telefone', 'passenger'), errors.telefone, errors.telefone, true, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
       {renderTextField("Endereço", "endereco", editedPassenger.endereco, e => handleInputChange(e, 'endereco', 'passenger'), errors.endereco, errors.endereco)}
 
       {isUnderage && (
@@ -411,12 +435,12 @@ const PassengerForm = ({
               />
               {!responsavelIsForeign && (
                 <>
-                  {renderTextField("CPF do Responsável", "cpfResponsavel", formatCPF(responsavelData.cpfResponsavel), e => handleInputChange(e, 'cpfResponsavel', 'responsavel'), errors.cpfResponsavel, errors.cpfResponsavel, true)}
+                  {renderTextField("CPF do Responsável", "cpfResponsavel", formatCPF(responsavelData.cpfResponsavel), e => handleNumericInputChange(e, 'cpfResponsavel', 'responsavel'), errors.cpfResponsavel, errors.cpfResponsavel, true, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
                   {renderTextField("RG do Responsável", "rgResponsavel", responsavelData.rgResponsavel, e => handleInputChange(e, 'rgResponsavel', 'responsavel'), errors.rgResponsavel, errors.rgResponsavel, true)}
                 </>
               )}
               {responsavelIsForeign && renderTextField("Passaporte do Responsável", "passaporteResponsavel", responsavelData.passaporteResponsavel, e => handleInputChange(e, 'passaporteResponsavel', 'responsavel'), errors.passaporteResponsavel, errors.passaporteResponsavel, true)}
-              {renderTextField("Telefone do Responsável", "telefoneResponsavel", formatTelefone(responsavelData.telefoneResponsavel), e => handleInputChange(e, 'telefoneResponsavel', 'responsavel'), errors.telefoneResponsavel, errors.telefoneResponsavel, true)}
+              {renderTextField("Telefone do Responsável", "telefoneResponsavel", formatTelefone(responsavelData.telefoneResponsavel), e => handleNumericInputChange(e, 'telefoneResponsavel', 'responsavel'), errors.telefoneResponsavel, errors.telefoneResponsavel, true, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
               {renderTextField("Endereço do Responsável", "enderecoResponsavel", responsavelData.enderecoResponsavel, e => handleInputChange(e, 'enderecoResponsavel', 'responsavel'), errors.enderecoResponsavel, errors.enderecoResponsavel, false)}
             </>
           )}

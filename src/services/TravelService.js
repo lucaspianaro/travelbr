@@ -1,4 +1,3 @@
-// TravelService.js
 import { db, auth } from '../firebaseConfig';
 import { collection, doc, addDoc, getDocs, query, where, updateDoc, getDoc, writeBatch, orderBy, limit } from 'firebase/firestore';
 import { getReservationsByTravelId } from './OrderService';

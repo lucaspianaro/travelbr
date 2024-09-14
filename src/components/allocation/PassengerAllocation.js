@@ -74,7 +74,7 @@ const PassengerAllocation = () => {
   const [availableSeatsAndar1, setAvailableSeatsAndar1] = useState([]);
   const [availableSeatsAndar2, setAvailableSeatsAndar2] = useState([]);
   const [reservedSeats, setReservedSeats] = useState([]);
-  const [loading, setLoading] = useState(false); // Loading state for the button
+  const [loading, setLoading] = useState(false); 
 
   const fetchPassengers = useCallback(async () => {
     setLoadingPassengers(true);
@@ -285,12 +285,10 @@ const PassengerAllocation = () => {
       ).toFixed(2)
     }));
 
-    // Revalidate records after removal
     updatedRecords.forEach((record, idx) => validatePaymentField('valor', record.valor));
   };
 
   const handlePaymentDetailChange = (name, value) => {
-    // Convert ',' to '.' for calculations
     const numericValue = parseFloat(value.replace(',', '.'));
 
     setPaymentDetails((prevDetails) => {
@@ -317,7 +315,7 @@ const PassengerAllocation = () => {
         return;
     }
 
-    setLoading(true); // Set loading to true when submitting
+    setLoading(true); 
 
     try {
         let orderId = editingOrderId || null;
@@ -377,7 +375,7 @@ const PassengerAllocation = () => {
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
     } finally {
-        setLoading(false); // Reset loading state after the operation is complete
+        setLoading(false); 
     }
 };
 
@@ -397,7 +395,6 @@ const PassengerAllocation = () => {
     setOpenSeatSelectionDialog(true);
   };
 
-  // Collect currently allocated seat numbers
   const currentlyAllocatedSeats = reservations.map(reservation => reservation.numeroAssento);
 
   const handleCloseSeatSelection = () => {
@@ -408,7 +405,7 @@ const PassengerAllocation = () => {
     setReservations((prevReservations) => {
       const newReservations = [...prevReservations];
       if (selectedReservationIndex !== null) {
-        newReservations[selectedReservationIndex].numeroAssento = seatNumber; // Update seat number directly
+        newReservations[selectedReservationIndex].numeroAssento = seatNumber; 
       }
       return sortReservationsBySeatNumber(newReservations);
     });
@@ -416,7 +413,7 @@ const PassengerAllocation = () => {
   };
 
   const handleRemoveReservation = (index) => {
-    if (reservations.length > 1) { // Ensure at least one reservation remains
+    if (reservations.length > 1) { 
       setReservations((prevReservations) => {
         const newReservations = prevReservations.filter((_, idx) => idx !== index);
         return newReservations;
@@ -486,8 +483,8 @@ const PassengerAllocation = () => {
                    handlePayerChange={handlePayerChange}
                    handleOpenFormDialog={handleOpenFormDialog}
                    handleOpenSeatSelection={handleOpenSeatSelection}
-                   handleRemoveReservation={handleRemoveReservation} // Pass the remove handler
-                   editingReservation={editingReservation} // Pass editing status
+                   handleRemoveReservation={handleRemoveReservation} 
+                   editingReservation={editingReservation} 
                 />
               </Box>
               <Divider sx={{ my: 3 }} />
@@ -518,8 +515,8 @@ const PassengerAllocation = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={!isFormValid() || loading} // Disable button if loading
-                  startIcon={loading && <CircularProgress size={20} />} // Add loading spinner
+                  disabled={!isFormValid() || loading} 
+                  startIcon={loading && <CircularProgress size={20} />} 
                 >
                   {editingReservation 
                     ? reservations.length > 1 ? 'Atualizar Reservas' : 'Atualizar Reserva'
@@ -561,7 +558,7 @@ const PassengerAllocation = () => {
            availableSeatsAndar1={availableSeatsAndar1}
            availableSeatsAndar2={availableSeatsAndar2}
            reservedSeats={reservedSeats}
-           allocatedSeats={currentlyAllocatedSeats} // Pass currently allocated seats
+           allocatedSeats={currentlyAllocatedSeats} 
            onSeatChange={handleSeatChange}
         />
         <Snackbar

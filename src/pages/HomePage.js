@@ -158,7 +158,7 @@ const HomePage = () => {
         const newTravel = await addTravel(travelData);
         setTravels([...travels, { ...travelData, id: newTravel.id }]);
       }
-      await fetchTravels(); // Fetch all travels again after saving
+      await fetchTravels(); 
       handleCloseTravelModal();
       setSnackbarMessage('Viagem salva com sucesso!');
       setSnackbarSeverity('success');
@@ -178,7 +178,7 @@ const HomePage = () => {
   const closeConfirmDeleteDialog = () => {
     setConfirmDeleteOpen(false);
     setTravelToDelete(null);
-    setMasterPassword(''); // Reset master password field
+    setMasterPassword(''); 
   };
 
   const confirmDelete = async () => {
@@ -189,7 +189,7 @@ const HomePage = () => {
           await validateMasterPassword(masterPassword);
         }
         await deleteTravel(travelToDelete.id);
-        await fetchTravels(); // Fetch all travels again after deletion
+        await fetchTravels(); 
         setSnackbarMessage('Viagem excluída com sucesso!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
@@ -212,7 +212,7 @@ const HomePage = () => {
   const closeConfirmCancelDialog = () => {
     setConfirmCancelOpen(false);
     setTravelToCancel(null);
-    setMasterPassword(''); // Reset master password field
+    setMasterPassword(''); 
   };
 
   const confirmCancel = async () => {
@@ -223,7 +223,7 @@ const HomePage = () => {
           await validateMasterPassword(masterPassword);
         }
         await cancelTravel(travelToCancel.id);
-        await fetchTravels(); // Fetch all travels again after cancellation
+        await fetchTravels(); 
         setSnackbarMessage('Viagem cancelada com sucesso!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);

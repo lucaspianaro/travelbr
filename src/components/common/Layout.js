@@ -57,7 +57,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
   const [loading, setLoading] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // Hook to get current path
+  const location = useLocation(); 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Fechar a gaveta (drawer) se o `defaultOpenDrawer` for falso
@@ -112,7 +112,6 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
     navigate('/central-ajuda');
   };
 
-  // Function to check if the list item matches the current path
   const isSelected = (path) => location.pathname === path;
 
   return (

@@ -41,7 +41,6 @@ const PaymentRecords = ({
       [`${field}-${index}`]: error || (exceedsTotal ? 'O valor pago não pode exceder o valor total.' : ''),
     }));
 
-    // Update errors state to prevent form submission if there is any payment error
     setErrors((prevErrors) => ({
       ...prevErrors,
       paymentRecord: exceedsTotal || error,

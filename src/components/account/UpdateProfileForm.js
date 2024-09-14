@@ -29,7 +29,7 @@ const UpdateProfileForm = () => {
 
     try {
       if (displayName !== currentUser.displayName) {
-        await updateUserProfile({ displayName });  // Corrected function call
+        await updateUserProfile({ displayName }); 
       }
       setSuccessMessage('Informações atualizadas com sucesso!');
     } catch (error) {

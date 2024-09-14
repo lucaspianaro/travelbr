@@ -13,7 +13,6 @@ const generateNextIdentifier = async () => {
   const maxIdentifier = await getMaxTravelIdentifier();
   let nextIdentifier = (maxIdentifier + 1).toString();
 
-  // Ensure identifier is unique
   while (!(await checkTravelIdentifierUnique(nextIdentifier))) {
     nextIdentifier = (parseInt(nextIdentifier) + 1).toString();
   }

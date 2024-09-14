@@ -5,27 +5,23 @@ const SeatChangeDialog = ({ open, onClose, currentSeat, availableSeatsAndar1, av
   const [selectedSeat, setSelectedSeat] = useState(currentSeat);
   const [loading, setLoading] = useState(true);
 
-  // Reset selected seat and set loading state when dialog opens
   useEffect(() => {
     if (open) {
       setSelectedSeat(currentSeat);
-      setLoading(true); // Set loading to true when dialog opens
+      setLoading(true); 
     }
   }, [currentSeat, open]);
 
-  // Update loading state when seats data changes
   useEffect(() => {
     if (open && (availableSeatsAndar1.length > 0 || availableSeatsAndar2.length > 0)) {
-      setLoading(false); // Set loading to false when seats are loaded
+      setLoading(false); 
     }
   }, [availableSeatsAndar1, availableSeatsAndar2, open]);
 
-  // Handle seat selection
   const handleSeatSelection = (seat) => {
     setSelectedSeat(seat);
   };
 
-  // Render seats for a given floor
   const renderSeats = (seats, reserved, startNumber = 0) => {
     const rows = [];
     const seatsMap = seats.reduce((acc, seat) => {
@@ -62,7 +58,7 @@ const SeatChangeDialog = ({ open, onClose, currentSeat, availableSeatsAndar1, av
           return (
             <React.Fragment key={colIndex}>
               {colIndex === 2 && (
-                <Grid item key={`aisle-${rowIndex}`} sx={{ width: '20px' }} /> // Aisle space
+                <Grid item key={`aisle-${rowIndex}`} sx={{ width: '20px' }} /> 
               )}
               <Grid item>
                 {seat ? (
@@ -71,7 +67,7 @@ const SeatChangeDialog = ({ open, onClose, currentSeat, availableSeatsAndar1, av
                       <Button
                         variant={selectedSeat === seat.number ? 'contained' : 'outlined'}
                         onClick={() => handleSeatSelection(seat.number)}
-                        disabled={!!isReserved || isAllocated} // Disable if reserved or already allocated
+                        disabled={!!isReserved || isAllocated} 
                         sx={{
                           minWidth: '40px',
                           minHeight: '40px',
