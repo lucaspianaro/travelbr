@@ -359,12 +359,26 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
       <DialogContent sx={{ padding: 0 }}>
         <Box sx={{ padding: 2, overflowY: 'auto', maxHeight: '80vh' }}>
           <form onSubmit={handleSubmit} noValidate>
-            <Typography
-              variant="h6"
-              sx={{ textAlign: { xs: 'center', md: 'left' }, marginBottom: 2 }}
+          <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 2,
+                flexDirection: { xs: 'column', md: 'row' }, 
+                textAlign: { xs: 'center', md: 'left' }, 
+              }}
             >
-              {initialTravel ? 'Editar Viagem' : 'Nova Viagem'}
-            </Typography>
+              <Typography
+                variant="h6"
+                sx={{ marginBottom: { xs: 1, md: 0 } }} 
+              >
+                {initialTravel ? 'Editar Viagem' : 'Nova Viagem'}
+              </Typography>
+              <Typography variant="caption" display="block" gutterBottom>
+                * Campos Obrigatórios
+              </Typography>
+            </Box>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
