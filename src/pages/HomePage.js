@@ -353,7 +353,7 @@ const HomePage = () => {
             <Typography variant="body1" paragraph>
               Parece que você ainda não tem nenhuma viagem.
             </Typography>
-            <Button variant="contained" color="primary" onClick={() => navigate('/viagens')}>
+            <Button variant="contained" color="primary" onClick={() => navigate('/viagens')} sx={{ borderRadius: '50px' }}>
               Adicionar viagem
             </Button>
           </Box>
@@ -374,7 +374,7 @@ const HomePage = () => {
         <Box sx={{ mt: 4 }}>
           <Grid container spacing={2} marginBottom={2}>
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+              <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: '50px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <MonetizationOnIcon color="info" sx={{ mr: 1 }} />
                   <Typography variant="h6">Total a Receber Este Mês</Typography>
@@ -383,7 +383,7 @@ const HomePage = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+              <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: '50px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <CheckCircleOutlineIcon color='success' sx={{ mr: 1 }} />
                   <Typography variant="h6">Total Recebido Este Mês</Typography>
@@ -633,7 +633,7 @@ const OrderDetailsModal = ({ open, onClose, order, passengers, travel }) => (
       </Typography>
       {order && <OrderDetails order={order} passengers={passengers} travel={travel} />}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-        <Button onClick={onClose} variant="contained" color="primary">
+        <Button onClick={onClose} variant="contained" color="primary" sx={{ borderRadius: '50px' }}>
           Fechar
         </Button>
       </Box>

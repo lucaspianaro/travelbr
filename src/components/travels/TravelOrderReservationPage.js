@@ -359,7 +359,7 @@ const TravelOrderReservationPage = () => {
             </Select>
           </FormControl>
           
-          <Button variant="contained" color="primary" onClick={handleExportPDF}>
+          <Button variant="contained" color="primary" onClick={handleExportPDF} sx={{ borderRadius: '50px' }}>
             {tabIndex === 0 ? "Exportar Reservas" : "Exportar Pedidos"}
           </Button>
         </Box>
@@ -492,7 +492,7 @@ const TravelOrderReservationPage = () => {
             </Typography>
             {renderModalContent()}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-              <Button onClick={handleCloseModal} variant="contained" color="primary">Fechar</Button>
+              <Button onClick={handleCloseModal} variant="contained" color="primary" sx={{ borderRadius: '50px' }}>Fechar</Button>
             </Box>
           </Box>
         </Modal>

@@ -193,10 +193,10 @@ const VehiclePage = () => {
         <Typography variant="h6" component="div">
           Gerenciamento de Veículos
         </Typography>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)} sx={{ borderRadius: '50px' }}>
           Adicionar
         </Button>
-        <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)}>
+        <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)} sx={{ borderRadius: '50px' }}>
           {filtersVisible ? 'Ocultar Filtros' : 'Mostrar Filtros'}
         </Button>
       </Box>

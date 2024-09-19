@@ -124,12 +124,14 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-      <Typography variant="h6" component="div" sx={{ mb: 2 }}>
-        {initialVehicle ? 'Editar Veículo' : 'Adicionar Novo Veículo'}
-      </Typography>
-      <div style={{ textAlign: 'right' }}>
-        <Typography variant="caption" display="block" gutterBottom>* Campos Obrigatórios</Typography>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" component="div">
+          {initialVehicle ? 'Editar Veículo' : 'Adicionar Novo Veículo'}
+        </Typography>
+        <Typography variant="caption" display="block" gutterBottom>
+          * Campos Obrigatórios
+         </Typography>
+      </Box>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <TextField
@@ -224,7 +226,7 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
           <Button onClick={onCancel} color="error">
             {initialVehicle ? 'Descartar Alterações' : 'Descartar'}
           </Button>
-          <Button variant="contained" color="primary" type="submit" disabled={!isFormValid()}>
+          <Button variant="contained" color="primary" type="submit" disabled={!isFormValid()} sx={{ borderRadius: '50px' }}>
             {initialVehicle ? 'Salvar Alterações' : 'Adicionar Veículo'}
           </Button>
         </Grid>

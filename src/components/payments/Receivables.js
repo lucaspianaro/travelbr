@@ -594,6 +594,7 @@ const Receivables = () => {
               onClick={handleCloseModal}
               variant="contained"
               color="primary"
+              sx={{ borderRadius: '50px' }}
             >
               Fechar
             </Button>

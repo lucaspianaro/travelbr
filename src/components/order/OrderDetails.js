@@ -25,7 +25,7 @@ const OrderDetails = ({ order, passengers, travel }) => {
   return (
     <Box key={order.id} sx={{ p: 2, backgroundColor: '#f4f4f4', borderRadius: 1, mb: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', mb: 2 }}>
-        <Alert severity={statusColor} sx={{ width: 'fit-content', mb: 2 }}>
+        <Alert severity={statusColor} sx={{ width: 'fit-content', mb: 2, borderRadius: '50px' }}>
           <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Status:</strong> {status}</Typography>
         </Alert>
       </Box>
