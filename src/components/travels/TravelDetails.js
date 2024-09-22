@@ -450,6 +450,7 @@ function TravelDetails() {
                       sx={{
                         width: 'calc(100% - 32px)',
                         maxWidth: '400px',
+                        borderRadius: '50px'
                       }}
                     >
                       Prosseguir com Alocação de Passageiros

@@ -139,7 +139,7 @@ const VehicleDetails = ({ vehicle, open, onClose }) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant='contained' color="primary">Fechar</Button>
+        <Button onClick={onClose} variant='contained' color="primary" sx={{ borderRadius: '50px' }}>Fechar</Button>
       </DialogActions>
     </Dialog>
   );

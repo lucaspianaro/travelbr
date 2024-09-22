@@ -371,7 +371,7 @@ const TravelOrderReservationPage = () => {
           <>
             <Grid container spacing={2} marginBottom={2}>
               <Grid item xs={12} md={6}>
-                <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+                <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: '50px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <MonetizationOnIcon color="info" sx={{ mr: 1 }} />
                     <Typography variant="h6">Total a Receber</Typography>
@@ -380,7 +380,7 @@ const TravelOrderReservationPage = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+                <Card variant="outlined" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderRadius: '50px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <CheckCircleOutlineIcon color='success' sx={{ mr: 1 }} />
                     <Typography variant="h6">Total Recebido</Typography>

@@ -390,6 +390,7 @@ const Receivables = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   p: 2,
+                  borderRadius: '50px'
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -409,6 +410,7 @@ const Receivables = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   p: 2,
+                  borderRadius: '50px'
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
