@@ -104,13 +104,15 @@ const PassengerForm = ({
           }
         }
         break;
-      case 'rg':
-        if (value.length > 255) {
-          error = 'RG ou Certidão de Nascimento deve ter no máximo 255 caracteres.';
-        } else if (documentExists('rg', value)) {
-          error = 'Já existe um cadastro com este RG.';
-        }
-        break;
+        case 'rg':
+          if (value.trim() === '') {
+            error = ''; 
+          } else if (value.length > 255) {
+            error = 'RG ou Certidão de Nascimento deve ter no máximo 255 caracteres.';
+          } else if (documentExists('rg', value)) {
+            error = 'Já existe um cadastro com este RG.';
+          }
+          break;        
       case 'passaporte':
         if (documentExists('passaporte', value)) {
           error = 'Já existe um cadastro com este Passaporte.';
@@ -397,32 +399,41 @@ const PassengerForm = ({
           </FormControl>
 
           {responsavelFlow === 'existing' && (
-            <Autocomplete
-              options={filteredPassageiros}
-              getOptionLabel={(option) => `${option.nome} - ${option.cpf ? `CPF: ${formatCPF(option.cpf)}` : `RG: ${formatRG(option.rg)}`}`}
-              loading={isSubmitting}
-              value={filteredPassageiros.find((p) => p.id === responsavelData.responsavelId) || null}
-              onChange={handlePassengerSelect}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Buscar Responsável"
-                  fullWidth
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {isSubmitting ? (
-                          <CircularProgress color="inherit" size={20} />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-          )}
+              <Autocomplete
+                options={filteredPassageiros}
+                getOptionLabel={(option) =>
+                  `${option.nome} - ${
+                    option.estrangeiro
+                      ? `Passaporte: ${option.passaporte || 'Não informado'}`
+                      : option.cpf
+                      ? `CPF: ${formatCPF(option.cpf)}`
+                      : `RG: ${formatRG(option.rg)}`
+                  }`
+                }
+                loading={isSubmitting}
+                value={filteredPassageiros.find((p) => p.id === responsavelData.responsavelId) || null}
+                onChange={handlePassengerSelect}
+                noOptionsText="Nenhum Responsável Encontrado"
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Buscar Responsável"
+                    fullWidth
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {isSubmitting ? (
+                            <CircularProgress color="inherit" size={20} />
+                          ) : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            )}
 
           {responsavelFlow === 'new' && (
             <>
