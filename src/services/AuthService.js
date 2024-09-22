@@ -88,8 +88,14 @@ export const getMasterPasswordStatus = async () => {
 
     if (userDoc.exists()) {
       const data = userDoc.data();
-      return { isActive: data.masterPasswordActive || false, isDefined: !!data.masterPassword };
+
+      // Verificação explícita do campo masterPasswordActive
+      const isActive = typeof data.masterPasswordActive === 'boolean' ? data.masterPasswordActive : false;
+      const isDefined = !!data.masterPassword;
+
+      return { isActive, isDefined };
     }
+
     return { isActive: false, isDefined: false };
   } catch (error) {
     console.error('Erro ao obter o status da senha master:', error);

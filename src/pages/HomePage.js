@@ -63,18 +63,25 @@ const HomePage = () => {
     setLoading(true);
     try {
       const fetchedTravels = await getAllTravels();
-      const sortedTravels = fetchedTravels.sort((a, b) => {
+  
+      // Filtrar viagens que não estão canceladas ou encerradas
+      const activeTravels = fetchedTravels.filter(travel => 
+        travel.status !== 'Cancelada' && travel.status !== 'Encerrada'
+      );
+  
+      const sortedTravels = activeTravels.sort((a, b) => {
         const dateA = new Date(a.dataIda);
         const dateB = new Date(b.dataIda);
         return dateA - dateB;
       });
+      
       setTravels(sortedTravels.slice(0, 3));
-
+  
       const fetchedOrders = await getAllOrders();
       const fetchedPassengers = await getAllPassengers();
       setPassengers(fetchedPassengers);
       setOrders(fetchedOrders);
-
+  
       const travelIds = new Set(fetchedOrders.map(order => order.travelId));
       const travelData = {};
       for (const id of travelIds) {
@@ -87,7 +94,7 @@ const HomePage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []);  
 
   useEffect(() => {
     fetchTravels();
