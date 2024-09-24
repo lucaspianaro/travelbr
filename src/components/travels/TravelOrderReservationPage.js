@@ -8,6 +8,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Layout from '../common/Layout';
+import TravelInfo from './TravelInfo';
 import OrderCard from '../order/OrderCard';
 import ReservationCard from '../reservation/ReservationCard';
 import OrderDetails from '../order/OrderDetails';
@@ -258,6 +259,7 @@ const TravelOrderReservationPage = () => {
             reservation={reservation}
             passengers={passengers}
             travel={travel}
+            hideTravelInfo
             onEditReservation={handleEditReservation}
             onCancelReservation={handleCancelReservation}
             onCardClick={handleOpenModal}
@@ -274,6 +276,7 @@ const TravelOrderReservationPage = () => {
           <OrderCard
             order={order}
             travel={travel}
+            hideTravelInfo
             onEditOrder={handleEditOrder}
             onCancelOrder={handleCancelOrder}
             onCardClick={handleOpenModal}
@@ -313,6 +316,7 @@ const TravelOrderReservationPage = () => {
             Reservas e Pedidos
           </Typography>
         </Box>
+        <TravelInfo travel={travel} />
         <Tabs
           value={tabIndex}
           onChange={handleTabChange}

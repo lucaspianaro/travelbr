@@ -8,7 +8,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { formatDate } from '../../utils/utils';
 
-const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) => {
+const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hideTravelInfo  }) => {
   const detalhesPagamento = order.detalhesPagamento || {};
   const valorTotal = Number(detalhesPagamento.valorTotal || 0);
   const valorPago = Number(detalhesPagamento.valorPago || 0);
@@ -62,6 +62,7 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
               {seatLabel}: {sortedSeats}
             </Typography>
+            {!hideTravelInfo && travel && (
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <LocationOnIcon sx={{ mr: 1 }} />
               <Box>
@@ -79,6 +80,7 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick }) =
                 </Typography>
               </Box>
             </Box>
+            )}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Tooltip title={`Status: ${orderStatus}`}>

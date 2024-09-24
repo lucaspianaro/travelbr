@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TextField, Button, Box, Typography, Grid, Snackbar, Alert, Dialog, DialogContent, IconButton, InputAdornment, Tooltip, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
+import {
+  TextField, Button, Box, Typography, Grid, Snackbar, Alert, Dialog, DialogContent, IconButton, InputAdornment, Tooltip, CircularProgress, Checkbox, FormControlLabel,
+} from '@mui/material';
 import debounce from 'lodash.debounce';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
@@ -49,6 +51,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [seatValidationLoading, setSeatValidationLoading] = useState(false); 
 
   useEffect(() => {
     const initializeForm = async () => {
@@ -224,6 +227,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
 
   const validateSeatChange = async (newVehicle, travelId) => {
     if (!newVehicle || !travelId) return;
+    setSeatValidationLoading(true); 
     try {
       const reservations = await getReservationsByTravelId(travelId);
 
@@ -253,6 +257,8 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
       }
     } catch (error) {
       console.error('Erro ao validar alteração de veículo:', error);
+    } finally {
+      setSeatValidationLoading(false); 
     }
   };
 
@@ -359,7 +365,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
       <DialogContent sx={{ padding: 0 }}>
         <Box sx={{ padding: 2, overflowY: 'auto', maxHeight: '80vh' }}>
           <form onSubmit={handleSubmit} noValidate>
-          <Box
+            <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -584,10 +590,10 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                     type="submit"
                     variant="contained"
                     color="primary"
-                    disabled={!isFormValid() || loading}
+                    disabled={!isFormValid() || loading || seatValidationLoading}
                     sx={{ marginBottom: { xs: 2, md: 0 }, marginRight: { md: 1 }, borderRadius: '50px' }}
                   >
-                    {loading ? (
+                    {loading || seatValidationLoading ? (
                       <CircularProgress size={24} />
                     ) : initialTravel ? (
                       'Salvar alterações'

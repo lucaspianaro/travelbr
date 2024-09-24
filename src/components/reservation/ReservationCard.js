@@ -8,7 +8,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { formatCPF, formatDate } from '../../utils/utils';
 
-const ReservationCard = ({ reservation, passengers, travel, onEditReservation, onCancelReservation, onCardClick }) => {
+const ReservationCard = ({ reservation, passengers, travel, onEditReservation, onCancelReservation, onCardClick, hideTravelInfo  }) => {
   // Encontrar o passageiro correspondente à reserva
   const passenger = passengers.find(p => p.id === reservation.passengerId) || {};
 
@@ -66,6 +66,7 @@ const ReservationCard = ({ reservation, passengers, travel, onEditReservation, o
             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
               Assento: {reservation.numeroAssento}
             </Typography>
+            {!hideTravelInfo && travel && (
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <LocationOnIcon sx={{ mr: 1 }} />
               <Box>
@@ -83,6 +84,7 @@ const ReservationCard = ({ reservation, passengers, travel, onEditReservation, o
                 </Typography>
               </Box>
             </Box>
+            )}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Tooltip title={`Status: ${status}`}>
