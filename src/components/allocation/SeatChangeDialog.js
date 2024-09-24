@@ -115,8 +115,8 @@ const SeatChangeDialog = ({ open, onClose, currentSeat, availableSeatsAndar1, av
         )}
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Button onClick={onClose} color="secondary">
-          Descartar
+        <Button onClick={onClose} color="cancelled">
+          Voltar
         </Button>
         <Button
           onClick={() => {
