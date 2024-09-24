@@ -93,6 +93,7 @@ function MyAccount() {
                 variant="contained"
                 onClick={() => setOpenProfile(!openProfile)}
                 endIcon={openProfile ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{ borderRadius: '50px' }}
               >
                 {openProfile ? 'Fechar' : 'Abrir'}
               </Button>
@@ -122,6 +123,7 @@ function MyAccount() {
                 variant="contained"
                 onClick={() => setOpenPassword(!openPassword)}
                 endIcon={openPassword ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{ borderRadius: '50px' }}
               >
                 {openPassword ? 'Fechar' : 'Abrir'}
               </Button>
@@ -158,6 +160,7 @@ function MyAccount() {
                     variant="contained"
                     onClick={() => setOpenMasterPassword(!openMasterPassword)}
                     endIcon={openMasterPassword ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    sx={{ borderRadius: '50px'}}
                   >
                     {openMasterPassword ? 'Fechar' : 'Abrir'}
                   </Button>
@@ -200,14 +203,14 @@ function MyAccount() {
               disabled={isProcessing}
               sx={{ color: 'white' }}
             >
-              Não
+              Cancelar
             </Button>
             <Button
               onClick={handleConfirmToggle}
               variant="contained"
               color="confirmar"
               disabled={!masterPassword || isProcessing}
-              sx={{ color: 'white' }}
+              sx={{ color: 'white', borderRadius: '50px' }}
             >
               {isProcessing ? <CircularProgress size={24} /> : 'Confirmar'}
             </Button>

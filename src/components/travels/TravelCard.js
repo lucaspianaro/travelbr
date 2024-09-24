@@ -44,7 +44,7 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel }) {
     navigate(`/viagens/${travelId}/reservas`);
   };
 
-  const buttonStyle = { flex: 1, minWidth: '100px', maxWidth: '150px' };
+  const buttonStyle = { flex: 1, minWidth: '100px', maxWidth: '150px', borderRadius: '50px' };
 
   return (
     <Box sx={{ width: '100%' }}>

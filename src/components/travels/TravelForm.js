@@ -585,7 +585,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                     variant="contained"
                     color="primary"
                     disabled={!isFormValid() || loading}
-                    sx={{ marginBottom: { xs: 2, md: 0 }, marginRight: { md: 1 } }}
+                    sx={{ marginBottom: { xs: 2, md: 0 }, marginRight: { md: 1 }, borderRadius: '50px' }}
                   >
                     {loading ? (
                       <CircularProgress size={24} />

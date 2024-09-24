@@ -431,7 +431,7 @@ const OrderReservationList = () => {
             <OrderDetails order={selectedData} passengers={passengers} travel={travels[selectedData.travelId]} />
           ))}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button onClick={handleCloseModal} variant="contained" color="primary">Fechar</Button>
+            <Button onClick={handleCloseModal} variant="contained" color="primary" sx={{ borderRadius: '50px' }}>Fechar</Button>
           </Box>
         </Box>
       </Modal>

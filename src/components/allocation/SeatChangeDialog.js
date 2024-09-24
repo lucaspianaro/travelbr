@@ -126,6 +126,7 @@ const SeatChangeDialog = ({ open, onClose, currentSeat, availableSeatsAndar1, av
           variant="contained"
           color="primary"
           disabled={!selectedSeat || selectedSeat === currentSeat}
+          sx={{ borderRadius: '50px' }}
         >
           Confirmar
         </Button>

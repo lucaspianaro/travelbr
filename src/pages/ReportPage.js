@@ -114,7 +114,7 @@ const ReportPage = () => {
               ))}
             </Select>
           </FormControl>
-          <Button variant="contained" color="primary" onClick={exportToPDF}>
+          <Button variant="contained" color="primary" onClick={exportToPDF} sx={{ borderRadius: '50px' }}>
             Exportar para PDF
           </Button>
         </Box>

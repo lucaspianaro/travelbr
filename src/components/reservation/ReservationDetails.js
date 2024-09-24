@@ -54,14 +54,14 @@ const ReservationDetails = ({ reservation, passengers, travel }) => {
       {/* Status e Assento */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Alert severity={statusColor} sx={{ width: 'fit-content', mb: 2 }}>
+          <Alert severity={statusColor} sx={{ width: 'fit-content', mb: 2, borderRadius: '50px' }}>
             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Status:</strong> {status}</Typography>
           </Alert>
-          <Alert icon={false} severity="success" sx={{ width: 'fit-content', mb: 2, backgroundColor: '#e3f2fd' }}>
+          <Alert icon={false} severity="success" sx={{ width: 'fit-content', mb: 2, backgroundColor: '#e3f2fd', borderRadius: '50px' }}>
             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Assento:</strong> {reservation.numeroAssento}</Typography>
           </Alert>
         </Box>
-        <Button variant="contained" color="primary" onClick={handleExportPDF}>
+        <Button variant="contained" color="primary" onClick={handleExportPDF} sx={{ borderRadius: '50px' }}>
           Exportar para PDF
         </Button>
       </Box>

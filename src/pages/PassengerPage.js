@@ -123,10 +123,10 @@ const PassengerPage = () => {
         <Typography variant="h6" component="div">
           Gerenciamento de Passageiros
         </Typography>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenFormDialog}>
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenFormDialog} sx={{ borderRadius: '50px' }}>
           Adicionar
         </Button>
-        <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)}>
+        <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)} sx={{ borderRadius: '50px' }}>
           {filtersVisible ? 'Ocultar Filtros' : 'Mostrar Filtros'}
         </Button>
       </Box>

@@ -276,6 +276,7 @@ function TravelDetails() {
                       color="primary"
                       onClick={handleOpenGoogleMaps}
                       startIcon={<LocationOnIcon />}
+                      sx={{ borderRadius: '50px' }}
                     >
                       Ver Rota no Google Maps
                     </Button>
@@ -372,20 +373,20 @@ function TravelDetails() {
                   )}
                   <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                     {travel.status !== 'Cancelada' && (
-                      <Button startIcon={<EditIcon />} variant="outlined" color="primary" onClick={handleEditToggle} sx={{ flex: 1 }}>
+                      <Button startIcon={<EditIcon />} variant="outlined" color="primary" onClick={handleEditToggle} sx={{ flex: 1, borderRadius: '50px' }}>
                         Editar
                       </Button>
                     )}
-                    <Button startIcon={<ListIcon />} variant="outlined" color="primary" onClick={handleViewReservations} sx={{ flex: 1 }}>
+                    <Button startIcon={<ListIcon />} variant="outlined" color="primary" onClick={handleViewReservations} sx={{ flex: 1, borderRadius: '50px' }}>
                       Reservas
                     </Button>
                     {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
-                      <Button startIcon={<CancelIcon />} variant="outlined" color="error" onClick={handleOpenConfirmCancelDialog} sx={{ flex: 1 }}>
+                      <Button startIcon={<CancelIcon />} variant="outlined" color="error" onClick={handleOpenConfirmCancelDialog} sx={{ flex: 1, borderRadius: '50px' }}>
                         Cancelar Viagem
                       </Button>
                     )}
                     {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
-                      <Button startIcon={<DeleteIcon />} variant="outlined" color="inherit" onClick={handleOpenConfirmDeleteDialog} sx={{ flex: 1, borderColor: 'grey', color: 'grey' }}>
+                      <Button startIcon={<DeleteIcon />} variant="outlined" color="inherit" onClick={handleOpenConfirmDeleteDialog} sx={{ flex: 1, borderColor: 'grey', color: 'grey', borderRadius: '50px' }}>
                         Excluir Viagem
                       </Button>
                     )}
@@ -403,7 +404,7 @@ function TravelDetails() {
                   </Box>
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={handleEditToggle} color="primary">
+                  <Button onClick={handleEditToggle} color="primary" sx={{ borderRadius: '50px' }}>
                     Fechar
                   </Button>
                 </DialogActions>
@@ -449,6 +450,7 @@ function TravelDetails() {
                       sx={{
                         width: 'calc(100% - 32px)',
                         maxWidth: '400px',
+                        borderRadius: '50px'
                       }}
                     >
                       Prosseguir com Alocação de Passageiros

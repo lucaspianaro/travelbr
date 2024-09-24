@@ -517,6 +517,7 @@ const PassengerAllocation = () => {
                   color="primary"
                   disabled={!isFormValid() || loading} 
                   startIcon={loading && <CircularProgress size={20} />} 
+                  sx={{ borderRadius: '50px' }}
                 >
                   {editingReservation 
                     ? reservations.length > 1 ? 'Atualizar Reservas' : 'Atualizar Reserva'

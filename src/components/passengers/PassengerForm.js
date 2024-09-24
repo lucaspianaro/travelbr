@@ -459,7 +459,7 @@ const PassengerForm = ({
       )}
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-        <Button onClick={handleCloseFormDialog} color="error" disabled={isSubmitting}>
+        <Button onClick={handleCloseFormDialog} color="error" disabled={isSubmitting} sx={{ borderRadius: '50px' }}>
           {editing ? 'Descartar Alterações' : 'Descartar'}
         </Button>
         <Button
@@ -468,6 +468,7 @@ const PassengerForm = ({
           variant="contained"
           disabled={!canSave() || isSubmitting}
           startIcon={isSubmitting && <CircularProgress size={20} />}
+          sx={{ borderRadius: '50px' }}
         >
           {editing ? 'Salvar Alterações' : 'Adicionar Passageiro'}
         </Button>

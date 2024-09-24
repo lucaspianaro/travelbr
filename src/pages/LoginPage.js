@@ -167,7 +167,7 @@ function LoginPage({ onLoginSuccess }) {
                   type="submit"
                   fullWidth
                   variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
+                  sx={{ mt: 3, mb: 2, borderRadius: '50px' }}
                   disabled={loading}
                 >
                   {loading ? <CircularProgress size={24} /> : 'Entrar'}
@@ -263,7 +263,7 @@ function LoginPage({ onLoginSuccess }) {
                   type="submit"
                   fullWidth
                   variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
+                  sx={{ mt: 3, mb: 2, borderRadius: '50px' }}
                   disabled={loading}
                 >
                   {loading ? <CircularProgress size={24} /> : 'Registrar'}

@@ -341,7 +341,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="contained" color="primary">
+        <Button onClick={onClose} variant="contained" color="primary" sx={{ borderRadius: '50px' }}>
           Fechar
         </Button>
       </DialogActions>
@@ -424,7 +424,7 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
             />
           )}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button onClick={handleCloseModal} variant="contained" color="primary">
+            <Button onClick={handleCloseModal} variant="contained" color="primary" sx={{ borderRadius: '50px' }}>
               Fechar
             </Button>
           </Box>

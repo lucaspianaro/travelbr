@@ -99,6 +99,7 @@ const PaymentRecords = ({
           color="primary"
           startIcon={<AddCircleIcon />}
           onClick={handleAddPaymentRecord}
+          sx={{ borderRadius: '50px' }}
         >
           Adicionar Pagamento
         </Button>
