@@ -408,7 +408,7 @@ const HomePage = () => {
           ) : (
             <Box>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Pedidos com Pagamento Pendente para Viagens neste Mês
+                Pedidos com Pagamento Pendente para os próximos 30 dias
               </Typography>
               {filteredPendingOrders.length === 0 ? (
                 <Typography variant="body2">
@@ -428,7 +428,7 @@ const HomePage = () => {
                 ))
               )}
               <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-                Pedidos Pagos para Viagens neste Mês
+                Pedidos Pagos para os próximos 30 dias
               </Typography>
               {filteredPaidOrders.length === 0 ? (
                 <Typography variant="body2">

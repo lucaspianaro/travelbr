@@ -11,7 +11,7 @@ import SeatChangeDialog from './SeatChangeDialog';
 import { getTravelById } from '../../services/TravelService';
 import { addOrder, addReservation, getReservationsByTravelId, updateReservation, updateOrder, getOrderById, getAvailableSeats, getReservedSeats } from '../../services/OrderService';
 import { getAllPassengers } from '../../services/PassengerService';
-import { formatCPF, unformatCPF } from '../../utils/utils';
+import { formatCPF, unformatCPF, validarCPF } from '../../utils/utils';
 
 const PassengerAllocation = () => {
   const { travelId } = useParams();
@@ -179,13 +179,10 @@ const PassengerAllocation = () => {
 
   const validatePaymentField = (name, value) => {
     let error = '';
-
+  
     if (name === 'nomePagador' && (!value.trim() || value.length > 255)) {
       error = 'Nome do pagador é obrigatório e deve ter no máximo 255 caracteres.';
-    } else if (
-      name === 'cpfPagador' &&
-      (!value.trim() || !/^\d{11}$/.test(unformatCPF(value)))
-    ) {
+    } else if (name === 'cpfPagador' && (!value.trim() || !validarCPF(unformatCPF(value)))) { 
       error = 'CPF do pagador é obrigatório e deve ser válido.';
     } else if (name === 'metodoPagamento' && !value.trim()) {
       error = 'Método de pagamento é obrigatório.';
@@ -194,7 +191,7 @@ const PassengerAllocation = () => {
     } else if (name === 'informacoesAdicionais' && value.length > 255) {
       error = 'Informações adicionais de pagamento devem ter no máximo 255 caracteres.';
     }
-
+  
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: error

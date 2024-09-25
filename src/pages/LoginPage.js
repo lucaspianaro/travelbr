@@ -69,8 +69,8 @@ function LoginPage({ onLoginSuccess }) {
   // Função para lidar com o login
   const handleLogin = async (event) => {
     event.preventDefault();
-    setErro('');
-    setSuccessMessage('');
+    setErro(''); // Resetando o erro no início
+    setSuccessMessage(''); // Resetando mensagem de sucesso
     if (!validateFields()) return;
     setLoading(true);
     try {
@@ -81,7 +81,12 @@ function LoginPage({ onLoginSuccess }) {
         setErro("Por favor, verifique seu e-mail antes de fazer login.");
       }
     } catch (error) {
-      setErro(error.message);
+      // Adicionando tratamento de erro para usuário não aprovado
+      if (error.message === 'auth/user-not-approved') {
+        setErro("Seu acesso ainda não foi aprovado pelo administrador.");
+      } else {
+        setErro(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -259,6 +264,13 @@ function LoginPage({ onLoginSuccess }) {
                 <div style={{ textAlign: 'right' }}>
                   <Typography variant="caption" color="textSecondary">* Campos Obrigatórios</Typography>
                 </div>
+                {erro && (
+                <Collapse in={!!erro} timeout={500}>
+                  <Box sx={{ width: '100%', mb: 2 }}>
+                    <Alert severity="error">{erro}</Alert>
+                  </Box>
+                </Collapse>
+              )}
                 <Button
                   type="submit"
                   fullWidth

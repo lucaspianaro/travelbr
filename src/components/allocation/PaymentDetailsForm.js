@@ -1,6 +1,20 @@
 import React from 'react';
 import { Grid, TextField, MenuItem, InputAdornment, Typography, Box, Card, CardContent } from '@mui/material';
-import { formatCPF, unformatCPF } from '../../utils/utils';
+import { formatCPF, unformatCPF, validarCPF } from '../../utils/utils';
+
+// Função para formatar o valor como moeda
+const formatCurrency = (value) => {
+  if (!value) return '';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2
+  }).format(parseFloat(value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0);
+};
+
+const unformatCurrency = (value) => {
+  return value.replace(/[^\d,.-]/g, '').replace(',', '.');
+};
 
 const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, errors, validatePaymentField }) => {
 
@@ -65,16 +79,15 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             label="Valor Total do Pedido"
             name="valorTotal"
             type="text"
-            value={detalhesPagamento.valorTotal}
-            onChange={(e) => handlePaymentDetailChange('valorTotal', e.target.value.replace(',', '.'))} 
+            value={formatCurrency(detalhesPagamento.valorTotal)} // Formatação em tempo real
+            onChange={(e) => handlePaymentDetailChange('valorTotal', unformatCurrency(e.target.value))} 
             onBlur={(e) => validatePaymentField('valorTotal', e.target.value)}
-            onKeyPress={handleNumberInput} 
             error={!!errors['valorTotal']}
             helperText={errors['valorTotal']}
             fullWidth
             required
             InputProps={{
-              startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+              startAdornment: <InputAdornment position="start"></InputAdornment>,
               inputProps: { min: 0 },
             }}
           />
@@ -119,13 +132,13 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
         <Card variant="outlined" sx={{ flex: 1, mr: 1, p: 2 }}>
           <CardContent sx={{ paddingBottom: '8px !important' }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Valor Pago:</Typography>
-            <Typography variant="h6" color="success.main">R$ {detalhesPagamento.valorPago}</Typography>
+            <Typography variant="h6" color="success.main">{formatCurrency(detalhesPagamento.valorPago)}</Typography>
           </CardContent>
         </Card>
         <Card variant="outlined" sx={{ flex: 1, ml: 1, p: 2 }}>
           <CardContent sx={{ paddingBottom: '8px !important' }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Valor Restante a Ser Pago:</Typography>
-            <Typography variant="h6" color="error.main">R$ {detalhesPagamento.valorRestante}</Typography>
+            <Typography variant="h6" color="error.main">{formatCurrency(detalhesPagamento.valorRestante)}</Typography>
           </CardContent>
         </Card>
       </Box>

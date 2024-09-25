@@ -11,6 +11,14 @@ export const registerWithEmailPassword = async (email, senha, displayName) => {
     // Atualizar o perfil do usuário
     await firebaseUpdateProfile(user, { displayName });
 
+    // Criar documento no Firestore com a flag isApproved como false
+    const userDocRef = doc(db, 'usuarios', user.uid);
+    await setDoc(userDocRef, {
+      displayName,
+      email: user.email,
+      isApproved: false // Usuário precisa ser aprovado manualmente
+    });
+
     // Enviar e-mail de verificação
     await sendEmailVerification(user);
     console.log('E-mail de verificação enviado para:', user.email);
@@ -30,6 +38,21 @@ export const loginWithEmailPassword = async (email, senha) => {
     if (!user.emailVerified) {
       await signOut(auth); // Fazer logout automático do usuário não verificado
       throw new Error('auth/email-not-verified');
+    }
+
+    // Verificar se o usuário foi aprovado manualmente
+    const userDocRef = doc(db, 'usuarios', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+
+      if (!userData.isApproved) {
+        await signOut(auth); // Fazer logout automático do usuário não aprovado
+        throw new Error('auth/user-not-approved');
+      }
+    } else {
+      throw new Error('Usuário não encontrado no banco de dados.');
     }
 
     return user;

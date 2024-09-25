@@ -11,6 +11,7 @@ import Layout from '../components/common/Layout';
 import { addTravel, getAllTravels, updateTravel, deleteTravel, cancelTravel, updateInactiveTravels } from '../services/TravelService';
 import { validateMasterPassword, formatDate } from '../utils/utils';
 import { getMasterPasswordStatus } from '../services/AuthService';  
+import { getReservationsByTravelId } from '../services/OrderService';
 
 const TravelPage = () => {
   const [travels, setTravels] = useState([]);
@@ -36,7 +37,8 @@ const TravelPage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const [masterPasswordActive, setMasterPasswordActive] = useState(false);  // Estado para verificar se a senha master está ativa
+  const [reservationsCount, setReservationsCount] = useState(0);
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);  
 
   useEffect(() => {
     const fetchTravelsData = async () => {
@@ -165,21 +167,20 @@ const TravelPage = () => {
     setConfirmDeleteOpen(true);
   };
 
+  // Função para fechar o modal de exclusão
   const closeConfirmDeleteDialog = () => {
     setConfirmDeleteOpen(false);
     setTravelToDelete(null);
     setMasterPassword('');
   };
 
+  // Função para confirmar exclusão da viagem
   const confirmDelete = async () => {
     if (travelToDelete) {
       setLoading(true);
       try {
-        if (masterPasswordActive) {
-          await validateMasterPassword(masterPassword);
-        }
-        await deleteTravel(travelToDelete.id);
-        await fetchTravels();
+        await deleteTravel(travelToDelete.id); // Realizar exclusão
+        await fetchTravels(); // Atualizar viagens
         setSnackbarMessage('Viagem excluída com sucesso!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
@@ -190,12 +191,19 @@ const TravelPage = () => {
         setSnackbarOpen(true);
         setLoading(false);
       }
-      closeConfirmDeleteDialog();
+      closeConfirmDeleteDialog(); // Fechar modal após operação
     }
   };
 
-  const openConfirmCancelDialog = (travel) => {
+  const openConfirmCancelDialog = async (travel) => {
     setTravelToCancel(travel);
+    try {
+      const reservations = await getReservationsByTravelId(travel.id); // Buscar reservas da viagem
+      setReservationsCount(reservations.length); // Atualizar o número de reservas
+    } catch (error) {
+      setReservationsCount(0); // Se houver erro, definir como 0
+      console.error("Erro ao buscar reservas:", error);
+    }
     setConfirmCancelOpen(true);
   };
 
@@ -203,6 +211,7 @@ const TravelPage = () => {
     setConfirmCancelOpen(false);
     setTravelToCancel(null);
     setMasterPassword('');
+    setReservationsCount(0); // Resetar contagem de reservas ao fechar o modal
   };
 
   const confirmCancel = async () => {
@@ -371,10 +380,20 @@ const TravelPage = () => {
         </Fade>
       </Modal>
       <Dialog open={confirmDeleteOpen} onClose={closeConfirmDeleteDialog}>
-        <DialogTitle>Confirmar Exclusão</DialogTitle>
+      <DialogTitle>Confirmar Exclusão</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Tem certeza que deseja excluir esta viagem? Isso irá excluir todas as reservas e pedidos. Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir a viagem para <strong>{travelToDelete?.destino}</strong>?
+            <br />
+            Data de Ida: <strong>{formatDate(travelToDelete?.dataIda)}</strong>
+            <br />
+            {!travelToDelete?.somenteIda && (
+              <>
+                Data de Retorno: <strong>{formatDate(travelToDelete?.dataRetorno)}</strong>
+                <br />
+              </>
+            )}
+            Essa ação excluirá todas as reservas e pedidos relacionados a essa viagem. Isso não pode ser desfeito.
           </DialogContentText>
           {masterPasswordActive && (
             <TextField
@@ -413,10 +432,24 @@ const TravelPage = () => {
         </DialogActions>
       </Dialog>
       <Dialog open={confirmCancelOpen} onClose={closeConfirmCancelDialog}>
-        <DialogTitle>Confirmar Cancelamento</DialogTitle>
-        <DialogContent>
+      <DialogTitle>Confirmar Cancelamento</DialogTitle>
+      <DialogContent>
           <DialogContentText>
-            Tem certeza que deseja cancelar esta viagem? Isso irá cancelar todas as reservas e pedidos. Esta ação não pode ser desfeita.
+            Tem certeza que deseja cancelar a viagem para <strong>{travelToCancel?.destino}</strong>?
+            <br />
+            Data de Ida: <strong>{formatDate(travelToCancel?.dataIda)}</strong>
+            <br />
+            {!travelToCancel?.somenteIda && (
+              <>
+                Data de Retorno: <strong>{formatDate(travelToCancel?.dataRetorno)}</strong>
+                <br />
+              </>
+            )}
+            {reservationsCount > 0 && (
+              <strong>Essa viagem tem {reservationsCount} reserva(s) associada(s).</strong>
+            )}
+            <br />
+            Cancelar essa viagem também cancelará todas as reservas e pedidos associados. Essa ação não pode ser desfeita.
           </DialogContentText>
           {masterPasswordActive && (
             <TextField

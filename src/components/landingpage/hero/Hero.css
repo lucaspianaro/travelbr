@@ -1,0 +1,141 @@
+/* Seção Hero */
+.hero {
+  width: 100%;
+  padding-top: 100px;
+  padding-bottom: 60px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  transition: background-image 0.5s ease-in-out; /* Transição suave entre as imagens */
+}
+
+/* Pseudo-elemento para escurecer o fundo */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Cor preta com 30% de opacidade */
+  z-index: 0; /* Coloca o filtro abaixo do conteúdo */
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1; /* Mantém o conteúdo acima do fundo */
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: row;  /* Coloca o texto e a imagem lado a lado */
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(5px); /* Adiciona desfoque ao fundo atrás do conteúdo */
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.6); /* Fundo branco translúcido */
+  border-radius: 15px;
+}
+
+/* Informações da Hero */
+.hero-info {
+  max-width: 50%;  /* O texto ocupa até 50% da largura */
+}
+
+.hero-title {
+  font-weight: 800;
+  font-size: 60px;
+  color: #333;
+  margin: 0;
+}
+
+.hero-subtitle {
+  margin-top: 20px;
+  margin-bottom: 50px;
+  font-size: 16px;
+  color: #353535;
+}
+
+/* Animação do botão de chamada para ação */
+.cta-button {
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #1565c0;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  animation: floating 2.5s infinite ease-in-out; /* Animação de movimento */
+}
+
+.cta-button:hover {
+  background-color: #0d47a1;
+}
+
+/* Animação de flutuação */
+@keyframes floating {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px); /* Movimenta o botão para cima */
+  }
+  100% {
+    transform: translateY(0px); /* Retorna à posição original */
+  } /* Fechando o bloco corretamente */
+}
+
+/* Estilo da Imagem Hero (logo estática) */
+.hero-image {
+  max-width: 45%;  /* A imagem ocupa um pouco menos que 50% para dar equilíbrio */
+  text-align: center;
+}
+
+.hero-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 15px;  /* Borda arredondada */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);  /* Sombra suave */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;  /* Transição suave */
+}
+
+.hero-image img:hover {
+  transform: scale(1.05);  /* Aumenta levemente a imagem ao passar o cursor */
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);  /* Sombra mais pronunciada no hover */
+}
+
+/* Responsividade para Telas Menores */
+@media screen and (max-width: 1080px) {
+  .hero {
+    padding-top: 140px;
+  }
+
+  .hero-content {
+    flex-direction: column;  /* Empilha o texto e a imagem em telas menores */
+  }
+
+  .hero-image {
+    margin-top: 50px;
+    max-width: 100%;  /* A imagem ocupa 100% da largura em telas menores */
+    text-align: center;
+  }
+
+  .hero-info {
+    text-align: center;
+    max-width: 100%;  /* O texto ocupa 100% da largura em telas menores */
+  }
+
+  .hero-title {
+    font-size: 40px;
+  }
+
+  .cta-button {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}

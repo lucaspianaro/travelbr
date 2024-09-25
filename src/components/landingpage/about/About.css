@@ -1,0 +1,125 @@
+/* Seção Principal do About */
+.about-section {
+    padding: 80px 0;
+    background-color: #2c3e50; /* Fundo escuro para um tom mais sério */
+    border-top: 5px solid #1976d2;
+    border-bottom: 5px solid #1976d2;
+  }
+  
+  /* Título Principal */
+  .about-section h4 {
+    color: #ffffff; /* Título em branco para contraste */
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  
+  /* Parágrafos de Descrição */
+  .about-section .font12 {
+    color: #d1d1d1; /* Texto em cinza claro para contraste */
+    font-size: 1rem;
+    margin-bottom: 40px;
+  }
+  
+  /* Estilo para os Recursos */
+  .features-grid {
+    margin-top: 20px;
+  }
+  
+  .feature-box {
+    padding: 20px;
+    background-color: #34495e; /* Fundo cinza médio para as caixas de recursos */
+    border: 1px solid #1976d2;
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .feature-box:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .feature-icon {
+    margin-bottom: 10px;
+    color: #1976d2; /* Ícones na cor principal */
+  }
+  
+  .feature-box h6 {
+    margin-top: 10px;
+    color: #ffffff; /* Texto dos recursos em branco */
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+  
+  .feature-box p {
+    color: #d1d1d1; /* Descrição dos recursos em cinza claro */
+    font-size: 0.95rem;
+    margin-top: 5px;
+  }
+  
+  /* Estilo Simples para a Equipe */
+  .team-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .team-info {
+    padding: 20px;
+  }
+  
+  .team-box img, .team-box .MuiAvatar-root {
+    border-radius: 50%;
+    border: 3px solid #1976d2;
+    padding: 5px;
+  }
+  
+  .team-box h6 {
+    margin-top: 15px;
+    color: #ffffff; /* Nome da equipe em branco */
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+  
+  .team-box .MuiTypography-subtitle1 {
+    color: #d1d1d1; /* Cargo da equipe em cinza claro */
+    font-style: italic;
+    margin-top: 5px;
+  }
+  
+  /* Estilo da Missão */
+  .team-info {
+    background-color: #34495e; /* Fundo mais escuro para a missão */
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #1976d2;
+  }
+  
+  .team-info h6 {
+    color: #ffffff;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+  
+  .team-info p {
+    color: #d1d1d1;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  /* Responsividade */
+  @media screen and (max-width: 990px) {
+    .about-section {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .team-box, .team-info, .feature-box {
+      margin-bottom: 20px;
+    }
+  }
+  

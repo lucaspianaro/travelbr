@@ -3,6 +3,20 @@ import { Grid, TextField, MenuItem, InputAdornment, Tooltip, IconButton, Button,
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
+// Função para formatar o valor como moeda
+const formatCurrency = (value) => {
+  if (!value) return '';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2
+  }).format(parseFloat(value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0);
+};
+
+const unformatCurrency = (value) => {
+  return value.replace(/[^\d,.-]/g, '').replace(',', '.');
+};
+
 const PaymentRecords = ({
   paymentRecords,
   handlePaymentRecordChange,
@@ -19,13 +33,13 @@ const PaymentRecords = ({
   }, [paymentRecords]);
 
   const validatePayment = (index, field, value, updatedRecords) => {
-    const numericValue = parseFloat(value.replace(',', '.') || 0);
+    const numericValue = parseFloat(unformatCurrency(value) || 0);
     const totalPaid = updatedRecords.reduce(
-      (total, record) => total + parseFloat(record.valor.replace(',', '.') || 0),
+      (total, record) => total + parseFloat(unformatCurrency(record.valor) || 0),
       0
     );
 
-    const exceedsTotal = totalPaid > parseFloat(detalhesPagamento.valorTotal.replace(',', '.'));
+    const exceedsTotal = totalPaid > parseFloat(unformatCurrency(detalhesPagamento.valorTotal));
 
     let error = '';
     if (field === 'valor') {
@@ -51,7 +65,7 @@ const PaymentRecords = ({
 
   const validateAllPayments = (updatedRecords) => {
     const hasInvalidPayments = updatedRecords.some((record) => {
-      const numericValue = parseFloat(record.valor.replace(',', '.') || 0);
+      const numericValue = parseFloat(unformatCurrency(record.valor) || 0);
       return (
         !record.data ||
         numericValue <= 0 ||
@@ -66,8 +80,16 @@ const PaymentRecords = ({
       setErrorMessage(
         'Todos os campos de data, valor e método são obrigatórios para cada registro de pagamento.'
       );
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        paymentRecord: true, // Flag indicando erro nos registros de pagamento
+      }));
     } else {
       setErrorMessage('');
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        paymentRecord: false, // Não há erros
+      }));
     }
   };
 
@@ -137,9 +159,9 @@ const PaymentRecords = ({
               <TextField
                 label="Valor do Pagamento"
                 type="text"
-                value={record.valor}
+                value={formatCurrency(record.valor)} // Aplicação da máscara
                 onChange={(e) => {
-                  const newValue = e.target.value.replace(',', '.');
+                  const newValue = unformatCurrency(e.target.value);
                   handlePaymentRecordChange(index, 'valor', newValue);
                   validatePayment(index, 'valor', newValue, paymentRecords);
                 }}
@@ -149,9 +171,6 @@ const PaymentRecords = ({
                 error={!!localErrors[`valor-${index}`]}
                 helperText={localErrors[`valor-${index}`]}
                 InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">R$</InputAdornment>
-                  ),
                   inputProps: { min: 0 },
                 }}
               />

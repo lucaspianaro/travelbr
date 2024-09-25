@@ -1,0 +1,113 @@
+/* Footer */
+.footer {
+    background-color: #2c3e50; /* Fundo escuro mais sofisticado */
+    width: 100%;
+    padding: 10px 0; /* Mais espaçamento vertical para um design espaçoso */
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.25); /* Sombra sutil e mais suave */
+    font-family: 'Roboto', sans-serif; /* Fonte mais suave e legível */
+}
+
+/* Box de conteúdo do footer */
+.footer-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    min-height: 100px;
+}
+
+/* Logo */
+.footer-logo {
+    width: 140px; /* Logo ligeiramente maior para melhor visibilidade */
+    margin-right: 20px;
+    border-radius: 15px; /* Arredonda as bordas */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Sombra suave para dar profundidade */
+    transition: transform 0.3s ease; /* Transição suave para hover */
+}
+
+/* Efeito hover na logo */
+.footer-logo:hover {
+    transform: scale(1.05); /* Efeito de zoom ao passar o mouse */
+}
+
+
+/* Texto do footer */
+.footer-text {
+    color: #e0e0e0;
+    font-size: 1.2rem; /* Texto ligeiramente maior */
+    margin-left: 15px;
+    font-weight: 300; /* Fonte mais leve */
+}
+
+/* Back to top section */
+.back-to-top {
+    display: flex;
+    align-items: center; /* Alinha verticalmente o ícone e o texto */
+    justify-content: flex-end;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Transição suave ao passar o mouse */
+}
+
+.back-to-top-text {
+    color: #ffffff;
+    font-size: 1.2rem;
+    margin-left: 10px; /* Muda a margem para a esquerda para dar espaço ao ícone */
+    font-weight: 300; /* Texto mais leve */
+    transition: color 0.3s ease, transform 0.3s ease; /* Transição suave para hover */
+}
+
+/* Efeito hover */
+.back-to-top:hover .back-to-top-text {
+    color: #1976d2; /* Cor de destaque no hover */
+}
+
+.back-to-top-button {
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.back-to-top-button:hover {
+    transform: translateY(-3px); /* Efeito de elevação no hover */
+    background-color: #1976d2; /* Fundo azul suave no hover */
+    color: #ffffff; /* Cor do ícone ao passar o mouse */
+}
+
+/* Responsividade */
+@media screen and (max-width: 768px) {
+    .footer {
+        padding: 40px 0; /* Menos padding em telas menores */
+    }
+
+    .footer-box {
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .footer-logo {
+        margin-bottom: 10px;
+    }
+
+    .back-to-top {
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .back-to-top-text {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .footer {
+        padding: 30px 0; /* Padding menor para telas muito pequenas */
+    }
+
+    .footer-text {
+        font-size: 1rem; /* Texto menor em telas muito pequenas */
+    }
+
+    .back-to-top-text {
+        font-size: 1rem;
+    }
+}

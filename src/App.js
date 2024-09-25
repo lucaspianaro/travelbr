@@ -16,6 +16,7 @@ import MyAccount from './pages/MyAccount';
 import HelpCenter from './pages/HelpCenter';
 import ReportPage from './pages/ReportPage';
 import PaymentPage from './pages/PaymentPage'; 
+import LandingPage from './pages/LandingPage'; 
 import './App.css';
 
 function AuthenticatedApp() {
@@ -24,6 +25,7 @@ function AuthenticatedApp() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={currentUser ? <HomePage /> : <LandingPage />} />
         <Route path="/" element={currentUser ? <HomePage /> : <Navigate to="/login" />} />
         <Route path="/login" element={!currentUser ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/passageiros" element={currentUser ? <PassengerPage /> : <Navigate to="/login" />} />
