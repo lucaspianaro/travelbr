@@ -32,12 +32,16 @@ export const registerWithEmailPassword = async (email, senha, displayName) => {
 // Função para lidar com o login do usuário
 export const loginWithEmailPassword = async (email, senha) => {
   try {
+    console.log('Tentando fazer login com:', email); 
     const userCredential = await signInWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
+    console.log('Usuário autenticado:', user);
+
+    // Verifica se o e-mail foi verificado
     if (!user.emailVerified) {
-      await signOut(auth); // Fazer logout automático do usuário não verificado
-      throw new Error('auth/email-not-verified');
+      console.log('E-mail não verificado. Fazendo logout...');
+      return { user, isApproved: false, emailVerified: false, logoutRequired: true };
     }
 
     // Verificar se o usuário foi aprovado manualmente
@@ -46,17 +50,22 @@ export const loginWithEmailPassword = async (email, senha) => {
 
     if (userDoc.exists()) {
       const userData = userDoc.data();
+      console.log('Dados do usuário:', userData);
 
       if (!userData.isApproved) {
-        await signOut(auth); // Fazer logout automático do usuário não aprovado
-        throw new Error('auth/user-not-approved');
+        console.log('Usuário não aprovado. Mostrando mensagem de espera.');
+        // Retorna o estado de aprovação pendente
+        return { user, isApproved: false, emailVerified: true, logoutRequired: true };
+      } else {
+        console.log('Usuário aprovado.');
+        return { user, isApproved: true, emailVerified: true, logoutRequired: false };
       }
     } else {
+      console.log('Usuário não encontrado no banco de dados.');
       throw new Error('Usuário não encontrado no banco de dados.');
     }
-
-    return user;
   } catch (error) {
+    console.log('Erro durante o login:', error.message);
     throw new Error(mapFirebaseError(error));
   }
 };

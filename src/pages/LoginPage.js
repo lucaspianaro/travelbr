@@ -2,38 +2,36 @@ import React, { useState } from 'react';
 import { TextField, Button, Typography, Container, Box, Alert, Grid, CircularProgress, Collapse, Zoom, IconButton, InputAdornment, Avatar } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useNavigate } from 'react-router-dom';  // Para redirecionamento
 import Layout from '../components/common/Layout';
-import logo3 from '../assets/logo3.jpg'; // Certifique-se de que o caminho para o logo está correto
-import { loginWithEmailPassword, registerWithEmailPassword, resetPassword } from '../services/AuthService';
+import logo3 from '../assets/logo3.jpg';
+import { loginWithEmailPassword, registerWithEmailPassword, resetPassword, logout } from '../services/AuthService';
 
 function LoginPage({ onLoginSuccess }) {
-  // Estados para armazenar dados do formulário e mensagens de erro/sucesso
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [nome, setNome] = useState('');
   const [erro, setErro] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isLogin, setIsLogin] = useState(true); // Alterna entre login e registro
-  const [loading, setLoading] = useState(false); // Estado de carregamento
-  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar ou esconder a senha
+  const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Função para alternar visibilidade da senha
+  const navigate = useNavigate();
+
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = (event) => event.preventDefault();
 
-  // Função para validar os campos do formulário
   const validateFields = () => {
     if (!email || !senha || (!isLogin && !nome)) {
       setErro("Por favor, preencha todos os campos.");
       return false;
     }
-
     if (!isLogin && senha.length < 6) {
       setErro("A senha deve ter pelo menos 6 caracteres.");
       return false;
     }
 
-    // Atualizando o regex para aceitar caracteres especiais
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/;
     if (!isLogin && !strongPasswordRegex.test(senha)) {
       setErro("A senha deve ter pelo menos uma letra maiúscula, uma letra minúscula e um número.");
@@ -43,7 +41,6 @@ function LoginPage({ onLoginSuccess }) {
     return true;
   };
 
-  // Função para lidar com o registro de novo usuário
   const handleRegister = async (event) => {
     event.preventDefault();
     setErro('');
@@ -53,12 +50,12 @@ function LoginPage({ onLoginSuccess }) {
     try {
       const user = await registerWithEmailPassword(email, senha, nome);
       setTimeout(() => {
-        setSuccessMessage("Cadastro realizado com sucesso. Verifique seu e-mail para confirmar a conta. Caso não encontre, verifique também a caixa de spam e a lixeira.");
+        setSuccessMessage("Cadastro realizado com sucesso. Verifique seu e-mail para confirmar a conta.");
         setTimeout(() => {
           setIsLogin(true);
           setSuccessMessage("");
-        }, 2000); // Retorna automaticamente para o login após 3 segundos
-      }, 10); // Mostra a mensagem de redirecionamento após 3 segundos
+        }, 2000);
+      }, 10);
     } catch (error) {
       setErro(error.message);
     } finally {
@@ -66,33 +63,49 @@ function LoginPage({ onLoginSuccess }) {
     }
   };
 
-  // Função para lidar com o login
   const handleLogin = async (event) => {
     event.preventDefault();
-    setErro(''); // Resetando o erro no início
-    setSuccessMessage(''); // Resetando mensagem de sucesso
+    setErro('');
+    setSuccessMessage('');
+    
     if (!validateFields()) return;
+    
     setLoading(true);
+    console.log('Iniciando login com:', email); // Log de início do login
+    
     try {
-      const user = await loginWithEmailPassword(email, senha);
-      if (user.emailVerified) {
-        onLoginSuccess(user);
-      } else {
-        setErro("Por favor, verifique seu e-mail antes de fazer login.");
+      // Tentativa de login com email e senha
+      const { user, isApproved, emailVerified } = await loginWithEmailPassword(email, senha);
+      
+      console.log('Resultado do login:', user);
+      console.log('Aprovação:', isApproved);
+      console.log('Email verificado:', emailVerified);
+  
+      // Verificação de e-mail
+      if (!emailVerified) {
+        console.log('Usuário com e-mail não verificado.');
+        setErro('Por favor, verifique seu e-mail antes de fazer login.');
+        setLoading(false);
+        return;
       }
+  
+      // Verificação de aprovação
+      if (!isApproved) {
+        console.log('Usuário não aprovado. Redirecionando para página de aprovação pendente.');
+        navigate('/pendente-aprovacao'); // Redireciona para a página de aprovação pendente
+        return;
+      }
+  
+      // Se o usuário for aprovado, dispara o sucesso do login
+      onLoginSuccess(user);
     } catch (error) {
-      // Adicionando tratamento de erro para usuário não aprovado
-      if (error.message === 'auth/user-not-approved') {
-        setErro("Seu acesso ainda não foi aprovado pelo administrador.");
-      } else {
-        setErro(error.message);
-      }
+      console.log('Erro durante o login:', error.message); // Exibe o erro no console
+      setErro('Erro ao fazer login. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Função para lidar com a redefinição de senha
   const handleForgotPassword = async () => {
     if (!email) {
       setErro("Por favor, insira seu email para redefinir a senha.");
@@ -100,14 +113,14 @@ function LoginPage({ onLoginSuccess }) {
     }
     try {
       await resetPassword(email);
-      setErro("Link para redefinição de senha enviado. Verifique seu e-mail. Caso não encontre, verifique também a caixa de spam e a lixeira.");
+      setErro("Link para redefinição de senha enviado. Verifique seu e-mail.");
     } catch (error) {
       setErro(error.message);
     }
   };
 
   return (
-    <Layout showSidebar={true}>
+    <Layout showSidebar={false} hideLogout={true}>
       <Container component="main" maxWidth="xs">
         <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Avatar alt="Logo" src={logo3} sx={{ width: 100, height: 100, mb: 2 }} />

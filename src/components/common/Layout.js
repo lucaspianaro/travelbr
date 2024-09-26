@@ -21,25 +21,27 @@ import { useIdleTimer } from 'react-idle-timer';
 const drawerWidth = 240;
 
 // Estilização do componente principal
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
-  flexGrow: 1,
-  padding: theme.spacing(3),
-  transition: theme.transitions.create('margin', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  marginLeft: `-${drawerWidth}px`,
-  ...(open && {
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
+  ({ theme, open, showSidebar }) => ({
+    flexGrow: 1,
+    padding: theme.spacing(3),
     transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
     }),
-    marginLeft: 0,
-  }),
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(1),
-  },
-}));
+    marginLeft: showSidebar ? `-${drawerWidth}px` : 0, // Ajusta a margem com base em showSidebar
+    ...(open && showSidebar && {
+      transition: theme.transitions.create('margin', {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      marginLeft: 0,
+    }),
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(1),
+    },
+  })
+);
 
 // Estilização do cabeçalho da gaveta (drawer)
 const DrawerHeader = styled('div')(({ theme }) => ({
@@ -50,14 +52,13 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
+const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLogout = false }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { openDrawer, toggleDrawer, closeDrawer } = useDrawer();
   const [loading, setLoading] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Fechar a gaveta (drawer) se o `defaultOpenDrawer` for falso
@@ -67,23 +68,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
     }
   }, [defaultOpenDrawer, closeDrawer]);
 
-  // Redirecionar para a página de ajuda ao pressionar F1
-  const handleHelpRedirect = useCallback((event) => {
-    if (event.key === 'F1') {
-      event.preventDefault();
-      navigate('/central-ajuda');
-    }
-  }, [navigate]);
-
-  // Adicionar e remover o evento de keydown para o redirecionamento de ajuda
-  useEffect(() => {
-    window.addEventListener('keydown', handleHelpRedirect);
-    return () => {
-      window.removeEventListener('keydown', handleHelpRedirect);
-    };
-  }, [handleHelpRedirect]);
-
-  // Função para lidar com o logout
+  // Função para lidar com logout
   const handleLogout = async () => {
     setLoading(true);
     try {
@@ -116,11 +101,11 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          {showSidebar && (
-            <Tooltip title="Menu">
+    <CssBaseline />
+    <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+      <Toolbar>
+        {showSidebar && (
+          <Tooltip title="Menu">
             <IconButton
               color="inherit"
               aria-label="open drawer"
@@ -130,33 +115,32 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
             >
               <MenuIcon />
             </IconButton>
-            </Tooltip>
-          )}
-          <RouterLink to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-            <img src={Logo} alt="Logo" style={{ height: 40, marginRight: 5 }} />
-            <Typography variant="h6" noWrap component="div">
-              TravelBR
-            </Typography>
-          </RouterLink>
-          <Box sx={{ flexGrow: 1 }} />
-          <RouterLink to="/central-ajuda" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-            <Tooltip title="Ajuda">
-              <IconButton color="inherit">
-                <HelpIcon />
-              </IconButton>
-            </Tooltip>
-          </RouterLink>
-          {loading ? (
-            <CircularProgress color="inherit" size={24} />
-          ) : (
-            <Tooltip title="Sair">
-              <IconButton color="inherit" onClick={handleLogout}>
-                <ExitToAppIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Toolbar>
-      </AppBar>
+          </Tooltip>
+        )}
+        <RouterLink to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+          <img src={Logo} alt="Logo" style={{ height: 40, marginRight: 5 }} />
+          <Typography variant="h6" noWrap component="div">
+            TravelBR
+          </Typography>
+        </RouterLink>
+        <Box sx={{ flexGrow: 1 }} />
+        <RouterLink to="/central-ajuda" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+          <Tooltip title="Ajuda">
+            <IconButton color="inherit">
+              <HelpIcon />
+            </IconButton>
+          </Tooltip>
+        </RouterLink>
+        {!hideLogout && !loading && currentUser && (
+          <Tooltip title="Sair">
+            <IconButton color="inherit" onClick={handleLogout}>
+              <ExitToAppIcon />
+            </IconButton>
+          </Tooltip>
+        )}
+        {loading && !hideLogout && <CircularProgress color="inherit" size={24} />}
+      </Toolbar>
+    </AppBar>
 
       {showSidebar && (
         <Drawer
@@ -253,7 +237,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true }) => {
         </Drawer>
       )}
 
-      <Main open={showSidebar && openDrawer}>
+      <Main open={showSidebar && openDrawer} showSidebar={showSidebar}>
         <DrawerHeader />
         {children}
       </Main>
