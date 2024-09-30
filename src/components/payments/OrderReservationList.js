@@ -10,7 +10,7 @@ import ReservationDetails from '../reservation/ReservationDetails';
 import OrderDetails from '../order/OrderDetails';
 import { getAllReservations, getAllPassengers, getTravelById } from '../../services/PaymentService';
 import { cancelOrder, cancelReservation } from '../../services/OrderService';
-import { validateMasterPassword } from '../../utils/utils';
+import { validateMasterPassword, formatCPF } from '../../utils/utils';
 import { getMasterPasswordStatus } from '../../services/AuthService';
 
 const OrderReservationList = () => {
@@ -245,6 +245,41 @@ const OrderReservationList = () => {
 
   const handleClickShowMasterPassword = () => setShowMasterPassword(!showMasterPassword);
 
+  const renderCancelDialogContent = () => {
+    // Verifica se está cancelando uma reserva
+    if (cancelReservationId) {
+      const reservation = reservations.find(res => res.id === cancelReservationId);
+      const passenger = passengers.find(p => p.id === reservation?.passengerId);
+
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Informações do Passageiro</Typography>
+          <Typography variant="body2">Nome: {passenger?.nome || 'Não informado'}</Typography>
+          <Typography variant="body2">CPF: {passenger?.cpf ? formatCPF(passenger.cpf) : 'Não informado'}</Typography>
+          <Typography variant="body2">RG: {passenger?.rg || 'Não informado'}</Typography>
+          <Typography variant="body2">Passaporte: {passenger?.passaporte || 'Não informado'}</Typography>
+        </Box>
+      );
+    }
+
+    // Verifica se está cancelando um pedido
+    if (cancelOrderId && !cancelReservationId) {
+      const order = orders.find(order => order.id === cancelOrderId);
+
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Informações do Pagador</Typography>
+          <Typography variant="body2">Pedido ID: {cancelOrderId}</Typography>
+          <Typography variant="body2">Nome: {order?.detalhesPagamento?.nomePagador || 'Não informado'}</Typography>
+          <Typography variant="body2">CPF: {order?.detalhesPagamento?.cpfPagador ? formatCPF(order.detalhesPagamento.cpfPagador) : 'Não informado'}</Typography>
+          <Typography variant="body2">RG: {order?.detalhesPagamento?.rgPagador || 'Não informado'}</Typography>
+        </Box>
+      );
+    }
+
+    return null; // Não há dados a serem exibidos
+};
+
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={2} marginBottom={2}>
@@ -363,6 +398,7 @@ const OrderReservationList = () => {
               ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
               : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
           </DialogContentText>
+          {renderCancelDialogContent()}
           {masterPasswordActive && (
             <TextField
               margin="normal"
@@ -391,8 +427,8 @@ const OrderReservationList = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
-            Não
+          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white', borderRadius: '50px' }}>
+            Voltar
           </Button>
           <Button 
             onClick={confirmCancelOrder} 
@@ -400,7 +436,7 @@ const OrderReservationList = () => {
             color="confirmar" 
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
-            sx={{ color: 'white' }} 
+            sx={{ color: 'white', borderRadius: '50px' }} 
           >
             {cancelLoading ? <CircularProgress size={24} /> : cancelReservationId
               ? 'Cancelar reserva'

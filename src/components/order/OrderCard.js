@@ -1,14 +1,22 @@
-import React from 'react';
-import { Card, CardContent, Box, Typography, Tooltip, IconButton, Divider, Avatar } from '@mui/material';
+import React, { useState } from 'react';
+import { Card, CardContent, Box, Typography, Tooltip, IconButton, Divider, Avatar, Grid, Collapse } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import { formatDate } from '../../utils/utils';
+import { formatDate, formatCPF } from '../../utils/utils';
 
-const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hideTravelInfo  }) => {
+const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hideTravelInfo }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const handleExpandClick = (e) => {
+    e.stopPropagation(); // Evita disparar o onCardClick ao clicar no botão de expandir
+    setExpanded(!expanded);
+  };
+
   const detalhesPagamento = order.detalhesPagamento || {};
   const valorTotal = Number(detalhesPagamento.valorTotal || 0);
   const valorPago = Number(detalhesPagamento.valorPago || 0);
@@ -17,10 +25,7 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hid
   const seatLabel = order.reservations?.length === 1 ? 'Assento' : 'Assentos';
   const sortedSeats = order.reservations ? order.reservations.map(reservation => reservation.numeroAssento).sort((a, b) => a - b).join(', ') : 'Nenhum assento';
 
-  // Status é diretamente do banco de dados (não calcular manualmente)
   const orderStatus = order.status;
-
-  // Define a cor do status
   const statusColor = orderStatus === 'Pago' ? 'green' : orderStatus === 'Cancelada' ? 'red' : 'gold';
 
   return (
@@ -56,32 +61,13 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hid
                 <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
                   Valor Restante: R$ {valorRestante.toFixed(2)}
                 </Typography>
-              </Box>
-            </Box>
-            <Divider sx={{ mb: 1 }} />
-            <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-              {seatLabel}: {sortedSeats}
-            </Typography>
-            {!hideTravelInfo && travel && (
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <LocationOnIcon sx={{ mr: 1 }} />
-              <Box>
                 <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                  Identificador: {travel?.identificador || 'Não informado'}
-                </Typography>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                  Origem: {travel?.origem || 'Não informado'}
-                </Typography>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                  Destino: {travel?.destino || 'Não informado'}
-                </Typography>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                  Data de Ida: {travel?.dataIda ? formatDate(travel.dataIda) : 'Não informada'}
+                  {seatLabel}: {sortedSeats}
                 </Typography>
               </Box>
             </Box>
-            )}
           </Box>
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Tooltip title={`Status: ${orderStatus}`}>
               {orderStatus === 'Pago' ? (
@@ -92,11 +78,19 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hid
                 <ErrorIcon sx={{ color: statusColor }} />
               )}
             </Tooltip>
+
+            <Tooltip title="Expandir">
+              <IconButton onClick={handleExpandClick}>
+                {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Tooltip>
+
             <Tooltip title="Editar">
               <IconButton edge="end" aria-label="edit" onClick={(e) => { e.stopPropagation(); onEditOrder(order); }}>
                 <EditIcon />
               </IconButton>
             </Tooltip>
+
             {orderStatus !== 'Cancelada' && (
               <Tooltip title="Cancelar">
                 <IconButton edge="end" aria-label="delete" onClick={(e) => { e.stopPropagation(); onCancelOrder(order.id, order.travelId); }}>
@@ -106,6 +100,30 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hid
             )}
           </Box>
         </Box>
+
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <Divider sx={{ my: 1 }} />
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Informações do Pagador:</Typography>
+              <Typography variant="body2">Nome: {detalhesPagamento.nomePagador || 'Não informado'}</Typography>
+              <Typography variant="body2">CPF: {detalhesPagamento.cpfPagador ? formatCPF(detalhesPagamento.cpfPagador) : 'Não informado'}</Typography>
+              <Typography variant="body2">RG: {detalhesPagamento.rgPagador || 'Não informado'}</Typography>
+              <Typography variant="body2">Método de Pagamento: {detalhesPagamento.metodoPagamento || 'Não informado'}</Typography>
+            </Grid>
+
+            {!hideTravelInfo && travel && (
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Informações da Viagem:</Typography>
+                <Typography variant="body2">Identificador: {travel?.identificador || 'Não informado'}</Typography>
+                <Typography variant="body2">Origem: {travel?.origem || 'Não informado'}</Typography>
+                <Typography variant="body2">Destino: {travel?.destino || 'Não informado'}</Typography>
+                <Typography variant="body2">Data de Ida: {travel?.dataIda ? formatDate(travel.dataIda) : 'Não informada'}</Typography>
+              </Grid>
+            )}
+          </Grid>
+        </Collapse>
       </CardContent>
     </Card>
   );

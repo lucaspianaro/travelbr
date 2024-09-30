@@ -1,5 +1,6 @@
 // src/pages/PendingApprovalPage.js
 import React, { useEffect, useState } from 'react';
+import { Link } from "react-scroll";
 import { CircularProgress, Typography, Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/AuthService'; // Importa a função de logout
@@ -22,7 +23,7 @@ function PendingApprovalPage() {
     // Faz o logout quando o componente é montado
     performLogout();
 
-    // Iniciar contagem regressiva e redirecionar após 5 segundos
+    // Iniciar contagem regressiva e redirecionar após 6 segundos
     const countdown = setInterval(() => {
       setSeconds((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
@@ -55,12 +56,25 @@ function PendingApprovalPage() {
         Aguardando aprovação do administrador
       </Typography>
       <Typography variant="body1" sx={{ mb: 2 }}>
-        Sua conta ainda não foi aprovada. Você será desconectado e redirecionado para a página principal em {seconds} segundos.
+        Para obter acesso completo, entre em contato e solicite um orçamento para o serviço.
       </Typography>
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        Você será desconectado e redirecionado para a página principal em {seconds} segundos.
+      </Typography>
+      <Link to="contact" smooth={true} duration={500}>
       <Button
         variant="contained"
         color="primary"
         sx={{ mt: 3, borderRadius: '50px'}}
+        onClick={() => navigate('/#contact')} // Redireciona para a seção de contato
+      >
+        Entre em contato
+      </Button>
+      </Link>
+      <Button
+        variant="outlined"
+        color="secondary"
+        sx={{ mt: 2, borderRadius: '50px'}}
         onClick={() => navigate('/login')}
       >
         Tentar fazer login novamente

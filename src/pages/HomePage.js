@@ -14,7 +14,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { getAllTravels, updateTravel, deleteTravel, cancelTravel, getTravelById, addTravel } from '../services/TravelService';
 import { getAllOrders, getAllPassengers } from '../services/PaymentService';
 import { cancelOrder } from '../services/OrderService';
-import { validateMasterPassword } from '../utils/utils';
+import { validateMasterPassword, formatDate, formatCPF } from '../utils/utils';
 import { getMasterPasswordStatus } from '../services/AuthService';
 
 const HomePage = () => {
@@ -257,6 +257,8 @@ const HomePage = () => {
   };
 
   const handleCancelOrder = (orderId, travelId) => {
+    const orderToCancel = orders.find(order => order.id === orderId);
+    setSelectedOrder(orderToCancel); 
     setCancelOrderId(orderId);
     setTravelIdState(travelId);
     setCancelReservationId(null);
@@ -471,6 +473,24 @@ const HomePage = () => {
               ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
               : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
           </DialogContentText>
+          {selectedOrder && selectedOrder.detalhesPagamento && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="h6">Informações do Pagador</Typography>
+                {/* Exibir o ID do Pedido */}
+                <Typography variant="body2">
+                  Pedido ID: {selectedOrder.id}
+                </Typography>
+                <Typography variant="body2">
+                  Nome: {selectedOrder.detalhesPagamento.nomePagador || 'Não informado'}
+                </Typography>
+                <Typography variant="body2">
+                  CPF: {selectedOrder.detalhesPagamento.cpfPagador ? formatCPF(selectedOrder.detalhesPagamento.cpfPagador) : 'Não informado'}
+                </Typography>
+                <Typography variant="body2">
+                  RG: {selectedOrder.detalhesPagamento.rgPagador || 'Não informado'}
+                </Typography>
+              </Box>
+            )}
           {masterPasswordActive && (
             <TextField
               margin="normal"
@@ -499,8 +519,8 @@ const HomePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
-            Não
+          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white', borderRadius: '50px' }}>
+            Voltar
           </Button>
           <Button
             onClick={confirmCancelOrder}
@@ -508,7 +528,7 @@ const HomePage = () => {
             color="confirmar"
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
-            sx={{ color: 'white' }}
+            sx={{ color: 'white', borderRadius: '50px' }}
           >
             {cancelLoading ? <CircularProgress size={24} /> : cancelReservationId ? 'Cancelar reserva' : 'Cancelar pedido'}
           </Button>
@@ -518,7 +538,23 @@ const HomePage = () => {
         <DialogTitle>Confirmar Cancelamento</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Tem certeza de que deseja cancelar esta viagem? Esta ação não pode ser desfeita.
+            Tem certeza que deseja cancelar a viagem para <strong>{travelToCancel?.destino}</strong>?
+            <br />
+            Data de Ida: <strong>{formatDate(travelToCancel?.dataIda)}</strong>
+            <br />
+            {!travelToCancel?.somenteIda && (
+              <>
+                Data de Retorno: <strong>{formatDate(travelToCancel?.dataRetorno)}</strong>
+                <br />
+              </>
+            )}
+            {travelToCancel?.reservas && travelToCancel.reservas.length > 0 && (
+              <>
+                <strong>Essa viagem tem {travelToCancel.reservas.length} reserva(s) associada(s).</strong>
+                <br />
+              </>
+            )}
+            Cancelar essa viagem também cancelará todas as reservas e pedidos associados. Essa ação não pode ser desfeita.
           </DialogContentText>
           {masterPasswordActive && (
             <TextField
@@ -548,19 +584,36 @@ const HomePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }}>
-            Não
+          <Button onClick={closeConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+            Voltar
           </Button>
-          <Button onClick={confirmCancel} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white' }}>
+          <Button onClick={confirmCancel} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white', borderRadius: '50px' }}>
             {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog open={confirmDeleteOpen} onClose={closeConfirmDeleteDialog}>
         <DialogTitle>Confirmar Exclusão</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir a viagem para <strong>{travelToDelete?.destino}</strong>?
+            <br />
+            Data de Ida: <strong>{formatDate(travelToDelete?.dataIda)}</strong>
+            <br />
+            {!travelToDelete?.somenteIda && (
+              <>
+                Data de Retorno: <strong>{formatDate(travelToDelete?.dataRetorno)}</strong>
+                <br />
+              </>
+            )}
+            {travelToDelete?.reservas && travelToDelete.reservas.length > 0 && (
+              <>
+                <strong>Essa viagem tem {travelToDelete.reservas.length} reserva(s) associada(s).</strong>
+                <br />
+              </>
+            )}
+            Essa ação excluirá todas as reservas e pedidos relacionados a essa viagem. Isso não pode ser desfeito.
           </DialogContentText>
           {masterPasswordActive && (
             <TextField
@@ -590,10 +643,10 @@ const HomePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }}>
-            Não
+          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+            Voltar
           </Button>
-          <Button onClick={confirmDelete} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white' }}>
+          <Button onClick={confirmDelete} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white', borderRadius: '50px' }}>
             {loading ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>
         </DialogActions>

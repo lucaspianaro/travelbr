@@ -8,8 +8,8 @@ import Footer from "../components/landingpage/footer/Footer";
 function LandingPage() {
   return (
     <>
-      <Navbar />  {/* Navbar vai no topo */}
-      <Hero />    {/* Hero logo abaixo */}
+      <Navbar />  
+      <Hero />   
       <About />  
       <Contact />
       <Footer />

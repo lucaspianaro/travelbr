@@ -18,7 +18,7 @@ import { getReservationsByTravelId, getOrdersByTravelId, cancelOrder, cancelRese
 import { getAllPassengers } from '../../services/PassengerService';
 import { exportToPDF as exportReservationsToPDF } from '../../utils/ReservationsPDF';
 import { exportOrdersToPDF } from '../../utils/OrdersPDF';
-import { validateMasterPassword } from '../../utils/utils';
+import { validateMasterPassword, formatCPF } from '../../utils/utils';
 import { getMasterPasswordStatus } from '../../services/AuthService';  // Importando o serviço de verificação de senha master
 
 const TravelOrderReservationPage = () => {
@@ -305,6 +305,41 @@ const TravelOrderReservationPage = () => {
 
   const { totalReceivable, totalReceived } = calculateTotals();
 
+  const renderCancelDialogContent = () => {
+    // Verifica se está cancelando uma reserva
+    if (cancelReservationId) {
+      const reservation = reservations.find(res => res.id === cancelReservationId);
+      const passenger = passengers.find(p => p.id === reservation?.passengerId);
+
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Informações do Passageiro</Typography>
+          <Typography variant="body2">Nome: {passenger?.nome || 'Não informado'}</Typography>
+          <Typography variant="body2">CPF: {passenger?.cpf ? formatCPF(passenger.cpf) : 'Não informado'}</Typography>
+          <Typography variant="body2">RG: {passenger?.rg || 'Não informado'}</Typography>
+          <Typography variant="body2">Passaporte: {passenger?.passaporte || 'Não informado'}</Typography>
+        </Box>
+      );
+    }
+
+    // Verifica se está cancelando um pedido
+    if (cancelOrderId && !cancelReservationId) {
+      const order = orders.find(order => order.id === cancelOrderId);
+
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Informações do Pagador</Typography>
+          <Typography variant="body2">Pedido ID: {cancelOrderId}</Typography>
+          <Typography variant="body2">Nome: {order?.detalhesPagamento?.nomePagador || 'Não informado'}</Typography>
+          <Typography variant="body2">CPF: {order?.detalhesPagamento?.cpfPagador ? formatCPF(order.detalhesPagamento.cpfPagador) : 'Não informado'}</Typography>
+          <Typography variant="body2">RG: {order?.detalhesPagamento?.rgPagador || 'Não informado'}</Typography>
+        </Box>
+      );
+    }
+
+    return null; // Não há dados a serem exibidos
+};
+
   return (
     <Layout>
       <Box sx={{ p: 3 }}>
@@ -435,6 +470,8 @@ const TravelOrderReservationPage = () => {
                 ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
                 : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
             </DialogContentText>
+            {/* Renderiza as informações apropriadas com base no que está sendo cancelado */}
+            {renderCancelDialogContent()}
             {masterPasswordActive && (
               <TextField
                 margin="normal"
@@ -444,7 +481,6 @@ const TravelOrderReservationPage = () => {
                 value={masterPassword}
                 onChange={(e) => setMasterPassword(e.target.value)}
                 InputProps={{
-                  autoComplete: 'new-password',
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
@@ -463,15 +499,15 @@ const TravelOrderReservationPage = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setCancelDialogOpen(false)} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }} >
-              Não
+            <Button onClick={() => setCancelDialogOpen(false)} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+              Voltar
             </Button>
             <Button
               onClick={confirmCancelOrder}
               variant="contained"
               color="confirmar"
               disabled={masterPasswordActive && !masterPassword || loading}
-              sx={{ color: 'white' }} 
+              sx={{ color: 'white', borderRadius: '50px' }}
             >
               {loading ? <CircularProgress size={24} /> : cancelReservationId ? 'Cancelar reserva' : 'Cancelar pedido'}
             </Button>

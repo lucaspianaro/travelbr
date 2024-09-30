@@ -314,6 +314,23 @@ const Receivables = () => {
     return Array.from(years).sort((a, b) => a - b);
   };
 
+  const renderCancelDialogContent = () => {
+    if (cancelOrderId) {
+      const order = orders.find(o => o.id === cancelOrderId);
+      const passenger = passengers.find(p => p.id === order?.passengerId);
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Informações do Pagador</Typography>
+          <Typography variant="body2">Pedido ID: {cancelOrderId}</Typography>
+          <Typography variant="body2">Nome: {order?.detalhesPagamento?.nomePagador || 'Não informado'}</Typography>
+          <Typography variant="body2">CPF: {order?.detalhesPagamento?.cpfPagador || 'Não informado'}</Typography>
+          <Typography variant="body2">RG: {order?.detalhesPagamento?.rgPagador || 'Não informado'}</Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={2} marginBottom={2}>
@@ -510,6 +527,7 @@ const Receivables = () => {
               ? 'Tem certeza de que deseja cancelar esta reserva? Esta ação não pode ser desfeita.'
               : 'Tem certeza de que deseja cancelar este pedido? Todas as reservas deste pedido serão canceladas. Esta ação não pode ser desfeita.'}
           </DialogContentText>
+          {renderCancelDialogContent()}
           {masterPasswordActive && (
             <TextField
               margin="normal"
@@ -543,9 +561,9 @@ const Receivables = () => {
             color="cancelar"
             variant="contained"
             disabled={cancelLoading}
-            sx={{ color: 'white' }}
+            sx={{ color: 'white', borderRadius: '50px' }}
           >
-            Não
+            Voltar
           </Button>
           <Button
             onClick={confirmCancelOrder}
@@ -553,7 +571,7 @@ const Receivables = () => {
             color="confirmar"
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
-            sx={{ color: 'white' }}
+            sx={{ color: 'white', borderRadius: '50px' }}
           >
             {cancelLoading ? (
               <CircularProgress size={24} />

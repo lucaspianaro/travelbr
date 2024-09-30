@@ -1,14 +1,18 @@
-import React from 'react';
-import { Card, CardContent, Box, Typography, Tooltip, IconButton, Divider, Avatar } from '@mui/material';
+import React, { useState } from 'react';
+import { Card, CardContent, Box, Typography, Tooltip, IconButton, Divider, Avatar, Collapse } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { formatCPF, formatDate } from '../../utils/utils';
 
-const ReservationCard = ({ reservation, passengers, travel, onEditReservation, onCancelReservation, onCardClick, hideTravelInfo  }) => {
+const ReservationCard = ({ reservation, passengers, travel, onEditReservation, onCancelReservation, onCardClick, hideTravelInfo }) => {
+  const [expanded, setExpanded] = useState(false);
+
   // Encontrar o passageiro correspondente à reserva
   const passenger = passengers.find(p => p.id === reservation.passengerId) || {};
 
@@ -33,6 +37,11 @@ const ReservationCard = ({ reservation, passengers, travel, onEditReservation, o
       )}
     </>
   );
+
+  const handleExpandClick = (e) => {
+    e.stopPropagation(); // Impede que o onCardClick seja disparado ao expandir
+    setExpanded(!expanded);
+  };
 
   return (
     <Card
@@ -66,7 +75,45 @@ const ReservationCard = ({ reservation, passengers, travel, onEditReservation, o
             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
               Assento: {reservation.numeroAssento}
             </Typography>
-            {!hideTravelInfo && travel && (
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Tooltip title={`Status: ${status}`}>
+              {status === 'Pago' ? (
+                <CheckCircleIcon sx={{ color: 'green' }} />
+              ) : status === 'Cancelada' ? (
+                <CancelIcon sx={{ color: 'red' }} />
+              ) : (
+                <ErrorIcon sx={{ color: 'gold' }} />
+              )}
+            </Tooltip>
+
+            {!hideTravelInfo && (
+              <Tooltip title={expanded ? 'Fechar' : 'Expandir'}>
+                <IconButton onClick={handleExpandClick}>
+                  {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </Tooltip>
+            )}
+
+            <Tooltip title="Editar">
+              <IconButton edge="end" aria-label="edit" onClick={(e) => { e.stopPropagation(); onEditReservation(reservation, reservation.orderId); }}>
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+            {status !== 'Cancelada' && (
+              <Tooltip title="Cancelar">
+                <IconButton edge="end" aria-label="delete" onClick={(e) => { e.stopPropagation(); onCancelReservation(reservation.id, reservation.orderId, reservation.travelId); }}>
+                  <CancelIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        </Box>
+
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <Divider sx={{ my: 1 }} />
+          {/* Informações adicionais da viagem e do passageiro exibidas ao expandir */}
+          {!hideTravelInfo && travel && (
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <LocationOnIcon sx={{ mr: 1 }} />
               <Box>
@@ -84,32 +131,8 @@ const ReservationCard = ({ reservation, passengers, travel, onEditReservation, o
                 </Typography>
               </Box>
             </Box>
-            )}
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip title={`Status: ${status}`}>
-              {status === 'Pago' ? (
-                <CheckCircleIcon sx={{ color: 'green' }} />
-              ) : status === 'Cancelada' ? (
-                <CancelIcon sx={{ color: 'red' }} />
-              ) : (
-                <ErrorIcon sx={{ color: 'gold' }} />
-              )}
-            </Tooltip>
-            <Tooltip title="Editar">
-              <IconButton edge="end" aria-label="edit" onClick={(e) => { e.stopPropagation(); onEditReservation(reservation, reservation.orderId); }}>
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-            {status !== 'Cancelada' && (
-              <Tooltip title="Cancelar">
-                <IconButton edge="end" aria-label="delete" onClick={(e) => { e.stopPropagation(); onCancelReservation(reservation.id, reservation.orderId, reservation.travelId); }}>
-                  <CancelIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-          </Box>
-        </Box>
+          )}
+        </Collapse>
       </CardContent>
     </Card>
   );

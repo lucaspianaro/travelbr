@@ -17,7 +17,7 @@ import MyAccount from './pages/MyAccount';
 import HelpCenter from './pages/HelpCenter';
 import ReportPage from './pages/ReportPage';
 import PaymentPage from './pages/PaymentPage';
-import LandingPage from './pages/LandingPage';
+import NewLandingPage from './components/newlandingpage/NewLandingPage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 import './App.css';
 
@@ -38,7 +38,7 @@ function AuthenticatedApp() {
       >
         <CircularProgress size={60} />
         <Typography variant="h6" sx={{ mt: 2 }}>
-          Carregando autenticação...
+          Carregando...
         </Typography>
       </Box>
     );
@@ -53,7 +53,7 @@ function AuthenticatedApp() {
         )}
 
         {/* Se o usuário estiver autenticado e aprovado, redireciona para /home */}
-        <Route path="/" element={currentUser ? <Navigate to="/home" /> : <LandingPage />} />
+        <Route path="/" element={currentUser ? <Navigate to="/home" /> : <NewLandingPage />} />
 
         {/* Página Home acessível somente para usuários autenticados e aprovados */}
         <Route path="/home" element={currentUser ? <HomePage /> : <Navigate to="/login" />} />
