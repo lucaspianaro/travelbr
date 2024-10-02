@@ -510,10 +510,10 @@ function TravelDetails() {
     )}
   </DialogContent>
   <DialogActions>
-    <Button onClick={handleCloseConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+    <Button onClick={handleCloseConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
       Voltar
     </Button>
-    <Button onClick={handleConfirmCancelTravel} variant="contained" color="confirmar" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
+    <Button onClick={handleConfirmCancelTravel} variant="contained" color="error" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
       {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
     </Button>
   </DialogActions>
@@ -562,10 +562,10 @@ function TravelDetails() {
     )}
   </DialogContent>
   <DialogActions>
-    <Button onClick={handleCloseConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+    <Button onClick={handleCloseConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
       Voltar
     </Button>
-    <Button onClick={handleConfirmDeleteTravel} variant="contained" color="confirmar" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
+    <Button onClick={handleConfirmDeleteTravel} variant="contained" color="error" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
       {loading ? <CircularProgress size={24} /> : 'Excluir'}
     </Button>
   </DialogActions>

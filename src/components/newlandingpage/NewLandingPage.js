@@ -10,14 +10,14 @@ import Founders from './components/Founders';
 import Contact from './components/Contact';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
-import getMPTheme from './theme/getLPTheme';
+import getLPTheme from './theme/getLPTheme';
 import TemplateFrame from './TemplateFrame';
 
 export default function MarketingPage() {
   const [mode, setMode] = React.useState('light'); // Tema claro por padrão
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
   
-  const MPTheme = createTheme(getMPTheme(mode));
+  const MPTheme = createTheme(getLPTheme(mode));
   const defaultTheme = createTheme({ palette: { mode } });
 
   React.useEffect(() => {

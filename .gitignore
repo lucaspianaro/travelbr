@@ -27,3 +27,6 @@ yarn-error.log*
 
 # Firebase folder
 /.firebase
+.firebase
+./firebase
+.firebase/hosting.YnVpbGQ.cache

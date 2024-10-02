@@ -427,13 +427,13 @@ const OrderReservationList = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white', borderRadius: '50px' }}>
+          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ borderRadius: '50px' }}>
             Voltar
           </Button>
           <Button 
             onClick={confirmCancelOrder} 
             variant="contained" 
-            color="confirmar" 
+            color="error" 
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
             sx={{ color: 'white', borderRadius: '50px' }} 

@@ -519,13 +519,13 @@ const HomePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white', borderRadius: '50px' }}>
+          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ borderRadius: '50px' }}>
             Voltar
           </Button>
           <Button
             onClick={confirmCancelOrder}
             variant="contained"
-            color="confirmar"
+            color="error"
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
             sx={{ color: 'white', borderRadius: '50px' }}
@@ -584,10 +584,10 @@ const HomePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+          <Button onClick={closeConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
             Voltar
           </Button>
-          <Button onClick={confirmCancel} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white', borderRadius: '50px' }}>
+          <Button onClick={confirmCancel} variant="contained" color="error" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white', borderRadius: '50px' }}>
             {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
           </Button>
         </DialogActions>
@@ -643,10 +643,10 @@ const HomePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
             Voltar
           </Button>
-          <Button onClick={confirmDelete} variant="contained" color="confirmar" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white', borderRadius: '50px' }}>
+          <Button onClick={confirmDelete} variant="contained" color="error" autoFocus disabled={(masterPasswordActive && !masterPassword) || loading} sx={{ color: 'white', borderRadius: '50px' }}>
             {loading ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>
         </DialogActions>

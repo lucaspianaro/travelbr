@@ -1,6 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, CssBaseline, Divider, CircularProgress, useMediaQuery, Tooltip, Snackbar, Alert, Link } from '@mui/material';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  CssBaseline,
+  Divider,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Tooltip,
+  Collapse
+} from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import HomeIcon from '@mui/icons-material/Home';
 import PeopleIcon from '@mui/icons-material/People';
@@ -17,6 +35,8 @@ import { logout } from '../../services/AuthService';
 import { useAuth } from '../../contexts/useAuthState';
 import { useDrawer } from '../../contexts/DrawerContext';
 import { useIdleTimer } from 'react-idle-timer';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 
 const drawerWidth = 240;
 
@@ -29,7 +49,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    marginLeft: showSidebar ? `-${drawerWidth}px` : 0, // Ajusta a margem com base em showSidebar
+    marginLeft: showSidebar ? `-${drawerWidth}px` : 0, 
     ...(open && showSidebar && {
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.easeOut,
@@ -43,7 +63,6 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   })
 );
 
-// Estilização do cabeçalho da gaveta (drawer)
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -60,15 +79,14 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
   const navigate = useNavigate();
   const location = useLocation();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [openVehicleSubMenu, setOpenVehicleSubMenu] = useState(false);
 
-  // Fechar a gaveta (drawer) se o `defaultOpenDrawer` for falso
   useEffect(() => {
     if (!defaultOpenDrawer) {
       closeDrawer();
     }
   }, [defaultOpenDrawer, closeDrawer]);
 
-  // Função para lidar com logout
   const handleLogout = async () => {
     setLoading(true);
     try {
@@ -80,19 +98,20 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
     }
   };
 
-  // Função para lidar com inatividade do usuário
+  const handleVehicleSubMenuClick = () => {
+    setOpenVehicleSubMenu(!openVehicleSubMenu);
+  };
+
   const handleOnIdle = () => {
     setSnackbarOpen(true);
   };
 
-  // Configuração do timer de inatividade
   const idleTimer = useIdleTimer({
     timeout: 300000,
     onIdle: handleOnIdle,
     debounce: 500
   });
 
-  // Redirecionar para a central de ajuda ao clicar no Snackbar
   const handleSnackbarClick = () => {
     navigate('/central-ajuda');
   };
@@ -101,46 +120,46 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
 
   return (
     <Box sx={{ display: 'flex' }}>
-    <CssBaseline />
-    <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
-      <Toolbar>
-        {showSidebar && (
-          <Tooltip title="Menu">
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={toggleDrawer}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          </Tooltip>
-        )}
-        <RouterLink to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-          <img src={Logo} alt="Logo" style={{ height: 40, marginRight: 5 }} />
-          <Typography variant="h6" noWrap component="div">
-            TravelBR
-          </Typography>
-        </RouterLink>
-        <Box sx={{ flexGrow: 1 }} />
-        <RouterLink to="/central-ajuda" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-          <Tooltip title="Ajuda">
-            <IconButton color="inherit">
-              <HelpIcon />
-            </IconButton>
-          </Tooltip>
-        </RouterLink>
-        {!hideLogout && !loading && currentUser && (
-          <Tooltip title="Sair">
-            <IconButton color="inherit" onClick={handleLogout}>
-              <ExitToAppIcon />
-            </IconButton>
-          </Tooltip>
-        )}
-        {loading && !hideLogout && <CircularProgress color="inherit" size={24} />}
-      </Toolbar>
-    </AppBar>
+      <CssBaseline />
+      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+        <Toolbar>
+          {showSidebar && (
+            <Tooltip title="Menu">
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={toggleDrawer}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          <RouterLink to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+            <img src={Logo} alt="Logo" style={{ height: 40, marginRight: 5 }} />
+            <Typography variant="h6" noWrap component="div">
+              TravelBR
+            </Typography>
+          </RouterLink>
+          <Box sx={{ flexGrow: 1 }} />
+          <RouterLink to="/central-ajuda" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+            <Tooltip title="Ajuda">
+              <IconButton color="inherit">
+                <HelpIcon />
+              </IconButton>
+            </Tooltip>
+          </RouterLink>
+          {!hideLogout && !loading && currentUser && (
+            <Tooltip title="Sair">
+              <IconButton color="inherit" onClick={handleLogout}>
+                <ExitToAppIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          {loading && !hideLogout && <CircularProgress color="inherit" size={24} />}
+        </Toolbar>
+      </AppBar>
 
       {showSidebar && (
         <Drawer
@@ -171,7 +190,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
               sx={isSelected('/') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
             >
               <ListItemIcon sx={isSelected('/') ? { color: '#000' } : {}}><HomeIcon /></ListItemIcon>
-              <ListItemText primary="Início" />
+              <ListItemText secondary="Início" />
             </ListItem>
             <ListItem 
               button 
@@ -181,7 +200,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
               sx={isSelected('/viagens') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
             >
               <ListItemIcon sx={isSelected('/viagens') ? { color: '#000' } : {}}><EditRoadIcon /></ListItemIcon>
-              <ListItemText primary="Viagens" />
+              <ListItemText secondary="Viagens" />
             </ListItem>
             <ListItem 
               button 
@@ -191,18 +210,35 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
               sx={isSelected('/passageiros') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
             >
               <ListItemIcon sx={isSelected('/passageiros') ? { color: '#000' } : {}}><PeopleIcon /></ListItemIcon>
-              <ListItemText primary="Passageiros" />
+              <ListItemText secondary="Passageiros" />
             </ListItem>
-            <ListItem 
-              button 
-              component={RouterLink} 
-              to="/veiculos" 
-              selected={isSelected('/veiculos')}
-              sx={isSelected('/veiculos') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
-            >
-              <ListItemIcon sx={isSelected('/veiculos') ? { color: '#000' } : {}}><DirectionsBusIcon /></ListItemIcon>
-              <ListItemText primary="Veículos" />
+            <ListItem button onClick={handleVehicleSubMenuClick}>
+              <ListItemIcon><DirectionsBusIcon /></ListItemIcon>
+              <ListItemText secondary="Veículos" />
+              {openVehicleSubMenu ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
+            <Collapse in={openVehicleSubMenu} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItem
+                  button
+                  component={RouterLink}
+                  to="/veiculos"
+                  selected={isSelected('/veiculos')}
+                  sx={isSelected('/veiculos') ? { backgroundColor: '#e0e0e0', pl: 4 } : { pl: 4 }}
+                >
+                  <ListItemText secondary="Gerenciar Veículos" />
+                </ListItem>
+                <ListItem
+                  button
+                  component={RouterLink}
+                  to="/veiculos/layout"
+                  selected={isSelected('/veiculos/layout')}
+                  sx={isSelected('/veiculos/layout') ? { backgroundColor: '#e0e0e0', pl: 4 } : { pl: 4 }}
+                >
+                  <ListItemText secondary="Layout de Assentos" />
+                </ListItem>
+              </List>
+            </Collapse>
             <ListItem 
               button 
               component={RouterLink} 
@@ -211,7 +247,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
               sx={isSelected('/pagamentos') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
             >
               <ListItemIcon sx={isSelected('/pagamentos') ? { color: '#000' } : {}}><PaymentIcon /></ListItemIcon>
-              <ListItemText primary="Pagamentos" />
+              <ListItemText secondary="Pagamentos" />
             </ListItem>
             <ListItem 
               button 
@@ -221,7 +257,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
               sx={isSelected('/relatorios') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
             >
               <ListItemIcon sx={isSelected('/relatorios') ? { color: '#000' } : {}}><AssessmentIcon /></ListItemIcon>
-              <ListItemText primary="Relatórios" />
+              <ListItemText secondary="Relatórios" />
             </ListItem>
             <ListItem 
               button 
@@ -231,7 +267,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
               sx={isSelected('/minha-conta') ? { backgroundColor: '#e0e0e0', color: '#000' } : {}}
             >
               <ListItemIcon sx={isSelected('/minha-conta') ? { color: '#000' } : {}}><AccountCircleIcon /></ListItemIcon>
-              <ListItemText primary="Minha Conta" />
+              <ListItemText secondary="Minha Conta" />
             </ListItem>
           </List>
         </Drawer>

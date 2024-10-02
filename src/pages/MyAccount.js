@@ -201,14 +201,14 @@ function MyAccount() {
               color="cancelar"
               variant="contained"
               disabled={isProcessing}
-              sx={{ color: 'white' }}
+              sx={{ borderRadius: '50px' }}
             >
-              Cancelar
+              Voltar
             </Button>
             <Button
               onClick={handleConfirmToggle}
               variant="contained"
-              color="confirmar"
+              color="error"
               disabled={!masterPassword || isProcessing}
               sx={{ color: 'white', borderRadius: '50px' }}
             >

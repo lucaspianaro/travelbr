@@ -19,6 +19,8 @@ import ReportPage from './pages/ReportPage';
 import PaymentPage from './pages/PaymentPage';
 import NewLandingPage from './components/newlandingpage/NewLandingPage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
+import ManageBusLayoutPage from './pages/ManageBusLayoutPage';
+import BusLayoutBuilderPage from './components/seatlayout/BusLayoutBuilderPage'; // Import the new BusLayoutBuilderPage
 import './App.css';
 
 function AuthenticatedApp() {
@@ -72,6 +74,12 @@ function AuthenticatedApp() {
         <Route path="/viagens/:travelId/reservas" element={currentUser ? <TravelOrderReservationPage /> : <Navigate to="/login" />} />
         <Route path="/viagens/:travelId/editar-reserva" element={currentUser ? <PassengerAllocation /> : <Navigate to="/login" />} />
         <Route path="/veiculos" element={currentUser ? <VehiclePage /> : <Navigate to="/login" />} />
+        
+        {/* Rotas para a gestão de layouts de ônibus */}
+        <Route path="/veiculos/layout" element={currentUser ? <ManageBusLayoutPage /> : <Navigate to="/login" />} />
+        <Route path="/veiculos/layout/novo" element={currentUser ? <BusLayoutBuilderPage /> : <Navigate to="/login" />} />
+        <Route path="/veiculos/layout/:id" element={currentUser ? <BusLayoutBuilderPage /> : <Navigate to="/login" />} />
+
         <Route path="/pagamentos" element={currentUser ? <PaymentPage /> : <Navigate to="/login" />} />
         <Route path="/relatorios" element={currentUser ? <ReportPage /> : <Navigate to="/login" />} />
         <Route path="/minha-conta" element={currentUser ? <MyAccount /> : <Navigate to="/login" />} />

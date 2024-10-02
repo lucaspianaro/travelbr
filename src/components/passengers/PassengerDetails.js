@@ -374,16 +374,16 @@ const PassengerDetails = ({ passenger, open, onClose, onEditReservation, onReser
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ color: 'white' }}>
-            Não
+          <Button onClick={() => setCancelDialogOpen(false)} color="cancelar" variant="contained" disabled={cancelLoading} sx={{ borderRadius: '50px'}}>
+            Voltar
           </Button>
           <Button
             onClick={confirmCancelReservation}
             variant="contained"
-            color="confirmar"
+            color="error"
             autoFocus
             disabled={(masterPasswordActive && !masterPassword) || cancelLoading}
-            sx={{ color: 'white' }}
+            sx={{ color: 'white', borderRadius: '50px' }}
           >
             {cancelLoading ? <CircularProgress size={24} /> : 'Cancelar reserva'}
           </Button>

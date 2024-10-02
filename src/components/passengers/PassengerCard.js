@@ -201,16 +201,16 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="cancelar" variant="contained" disabled={isDeleting} sx={{ color: 'white' }} >
-            Não
+          <Button onClick={handleClose} color="cancelar" variant="contained" disabled={isDeleting} sx={{ borderRadius: '50px' }} >
+            Voltar
           </Button>
           <Button 
             onClick={handleConfirmDelete} 
             variant="contained" 
-            color="confirmar" 
+            color="error" 
             disabled={masterPasswordActive && !masterPassword || isDeleting} 
             autoFocus
-            sx={{ color: 'white' }} 
+            sx={{ color: 'white', borderRadius: '50px' }} 
           >
             {isDeleting ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>

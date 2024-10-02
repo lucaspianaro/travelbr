@@ -31,7 +31,7 @@ const theme = createTheme({
     }
   },
   typography: {
-    fontFamily: 'Oxygen, Arial, sans-serif',
+    fontFamily: 'Arial, sans-serif',
     h6: {
       fontWeight: 500,
     },

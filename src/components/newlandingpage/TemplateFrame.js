@@ -11,7 +11,7 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ToggleColorMode from './components/ToggleColorMode';
-import getMPTheme from './theme/getLPTheme';
+import getLPTheme from './theme/getLPTheme';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   position: 'relative',
@@ -38,7 +38,7 @@ function TemplateFrame({
   const handleChange = (event) => {
     toggleCustomTheme(event.target.value === 'custom');
   };
-  const MPTheme = createTheme(getMPTheme(mode));
+  const MPTheme = createTheme(getLPTheme(mode));
 
   return (
     <ThemeProvider theme={MPTheme}>

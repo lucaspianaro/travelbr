@@ -499,13 +499,13 @@ const TravelOrderReservationPage = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setCancelDialogOpen(false)} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white', borderRadius: '50px' }}>
+            <Button onClick={() => setCancelDialogOpen(false)} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
               Voltar
             </Button>
             <Button
               onClick={confirmCancelOrder}
               variant="contained"
-              color="confirmar"
+              color="error"
               disabled={masterPasswordActive && !masterPassword || loading}
               sx={{ color: 'white', borderRadius: '50px' }}
             >

@@ -40,18 +40,6 @@ const scrollToSection = (sectionId) => {
   }
 };
 
-const StyledTypography = styled(Typography)(({ theme }) => ({
-  fontSize: '18px', // Tamanho de fonte menor
-  fontWeight: 'normal', // Sem negrito
-  color: 'secondary.main',
-                ...theme.applyStyles('dark', {
-                  color: 'secondary.light',
-                }), // Cor suave
-  textTransform: 'capitalize', // Primeira letra maiúscula
-  letterSpacing: '0.5px', // Menor espaçamento entre letras
-  marginLeft: '8px', // Margem à esquerda
-}));
-
 export default function AppAppBar({ mode, toggleColorMode }) {
   const [open, setOpen] = React.useState(false);
 
@@ -71,20 +59,39 @@ export default function AppAppBar({ mode, toggleColorMode }) {
     >
       <Container maxWidth="lg">
         <StyledToolbar variant="dense" disableGutters>
-          {/* Logo and Company Name */}
-          <RouterLink to="/" className="navbar-logo-link" style={{ display: 'flex', alignItems: 'center' }}>
-            <img 
-              src={Logo} 
-              alt="Logo" 
-              className="navbar-logo" 
-              style={{ width: '50px', height: 'auto', marginRight: '10px' }} 
+          {/* Logo e nome da empresa */}
+          <RouterLink
+            to="/"
+            className="navbar-logo-link"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none', // Remove o sublinhado
+            }}
+          >
+            <img
+              src={Logo}
+              alt="Logo"
+              className="navbar-logo"
+              style={{ width: '50px', height: 'auto', marginRight: '10px' }}
             />
-            {/* <StyledTypography variant="h6" noWrap>
+            <Typography
+              component="span"
+              variant="h2"
+              sx={(theme) => ({
+                fontSize: '1.0rem', // Ajuste o valor conforme necessário
+                color: 'primary.main',
+                ...theme.applyStyles('dark', {
+                  color: 'primary.light',
+                }),
+              })}
+            >
               TravelBR
-            </StyledTypography> */}
+            </Typography>
           </RouterLink>
 
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
+          {/* Centralizando as opções do menu */}
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button onClick={() => handleSectionClick('sobre-nos')}>Sobre Nós</Button>
               <Button onClick={() => handleSectionClick('equipe')}>Equipe</Button>
@@ -94,10 +101,10 @@ export default function AppAppBar({ mode, toggleColorMode }) {
             </Box>
           </Box>
 
-          {/* Custom "Entrar", Toggle Theme Button, and Help Icon */}
+          {/* Botões "Entrar", Toggle Color Mode, e "Ajuda" no desktop */}
           <Box
             sx={{
-              display: { xs: 'none', md: 'flex' },
+              display: 'flex',
               gap: 1,
               alignItems: 'center',
             }}
@@ -111,9 +118,13 @@ export default function AppAppBar({ mode, toggleColorMode }) {
             {/* Toggle Theme Button */}
             <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
 
+            {/* Ícone de Ajuda - Exibido somente em desktop */}
             <RouterLink to="/central-ajuda" className="navbar-icon-link">
               <Tooltip title="Ajuda">
-                <IconButton color="inherit" className="navbar-icon">
+                <IconButton
+                  color="inherit"
+                  sx={{ display: { xs: 'none', md: 'inline-flex' } }} // Escondido no mobile
+                >
                   <HelpIcon />
                 </IconButton>
               </Tooltip>
@@ -126,12 +137,21 @@ export default function AppAppBar({ mode, toggleColorMode }) {
               <MenuIcon />
             </IconButton>
             <Drawer anchor="top" open={open} onClose={toggleDrawer(false)}>
-              <Box sx={{ p: 2, backgroundColor: 'background.default' }}>
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: 'background.default',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    width: '100%',
                   }}
                 >
                   <IconButton onClick={toggleDrawer(false)}>
@@ -139,43 +159,43 @@ export default function AppAppBar({ mode, toggleColorMode }) {
                   </IconButton>
                 </Box>
                 <Divider sx={{ my: 3 }} />
-                
-                {/* Links dentro do Drawer */}
-                <MenuItem onClick={() => handleSectionClick('sobre-nos')}>
-                  Sobre Nós
-                </MenuItem>
-                <MenuItem onClick={() => handleSectionClick('equipe')}>
-                  Equipe
-                </MenuItem>
-                <MenuItem onClick={() => handleSectionClick('destaques')}>
-                  Destaques
-                </MenuItem>
-                <MenuItem onClick={() => handleSectionClick('contato')}>
-                  Contato
-                </MenuItem>
-                <MenuItem onClick={() => handleSectionClick('faq')}>
-                  FAQ
-                </MenuItem>
 
-                {/* Adicionar botão de alternância de tema no Drawer */}
-                <MenuItem>
-                  <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
-                </MenuItem>
+                {/* Links dentro do Drawer, centralizados */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                >
+                  <MenuItem onClick={() => handleSectionClick('sobre-nos')} sx={{ justifyContent: 'center' }}>
+                    Sobre Nós
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSectionClick('equipe')} sx={{ justifyContent: 'center' }}>
+                    Equipe
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSectionClick('destaques')} sx={{ justifyContent: 'center' }}>
+                    Destaques
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSectionClick('contato')} sx={{ justifyContent: 'center' }}>
+                    Contato
+                  </MenuItem>
+                  <MenuItem onClick={() => handleSectionClick('faq')} sx={{ justifyContent: 'center' }}>
+                    FAQ
+                  </MenuItem>
 
-                <MenuItem>
-                  <RouterLink to="/login" className="navbar-login-link">
-                    <Button color="primary" variant="contained" fullWidth>
-                      Entrar
-                    </Button>
-                  </RouterLink>
-                </MenuItem>
-                <MenuItem>
-                  <RouterLink to="/central-ajuda" className="navbar-icon-link">
-                    <Button color="primary" variant="outlined" fullWidth>
-                      Ajuda
-                    </Button>
-                  </RouterLink>
-                </MenuItem>
+                  {/* Ícone de Ajuda - Exibido somente no Drawer no mobile */}
+                  <MenuItem sx={{ justifyContent: 'center' }}>
+                    <RouterLink to="/central-ajuda" className="navbar-icon-link">
+                      <Tooltip title="Ajuda">
+                        <IconButton color="inherit" className="navbar-icon">
+                          <HelpIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </RouterLink>
+                  </MenuItem>
+                </Box>
               </Box>
             </Drawer>
           </Box>

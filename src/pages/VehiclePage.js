@@ -302,15 +302,15 @@ const VehiclePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ color: 'white' }} >
-            Não
+          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px'}} >
+            Voltar
           </Button>
           <Button
             onClick={handleDeleteVehicle}
             variant="contained"
-            color="confirmar"
+            color="error"
             disabled={masterPasswordActive && !masterPassword || loading}
-            sx={{ color: 'white' }} 
+            sx={{ color: 'white', borderRadius: '50px' }} 
           >
             {loading ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>
