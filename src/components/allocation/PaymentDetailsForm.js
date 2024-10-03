@@ -44,6 +44,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             fullWidth
             required
             inputProps={{ maxLength: 255 }}
+            sx={{ backgroundColor: 'white' }} // White background
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -58,6 +59,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             fullWidth
             required
             inputProps={{ maxLength: 14 }}
+            sx={{ backgroundColor: 'white' }} // White background
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -72,6 +74,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             fullWidth
             required
             inputProps={{ maxLength: 20 }}
+            sx={{ backgroundColor: 'white' }} // White background
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -90,6 +93,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
               startAdornment: <InputAdornment position="start"></InputAdornment>,
               inputProps: { min: 0 },
             }}
+            sx={{ backgroundColor: 'white' }} // White background
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -104,6 +108,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             helperText={errors['metodoPagamento']}
             fullWidth
             required
+            sx={{ backgroundColor: 'white' }} // White background
           >
             <MenuItem value="Dinheiro">Dinheiro</MenuItem>
             <MenuItem value="Pix">Pix</MenuItem>
@@ -125,6 +130,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             multiline
             maxRows={4}
             inputProps={{ maxLength: 255 }}
+            sx={{ backgroundColor: 'white' }} // White background
           />
         </Grid>
       </Grid>

@@ -22,7 +22,7 @@ const statusStyles = {
   'Indefinido': { color: '#9E9E9E', text: 'Indefinido' }
 };
 
-function TravelCard({ travels, startEditing, handleDelete, handleCancel }) {
+function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideActions, stacked }) {
   const navigate = useNavigate();
   const [reservedSeatsData, setReservedSeatsData] = useState({});
 
@@ -48,7 +48,7 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel }) {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Grid container spacing={2}>
+      <Grid container spacing={stacked ? 0 : 2} direction={stacked ? 'column' : 'row'}>
         {travels.length > 0 ? (
           travels.map(travel => {
             const status = statusStyles[travel.status] || statusStyles['Indefinido'];
@@ -56,20 +56,25 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel }) {
             const occupiedSeats = reservedSeatsData[travel.id] || 0;
 
             return (
-              <Grid item xs={12} sm={6} md={4} key={travel.id}>
+              <Grid 
+                item 
+                xs={12} 
+                sm={stacked ? 12 : 6} 
+                md={stacked ? 12 : 4} 
+                key={travel.id} 
+              >
                 <Card
                   onClick={() => navigate(`/viagens/${travel.id}`)}
                   sx={{
                     cursor: 'pointer',
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', // Sombra padrão aumentada
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
                     position: 'relative',
                     transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': { transform: 'scale(1.02)', boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)' }, // Sombra aumentada no hover
-                    mb: 1,
+                    '&:hover': { transform: 'scale(1.02)', boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)' },
+                    mb: 2,
                     borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '100%',
                   }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1 }}>
@@ -136,25 +141,28 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel }) {
                       </Typography>
                     </Box>
                   </CardContent>
-                  <CardActions sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      {travel.status !== 'Cancelada' && (
-                        <Button size="small" variant="outlined" color="primary" startIcon={<EditIcon />} sx={buttonStyle} onClick={(e) => { e.stopPropagation(); startEditing(travel); }}>Editar</Button>
-                      )}
-                      <Button size="small" variant="outlined" color="primary" startIcon={<ListIcon />} sx={buttonStyle} onClick={(e) => handleViewReservations(travel.id, e)}>Reservas</Button>
-                      {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
-                        <Button size="small" variant="outlined" color="error" startIcon={<CancelIcon />} sx={buttonStyle} onClick={(e) => { e.stopPropagation(); handleCancel(travel); }}>Cancelar</Button>
-                      )}
-                    </Box>
-                    <Tooltip title="Excluir">
-                      <IconButton
-                        size="small"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(travel); }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </CardActions>
+
+                  {!hideActions && (
+                    <CardActions sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        {travel.status !== 'Cancelada' && (
+                          <Button size="small" variant="outlined" color="primary" startIcon={<EditIcon />} sx={buttonStyle} onClick={(e) => { e.stopPropagation(); startEditing(travel); }}>Editar</Button>
+                        )}
+                        <Button size="small" variant="outlined" color="primary" startIcon={<ListIcon />} sx={buttonStyle} onClick={(e) => handleViewReservations(travel.id, e)}>Reservas</Button>
+                        {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
+                          <Button size="small" variant="outlined" color="error" startIcon={<CancelIcon />} sx={buttonStyle} onClick={(e) => { e.stopPropagation(); handleCancel(travel); }}>Cancelar</Button>
+                        )}
+                      </Box>
+                      <Tooltip title="Excluir">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(travel); }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </CardActions>
+                  )}
                 </Card>
               </Grid>
             );

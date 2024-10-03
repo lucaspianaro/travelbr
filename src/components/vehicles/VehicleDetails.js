@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, Avatar, List, ListItem, ListItemText, CircularProgress, Pagination, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Button, Divider, CircularProgress, Pagination, Tabs, Tab, Avatar } from '@mui/material';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { formatDate } from '../../utils/utils';
+import BusinessIcon from '@mui/icons-material/Business';
 import { getVehicleTravels } from '../../services/VehicleService';
-import VehicleLayoutView from './VehicleLayoutView';  // Importando o novo componente
+import TravelCard from '../travels/TravelCard'; // Importando o TravelCard
+import VehicleLayoutView from './VehicleLayoutView'; // Importando o VehicleLayoutView
 
 const VehicleDetails = ({ vehicle, layout, open, onClose }) => {
   const [travels, setTravels] = useState([]);
@@ -45,33 +44,11 @@ const VehicleDetails = ({ vehicle, layout, open, onClose }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = travels.slice(indexOfFirstItem, indexOfLastItem);
 
-  const getStatusDetails = (status) => {
-    switch (status) {
-      case 'Cancelada':
-        return { color: '#ffebee', iconColor: '#f44336', text: 'Cancelada' };
-      case 'Em andamento':
-        return { color: '#e8f5e9', iconColor: '#4caf50', text: 'Em andamento' };
-      case 'Próxima':
-        return { color: '#e3f2fd', iconColor: '#2196f3', text: 'Próxima' };
-      case 'Encerrada':
-        return { color: '#f5f5f5', iconColor: '#9e9e9e', text: 'Encerrada' };
-      case 'Criada':
-        return { color: '#e0f7fa', iconColor: '#00acc1', text: 'Criada' };
-      default:
-        return { color: '#f5f5f5', iconColor: '#9e9e9e', text: 'Status indefinido' };
-    }
-  };
-
-  const sortedTravels = travels.sort((a, b) => {
-    const statusOrder = ['Em andamento', 'Próxima', 'Criada', 'Encerrada', 'Cancelada'];
-    return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
-  });
-
   return (
     <Dialog open={open} onClose={onClose} aria-labelledby="vehicle-details-title" maxWidth="md" fullWidth>
       <DialogTitle id="vehicle-details-title">Detalhes do Veículo</DialogTitle>
       <DialogContent>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
           <Tabs value={currentTab} onChange={handleTabChange} aria-label="vehicle details tabs">
             <Tab label="Detalhes" />
             <Tab label="Layout" />
@@ -81,88 +58,52 @@ const VehicleDetails = ({ vehicle, layout, open, onClose }) => {
         {currentTab === 0 && (
           <>
             {vehicle && (
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: '#1976d2', mr: 2 }}>
+                  <DirectionsBusIcon />
+                </Avatar>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', ml: 2 }}>
+                  {vehicle.identificadorVeiculo}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Informações sobre a empresa e placa */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Avatar sx={{ bgcolor: '#1976d2', mr: 1 }}>
+                <BusinessIcon />
+              </Avatar>
+              <Typography variant="body2" sx={{ mb: 1 }}><strong>Empresa:</strong> {vehicle.empresa}</Typography>
+              <Typography variant="body2" sx={{ mb: 1, ml: 2 }}><strong>Placa:</strong> {vehicle.placa}</Typography>
+            </Box>
+
+            {/* Informações sobre o layout associado */}
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}><strong>Layout Associado:</strong> {layout ? (layout.name ? layout.name : 'Sem nome') : 'Nenhum layout associado'}</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}><strong>Assentos 1° Andar:</strong> {layout?.assentosAndar1 || 'N/A'}</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}><strong>Assentos 2° Andar:</strong> {layout?.assentosAndar2 || 'N/A'}</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}><strong>Dois Andares:</strong> {layout?.doisAndares ? 'Sim' : 'Não'}</Typography>
+            </Box>
+
+            {/* Viagens associadas */}
+            {loading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <CircularProgress size={24} sx={{ mr: 2 }} />
+                <Typography variant="body2">Buscando viagens...</Typography>
+              </Box>
+            ) : (
               <>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, paddingTop: '8px' }}>
-                  <Avatar sx={{ bgcolor: '#1976d2', mr: 2 }}>
-                    <DirectionsBusIcon />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      {vehicle.identificadorVeiculo}
-                    </Typography>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                      <strong>Placa:</strong> {vehicle.placa}
-                    </Typography>
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word', mb: 1 }}>
-                      <strong>Empresa:</strong> {vehicle.empresa}
-                    </Typography>
-                  </Box>
+                <Divider sx={{ mb: 2 }} />
+                <TravelCard travels={currentItems} hideActions stacked /> {/* Passando hideActions */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                  <Pagination
+                    count={Math.ceil(travels.length / itemsPerPage)}
+                    page={currentPage}
+                    onChange={handlePageChange}
+                    color="primary"
+                  />
                 </Box>
-
-                {/* Informações sobre o layout associado */}
-                {layout ? (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Layout Associado:</strong> {layout.name ? layout.name : 'Sem nome'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Assentos 1° Andar:</strong> {layout.assentosAndar1 || 'N/A'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Assentos 2° Andar:</strong> {layout.assentosAndar2 || 'N/A'}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Dois Andares:</strong> {layout.doisAndares ? 'Sim' : 'Não'}
-                    </Typography>
-                  </Box>
-                ) : (
-                  <Typography variant="body2" sx={{ mb: 2 }}>
-                    <strong>Layout Associado:</strong> Nenhum layout associado
-                  </Typography>
-                )}
-
-                {/* Viagens associadas */}
-                {loading ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <CircularProgress size={24} sx={{ mr: 2 }} />
-                    <Typography variant="body2">Buscando viagens...</Typography>
-                  </Box>
-                ) : sortedTravels.length > 0 ? (
-                  <>
-                    <Divider sx={{ mb: 2 }} />
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Viagens Alocadas:</strong> {sortedTravels.length}
-                    </Typography>
-                    <List>
-                      {currentItems.map((travel, index) => {
-                        const statusDetails = getStatusDetails(travel.status);
-                        return (
-                          <ListItem key={index} sx={{ backgroundColor: statusDetails.color, borderRadius: 1, mb: 1 }}>
-                            <Avatar sx={{ bgcolor: statusDetails.iconColor, mr: 2 }}>
-                              {travel.status === 'Cancelada' ? <CancelIcon /> : <CheckCircleIcon />}
-                            </Avatar>
-                            <ListItemText
-                              primary={`${travel.identificador} - ${travel.origem} -> ${travel.destino}`}
-                              secondary={`Data: ${formatDate(travel.dataIda)} - Status: ${statusDetails.text}`}
-                            />
-                          </ListItem>
-                        );
-                      })}
-                    </List>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                      <Pagination
-                        count={Math.ceil(travels.length / itemsPerPage)}
-                        page={currentPage}
-                        onChange={handlePageChange}
-                        color="primary"
-                      />
-                    </Box>
-                  </>
-                ) : (
-                  <Typography variant="body2" sx={{ wordBreak: 'break-word', mt: 2 }}>
-                    Nenhuma viagem encontrada.
-                  </Typography>
-                )}
               </>
             )}
           </>
