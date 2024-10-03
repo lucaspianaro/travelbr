@@ -10,6 +10,7 @@ import VehicleForm from '../vehicles/VehicleForm';
 import { checkTravelIdentifierUnique, getMaxTravelIdentifier } from '../../services/TravelService';
 import { getReservationsByTravelId } from '../../services/OrderService';
 import { getAllVehicles, checkVehicleTravelConflict, addVehicle } from '../../services/VehicleService';
+import { getAllLayouts } from '../../services/LayoutService';
 
 const generateNextIdentifier = async () => {
   const maxIdentifier = await getMaxTravelIdentifier();
@@ -49,9 +50,10 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [vehicles, setVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
+  const [layouts, setLayouts] = useState([]);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [seatValidationLoading, setSeatValidationLoading] = useState(false); 
+  const [seatValidationLoading, setSeatValidationLoading] = useState(false);
 
   useEffect(() => {
     const initializeForm = async () => {
@@ -83,16 +85,24 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
         setErrors(validateDatesAndTimes(initialTravel));
       }
 
-      const fetchVehicles = async () => {
-        const vehicles = await getAllVehicles();
-        vehicles.sort(
-          (a, b) => new Date(b.dataAdicionado) - new Date(a.dataAdicionado)
-        );
-        setVehicles(vehicles);
-        setFilteredVehicles(vehicles);
+      // Buscar veículos e layouts
+      const fetchVehiclesAndLayouts = async () => {
+        try {
+          const fetchedVehicles = await getAllVehicles();
+          fetchedVehicles.sort(
+            (a, b) => new Date(b.dataAdicionado) - new Date(a.dataAdicionado)
+          );
+          setVehicles(fetchedVehicles);
+          setFilteredVehicles(fetchedVehicles);
+
+          const fetchedLayouts = await getAllLayouts(); // Buscar layouts
+          setLayouts(fetchedLayouts); // Armazenar os layouts no estado
+        } catch (err) {
+          console.error('Erro ao buscar veículos e layouts:', err);
+        }
       };
 
-      fetchVehicles();
+      fetchVehiclesAndLayouts();
     };
 
     initializeForm();
@@ -175,25 +185,30 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
 
   const handleVehicleChange = async (event, value) => {
     const selectedVehicle = vehicles.find((vehicle) => vehicle.id === value?.id);
+    let layout = null;
+
+    if (selectedVehicle?.layoutId) {
+      // Buscar o layout associado ao veículo
+      layout = layouts.find((layout) => layout.id === selectedVehicle.layoutId);
+    }
+
     setTravel((prevTravel) => ({
       ...prevTravel,
       veiculoId: value?.id || '',
-      assentosAndar1: selectedVehicle
-        ? selectedVehicle.assentosAndar1.toString()
-        : '',
-      assentosAndar2: selectedVehicle
-        ? selectedVehicle.assentosAndar2.toString()
-        : '',
+      assentosAndar1: layout ? layout.assentosAndar1.toString() : selectedVehicle?.assentosAndar1.toString(),
+      assentosAndar2: layout ? layout.assentosAndar2.toString() : selectedVehicle?.assentosAndar2.toString(),
     }));
+
     validateVehicleAvailability(value?.id, {
       ...travel,
       veiculoId: value?.id || '',
     });
+
     if (initialTravel) {
       validateSeatChange(selectedVehicle, initialTravel.id);
     }
   };
-
+  
   const handleLocationChange = (name, value) => {
     setTravel((prevTravel) => {
       const updatedTravel = { ...prevTravel, [name]: value };
@@ -227,7 +242,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
 
   const validateSeatChange = async (newVehicle, travelId) => {
     if (!newVehicle || !travelId) return;
-    setSeatValidationLoading(true); 
+    setSeatValidationLoading(true);
     try {
       const reservations = await getReservationsByTravelId(travelId);
 
@@ -258,7 +273,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
     } catch (error) {
       console.error('Erro ao validar alteração de veículo:', error);
     } finally {
-      setSeatValidationLoading(false); 
+      setSeatValidationLoading(false);
     }
   };
 
@@ -371,13 +386,13 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: 2,
-                flexDirection: { xs: 'column', md: 'row' }, 
-                textAlign: { xs: 'center', md: 'left' }, 
+                flexDirection: { xs: 'column', md: 'row' },
+                textAlign: { xs: 'center', md: 'left' },
               }}
             >
               <Typography
                 variant="h6"
-                sx={{ marginBottom: { xs: 1, md: 0 } }} 
+                sx={{ marginBottom: { xs: 1, md: 0 } }}
               >
                 {initialTravel ? 'Editar Viagem' : 'Nova Viagem'}
               </Typography>
@@ -531,11 +546,8 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                       }}
                     />
                   )}
-                  noOptionsText="Nenhuma opção encontrada, experimente adicionar um veículo."
-                  value={
-                    vehicles.find((vehicle) => vehicle.id === travel.veiculoId) ||
-                    null
-                  }
+                  noOptionsText="Nenhuma opção encontrada."
+                  value={vehicles.find((vehicle) => vehicle.id === travel.veiculoId) || null}
                   onChange={handleVehicleChange}
                   onInputChange={(event, newInputValue) =>
                     handleVehicleSearch({ target: { value: newInputValue } })

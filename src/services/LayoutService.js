@@ -39,7 +39,7 @@ const removeUndefinedFields = (obj) => {
 export const deleteLayout = async (layoutId) => {
   const userId = auth.currentUser.uid;
   const layoutDocRef = doc(db, 'usuarios', userId, 'layouts', layoutId);
-  const dataExclusao = Timestamp.now();
+  const dataExclusao = new Date().toISOString();
   return await updateDoc(layoutDocRef, { estaAtivo: false, dataExclusao });
 };
 

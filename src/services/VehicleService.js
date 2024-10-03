@@ -21,7 +21,7 @@ export const updateVehicle = async (vehicleId, vehicleData) => {
 export const deleteVehicle = async (vehicleId) => {
   const userId = auth.currentUser.uid;
   const vehicleDocRef = doc(db, 'usuarios', userId, 'veiculos', vehicleId);
-  const dataExclusao = Timestamp.now();
+  const dataExclusao = new Date().toISOString();
   return await updateDoc(vehicleDocRef, { estaAtivo: false, dataExclusao });
 };
 

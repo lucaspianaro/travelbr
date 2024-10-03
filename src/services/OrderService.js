@@ -17,7 +17,7 @@ const updateOrderAndReservationStatus = async (orderDocRef) => {
 
   reservationsSnapshot.forEach((reservationDoc) => {
     const reservation = reservationDoc.data();
-    
+
     if (reservation.status !== 'Cancelada') {
       allReservationsCancelled = false;
     }
@@ -54,8 +54,10 @@ export const addOrder = async (order) => {
   const travelDocRef = doc(db, 'usuarios', userId, 'viagens', order.travelId);
   const ordersCollectionRef = collection(travelDocRef, 'pedidos');
   const orderDoc = await addDoc(ordersCollectionRef, order);
+  const dataAdicionado = new Date().toISOString();
   return orderDoc.id;
 };
+
 
 // Função para atualizar um pedido
 export const updateOrder = async (orderId, orderData) => {
@@ -93,10 +95,15 @@ export const addReservation = async (orderId, reservation) => {
   const travelDocRef = doc(db, 'usuarios', userId, 'viagens', reservation.travelId);
   const ordersCollectionRef = doc(travelDocRef, 'pedidos', orderId);
   const reservationCollectionRef = collection(ordersCollectionRef, 'reservas');
-  const reservationDoc = await addDoc(reservationCollectionRef, reservation);
+
+  // Inclui a data de adição no objeto de reserva
+  const dataAdicionado = new Date().toISOString();
+  const reservationDoc = await addDoc(reservationCollectionRef, { ...reservation, dataAdicionado }); // Adiciona a data
+
   await updateOrderAndReservationStatus(ordersCollectionRef); // Atualizar status após adicionar a reserva
-  return reservationDoc.id;
+  return { reservationId: reservationDoc.id, dataAdicionado }; // Retorna o id da reserva e a data
 };
+
 
 // Função para atualizar uma reserva
 export const updateReservation = async (reservationId, reservation) => {
@@ -197,12 +204,12 @@ export const getReservedSeats = async (travelId) => {
   for (const orderDoc of ordersSnapshot.docs) {
     const reservationCollectionRef = collection(orderDoc.ref, 'reservas');
     const reservationSnapshot = await getDocs(reservationCollectionRef);
-    
+
     for (const doc of reservationSnapshot.docs) {
       const reservationData = doc.data();
       const passengerId = reservationData.passengerId;
       const passengerInfo = await getPassengerById(passengerId); // Obter dados completos do passageiro
-      
+
       reservedSeats.push({
         number: reservationData.numeroAssento,
         status: reservationData.status,
@@ -222,7 +229,7 @@ export const getOrderById = async (travelId, orderId) => {
 
   const userId = auth.currentUser.uid;
   const orderDocRef = doc(db, 'usuarios', userId, 'viagens', travelId, 'pedidos', orderId);
-  
+
   const orderSnapshot = await getDoc(orderDocRef);
   if (orderSnapshot.exists()) {
     const order = { id: orderSnapshot.id, ...orderSnapshot.data() };
@@ -265,34 +272,34 @@ export const getOrdersByTravelId = async (travelId) => {
 };
 
 
-  export const getReservationById = async (travelId, orderId, reservationId) => {
-    if (!travelId || !orderId || !reservationId) {
-      throw new Error('travelId, orderId, ou reservationId não fornecido');
+export const getReservationById = async (travelId, orderId, reservationId) => {
+  if (!travelId || !orderId || !reservationId) {
+    throw new Error('travelId, orderId, ou reservationId não fornecido');
+  }
+
+  const userId = auth.currentUser.uid;
+  const reservationDocRef = doc(db, 'usuarios', userId, 'viagens', travelId, 'pedidos', orderId, 'reservas', reservationId);
+
+  const reservationSnapshot = await getDoc(reservationDocRef);
+  if (reservationSnapshot.exists()) {
+    const reservation = { id: reservationSnapshot.id, ...reservationSnapshot.data() };
+
+    // Obter o pedido ao qual a reserva está associada
+    const orderDocRef = doc(db, 'usuarios', userId, 'viagens', travelId, 'pedidos', orderId);
+    const orderSnapshot = await getDoc(orderDocRef);
+
+    if (orderSnapshot.exists()) {
+      const orderData = { id: orderSnapshot.id, ...orderSnapshot.data() };
+      reservation.detalhesPagamento = orderData.detalhesPagamento;
+      reservation.orderStatus = orderData.status;
     }
-  
-    const userId = auth.currentUser.uid;
-    const reservationDocRef = doc(db, 'usuarios', userId, 'viagens', travelId, 'pedidos', orderId, 'reservas', reservationId);
-    
-    const reservationSnapshot = await getDoc(reservationDocRef);
-    if (reservationSnapshot.exists()) {
-      const reservation = { id: reservationSnapshot.id, ...reservationSnapshot.data() };
-      
-      // Obter o pedido ao qual a reserva está associada
-      const orderDocRef = doc(db, 'usuarios', userId, 'viagens', travelId, 'pedidos', orderId);
-      const orderSnapshot = await getDoc(orderDocRef);
-      
-      if (orderSnapshot.exists()) {
-        const orderData = { id: orderSnapshot.id, ...orderSnapshot.data() };
-        reservation.detalhesPagamento = orderData.detalhesPagamento;
-        reservation.orderStatus = orderData.status;
-      }
-  
-      // Obter informações do passageiro associado à reserva
-      const passengerInfo = await getPassengerById(reservation.passengerId);
-      reservation.passengerInfo = passengerInfo;
-  
-      return reservation;
-    } else {
-      throw new Error('Reserva não encontrada');
-    }
-  };
+
+    // Obter informações do passageiro associado à reserva
+    const passengerInfo = await getPassengerById(reservation.passengerId);
+    reservation.passengerInfo = passengerInfo;
+
+    return reservation;
+  } else {
+    throw new Error('Reserva não encontrada');
+  }
+};

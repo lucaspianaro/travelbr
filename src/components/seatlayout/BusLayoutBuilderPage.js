@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Grid, Typography, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, TextField, MenuItem, Select, InputLabel, FormControl, IconButton, Tabs, Tab, Tooltip } from '@mui/material';
-import { Add, Remove, AirlineSeatReclineNormal, Wc, Stairs, Block, Info } from '@mui/icons-material';
+import { Add, Remove, AirlineSeatReclineNormal, Wc, Stairs, Block, Info, Kitchen } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../common/Layout';
 import { addLayout, updateLayout, getLayoutById } from '../../services/LayoutService';
@@ -9,14 +9,15 @@ const BusLayoutBuilderPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [seatLayouts, setSeatLayouts] = useState([{ layout: initializeLayout(10, 4), floor: 1 }]); 
-  const [activeFloor, setActiveFloor] = useState(0); 
+  const [seatLayouts, setSeatLayouts] = useState([{ layout: initializeLayout(10, 4), floor: 1 }]);
+  const [activeFloor, setActiveFloor] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false); 
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [cellType, setCellType] = useState('');
   const [seatNumber, setSeatNumber] = useState('');
-  const [seatNumberError, setSeatNumberError] = useState(''); 
+  const [layoutName, setLayoutName] = useState('');
+  const [seatNumberError, setSeatNumberError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
@@ -42,8 +43,7 @@ const BusLayoutBuilderPage = () => {
   const fetchLayout = async (layoutId) => {
     try {
       const fetchedLayout = await getLayoutById(layoutId);
-
-      // Verificar o número de linhas e colunas baseado no layout existente
+      setLayoutName(fetchedLayout.name || '');  // Carregar o nome do layout
       const firstFloorDims = getDimensionsFromLayout(fetchedLayout.firstFloor);
       const secondFloorDims = fetchedLayout.secondFloor ? getDimensionsFromLayout(fetchedLayout.secondFloor) : null;
 
@@ -77,7 +77,7 @@ const BusLayoutBuilderPage = () => {
         flatLayout.push({
           row: rowIndex,
           col: colIndex,
-          type: cell.type || 'empty', 
+          type: cell.type || 'empty',
           number: cell.number ?? null,
         });
       });
@@ -125,11 +125,11 @@ const BusLayoutBuilderPage = () => {
       setSnackbarOpen(true);
       return false;
     }
-  
+
     const seatNumbers = flatLayout
       .filter((cell) => cell.type === 'seat' && cell.number !== null)
       .map((cell) => cell.number);
-  
+
     const uniqueNumbers = new Set(seatNumbers);
     if (seatNumbers.length !== uniqueNumbers.size) {
       setSnackbarMessage('Os números dos assentos devem ser únicos.');
@@ -137,7 +137,7 @@ const BusLayoutBuilderPage = () => {
       setSnackbarOpen(true);
       return false;
     }
-  
+
     return true;
   };
 
@@ -145,14 +145,33 @@ const BusLayoutBuilderPage = () => {
     try {
       const firstFloorFlat = flattenLayout(seatLayouts[0].layout);
       const secondFloorFlat = seatLayouts.length > 1 ? flattenLayout(seatLayouts[1].layout) : null;
-
+  
+      // Validação do layout antes de salvar
       if (!validateLayout(firstFloorFlat)) return;
-
+  
+      // Calcular a quantidade de assentos no primeiro e segundo andar
+      const assentosAndar1 = firstFloorFlat.filter(cell => cell.type === 'seat').length;
+      const assentosAndar2 = secondFloorFlat ? secondFloorFlat.filter(cell => cell.type === 'seat').length : 0;
+      const assentosTotais = assentosAndar1 + assentosAndar2;
+  
+      // Verificar se o layout tem dois andares
+      const doisAndares = seatLayouts.length > 1;
+  
+      const layoutData = {
+        name: layoutName,
+        firstFloor: firstFloorFlat,
+        secondFloor: secondFloorFlat,
+        assentosAndar1,   // Adiciona a quantidade de assentos do 1º andar
+        assentosAndar2,   // Adiciona a quantidade de assentos do 2º andar
+        assentosTotais,   // Adiciona a quantidade total de assentos
+        doisAndares,      // Adiciona se tem dois andares
+      };
+  
       if (id) {
-        await updateLayout(id, { firstFloor: firstFloorFlat, secondFloor: secondFloorFlat });
+        await updateLayout(id, layoutData);
         setSnackbarMessage('Layout atualizado com sucesso!');
       } else {
-        await addLayout({ firstFloor: firstFloorFlat, secondFloor: secondFloorFlat });
+        await addLayout(layoutData);
         setSnackbarMessage('Novo layout criado com sucesso!');
       }
       setSnackbarSeverity('success');
@@ -164,7 +183,7 @@ const BusLayoutBuilderPage = () => {
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
-  };
+  };  
 
   const handleTabChange = (event, newValue) => {
     setActiveFloor(newValue);
@@ -198,25 +217,25 @@ const BusLayoutBuilderPage = () => {
       setSnackbarOpen(true);
       return;
     }
-  
+
     if (cellType === 'seat' && !validateSeatNumber(seatNumber)) {
       setSnackbarMessage('Este número de assento já existe.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
       return;
     }
-  
+
     const updatedLayout = [...seatLayouts];
     const { rowIndex, colIndex } = selectedCell;
-  
+
     updatedLayout[activeFloor].layout[rowIndex][colIndex] = {
       type: cellType,
       number: cellType === 'seat' ? seatNumber : null, // Removido padStart aqui
     };
-  
+
     setSeatLayouts(updatedLayout);
     setDialogOpen(false);
-  };  
+  };
 
   const addRow = () => {
     const updatedLayouts = [...seatLayouts];
@@ -228,7 +247,7 @@ const BusLayoutBuilderPage = () => {
   const removeRow = () => {
     if (seatLayouts[activeFloor].layout.length > 1) {
       const updatedLayouts = [...seatLayouts];
-      updatedLayouts[activeFloor].layout.pop(); 
+      updatedLayouts[activeFloor].layout.pop();
       setSeatLayouts(updatedLayouts);
     } else {
       setSnackbarMessage('Não é possível remover todas as fileiras.');
@@ -271,6 +290,8 @@ const BusLayoutBuilderPage = () => {
         return <Wc />;
       case 'stair':
         return <Stairs />;
+      case 'fridge':
+        return <Kitchen />;
       case 'empty':
       default:
         return <Block />;
@@ -281,7 +302,7 @@ const BusLayoutBuilderPage = () => {
       <Box sx={{ padding: 2, position: 'relative' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
           <Typography variant="h6" gutterBottom sx={{ flexGrow: 1 }}>
-            {id ? 'Editar Layout de Ônibus' : 'Criar Novo Layout de Ônibus'}
+            {id ? `Editar Layout: ${layoutName}` : 'Criar Novo Layout de Ônibus'}
           </Typography>
           <Tooltip title="Legenda">
             <IconButton onClick={() => setInfoDialogOpen(true)} color="info">
@@ -289,8 +310,22 @@ const BusLayoutBuilderPage = () => {
             </IconButton>
           </Tooltip>
         </Box>
-
         {/* Abas para alternar entre os andares */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            fullWidth
+            label="Nome do Layout"
+            value={layoutName}
+            onChange={(e) => {
+              if (e.target.value.length <= 30) {
+                setLayoutName(e.target.value); // Limita a 30 caracteres
+              }
+            }}
+            helperText={`${layoutName.length}/30 caracteres`}
+            sx={{ marginBottom: 2 }}
+            inputProps={{ maxLength: 30 }} // Garante que não ultrapassa 30 caracteres
+          />
+        </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
           <Tabs value={activeFloor} onChange={handleTabChange} aria-label="abas de layout">
             <Tab label="1º Andar" />
@@ -374,30 +409,35 @@ const BusLayoutBuilderPage = () => {
               <MenuItem value="seat">Assento</MenuItem>
               <MenuItem value="bathroom">Banheiro</MenuItem>
               <MenuItem value="stair">Escada</MenuItem>
+              <MenuItem value="fridge">Frigobar</MenuItem>
               <MenuItem value="empty">Vazio</MenuItem>
             </Select>
           </FormControl>
 
           {cellType === 'seat' && (
-           <TextField
-           fullWidth
-           label="Número do Assento"
-           value={seatNumber}
-           onChange={(e) => {
-             // Filtra a entrada para permitir apenas números
-             const value = e.target.value.replace(/[^0-9]/g, '');
-             setSeatNumber(value);
-           }}
-           onKeyPress={(e) => {
-             // Permite apenas a entrada de números
-             if (!/[0-9]/.test(e.key)) {
-               e.preventDefault();
-             }
-           }}
-           sx={{ marginBottom: 3 }}
-           inputProps={{ maxLength: 3 }} // Limita a entrada para até 3 caracteres
-         />
-         
+            <TextField
+              fullWidth
+              label="Número do Assento"
+              value={seatNumber}
+              onChange={(e) => {
+                // Filtra a entrada para permitir apenas números
+                const value = e.target.value.replace(/[^0-9]/g, '');
+
+                // Remove o zero à esquerda, se houver
+                const formattedValue = value.replace(/^0+/, '');
+
+                setSeatNumber(formattedValue);
+              }}
+              onKeyPress={(e) => {
+                // Permite apenas a entrada de números
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              sx={{ marginBottom: 3 }}
+              inputProps={{ maxLength: 3 }} // Limita a entrada para até 3 caracteres
+            />
+
           )}
         </DialogContent>
         <DialogActions>
@@ -416,7 +456,7 @@ const BusLayoutBuilderPage = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-      
+
       {/* Diálogo para exibir a legenda */}
       <Dialog open={infoDialogOpen} onClose={() => setInfoDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Legenda</DialogTitle>
@@ -433,6 +473,10 @@ const BusLayoutBuilderPage = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Stairs sx={{ width: 24, height: 24 }} />
               <Typography>Escada</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Kitchen sx={{ width: 24, height: 24 }} />
+              <Typography>Frigobar</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Block sx={{ width: 24, height: 24 }} />

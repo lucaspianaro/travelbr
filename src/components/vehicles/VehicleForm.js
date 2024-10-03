@@ -1,42 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, Grid, FormControlLabel, Checkbox, Snackbar, Alert } from '@mui/material';
+import { Box, Button, TextField, Typography, Grid, Snackbar, Alert, IconButton, InputAdornment, Tooltip } from '@mui/material';
+import debounce from 'lodash.debounce';
+import Autocomplete from '@mui/material/Autocomplete';
+import AddIcon from '@mui/icons-material/Add';
 import { checkVehiclePlateUnique } from '../../services/VehicleService';
+import { getAllLayouts } from '../../services/LayoutService';
+import { useNavigate } from 'react-router-dom';
 
 const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
   const [vehicle, setVehicle] = useState({
     identificadorVeiculo: '',
     placa: '',
     empresa: '',
-    assentosAndar1: 40,
-    assentosAndar2: 0,
-    doisAndares: false
+    layoutId: '',  // Campo layoutId para associar o layout
   });
 
+  const [layouts, setLayouts] = useState([]); // Estado para armazenar os layouts disponíveis
+  const [filteredLayouts, setFilteredLayouts] = useState([]); // Para layouts filtrados
   const [errors, setErrors] = useState({});
   const [isUnique, setIsUnique] = useState(true);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Usado para navegação entre telas
 
   useEffect(() => {
     if (initialVehicle) {
       setVehicle(initialVehicle);
     }
+    fetchLayouts();  // Buscar os layouts existentes ao carregar o formulário
   }, [initialVehicle]);
 
-  const handleInputChange = async (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
+  // Função para buscar os layouts existentes
+  const fetchLayouts = async () => {
+    try {
+      setLoading(true);
+      const fetchedLayouts = await getAllLayouts();
+      setLayouts(fetchedLayouts);
+      setFilteredLayouts(fetchedLayouts); // Inicialmente, os layouts exibidos são todos
+      setLoading(false);
+    } catch (err) {
+      console.error("Erro ao carregar layouts:", err);
+      setLoading(false);
+    }
+  };
 
+  const handleLayoutSearch = (event) => {
+    const searchTerm = event.target.value.toLowerCase();
+    const filtered = layouts.filter(
+      (layout) =>
+        layout.name.toLowerCase().includes(searchTerm) ||
+        layout.id.toLowerCase().includes(searchTerm) // Corrigido para converter ID em string
+    );
+    setFilteredLayouts(filtered);
+  };
+
+  const handleLayoutChange = (event, value) => {
     setVehicle((prevVehicle) => ({
       ...prevVehicle,
-      [name]: newValue
+      layoutId: value ? value.id : ''
+    }));
+  };
+
+  const handleInputChange = async (e) => {
+    const { name, value } = e.target;
+    setVehicle((prevVehicle) => ({
+      ...prevVehicle,
+      [name]: value
     }));
 
-    validateField(name, newValue);
+    validateField(name, value);
 
     if (name === 'placa') {
-      const unique = await checkVehiclePlateUnique(newValue, initialVehicle?.id);
+      const unique = await checkVehiclePlateUnique(value, initialVehicle?.id);
       setIsUnique(unique);
       if (!unique) {
         setErrors((prevErrors) => ({
@@ -71,19 +108,6 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
           error = 'Empresa é obrigatória e deve ter no máximo 255 caracteres.';
         }
         break;
-      case 'assentosAndar1':
-      case 'assentosAndar2':
-        if (value < 1 || value > 100) {
-          error = 'Número de assentos deve ser entre 1 e 100.';
-        } else {
-          const totalAssentos = name === 'assentosAndar1'
-            ? parseInt(value) + parseInt(vehicle.assentosAndar2)
-            : parseInt(vehicle.assentosAndar1) + parseInt(value);
-          if (totalAssentos > 100) {
-            error = 'A soma dos assentos dos dois andares não deve ultrapassar 100.';
-          }
-        }
-        break;
       default:
         break;
     }
@@ -100,12 +124,8 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
       vehicle.identificadorVeiculo.trim() &&
       vehicle.placa.trim() &&
       vehicle.empresa.trim() &&
-      vehicle.assentosAndar1 >= 1 &&
-      vehicle.assentosAndar1 <= 100 &&
-      (!vehicle.doisAndares || (vehicle.assentosAndar2 >= 1 && vehicle.assentosAndar2 <= 100)) &&
-      (parseInt(vehicle.assentosAndar1) + parseInt(vehicle.assentosAndar2)) <= 100 &&
       isUnique
-    );
+    ); // O layoutId não é obrigatório
   };
 
   const handleSubmit = async (e) => {
@@ -122,6 +142,10 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
     }
   };
 
+  const redirectToLayoutCreation = () => {
+    navigate('/veiculos/layout/novo'); // Redireciona para a página de criação de layout
+  };
+
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -130,7 +154,7 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
         </Typography>
         <Typography variant="caption" display="block" gutterBottom>
           * Campos Obrigatórios
-         </Typography>
+        </Typography>
       </Box>
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -169,59 +193,41 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
             required
           />
         </Grid>
+
+        {/* Campo para associar o layout */}
         <Grid item xs={12}>
-          <TextField
-            label="Assentos no 1º Andar"
-            name="assentosAndar1"
-            type="number"
-            value={vehicle.assentosAndar1}
-            onChange={handleInputChange}
-            error={!!errors.assentosAndar1}
-            helperText={errors.assentosAndar1}
-            fullWidth
-            required
-            InputProps={{
-              inputProps: {
-                min: 1,
-                max: 100
-              }
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={vehicle.doisAndares}
-                onChange={handleInputChange}
-                name="doisAndares"
-                color="primary"
+          <Autocomplete
+            id="layout-select"
+            options={filteredLayouts}
+            getOptionLabel={(option) => `${option.name} (ID: ${option.id}) - ${option.assentosTotais} assentos`}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Associar Layout (Opcional)"
+                placeholder="Busque por nome ou ID"
+                onChange={handleLayoutSearch} // Busca layouts por nome ou ID
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      {params.InputProps.endAdornment}
+                      <Tooltip title="Criar Novo Layout">
+                        <IconButton onClick={redirectToLayoutCreation}>
+                          <AddIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                }}
               />
-            }
-            label="Veículo com dois andares"
+            )}
+            value={layouts.find((layout) => layout.id === vehicle.layoutId) || null}
+            onChange={handleLayoutChange}
+            noOptionsText="Nenhuma opção encontrada."
           />
         </Grid>
-        {vehicle.doisAndares && (
-          <Grid item xs={12}>
-            <TextField
-              label="Assentos no 2º Andar"
-              name="assentosAndar2"
-              type="number"
-              value={vehicle.assentosAndar2}
-              onChange={handleInputChange}
-              error={!!errors.assentosAndar2}
-              helperText={errors.assentosAndar2}
-              fullWidth
-              required
-              InputProps={{
-                inputProps: {
-                  min: 1,
-                  max: 100
-                }
-              }}
-            />
-          </Grid>
-        )}
+
         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
           <Button onClick={onCancel} color="error">
             {initialVehicle ? 'Descartar Alterações' : 'Descartar'}

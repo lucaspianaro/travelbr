@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Card, CardContent, Collapse, Fade, Divider, Chip, Dialog, DialogContent, DialogContentText,  DialogActions, DialogTitle, Tooltip, TextField, InputAdornment } from '@mui/material';
+import { Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Card, CardContent, Collapse, Fade, Divider, Chip, Dialog, DialogContent, DialogContentText, DialogActions, DialogTitle, Tooltip, TextField, InputAdornment } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import ListIcon from '@mui/icons-material/List';
@@ -17,11 +17,12 @@ import Layout from '../common/Layout';
 import TravelForm from './TravelForm';
 import SeatSelection from './SeatSelection';
 import VehicleForm from '../vehicles/VehicleForm';
-import { getTravelById, updateTravel, cancelTravel, deleteTravel } from '../../services/TravelService';
+import { getTravelById, updateTravel, cancelTravel, deleteTravel, getVehicleById } from '../../services/TravelService';
 import { getAvailableSeats, getReservedSeats } from '../../services/OrderService';
 import { addVehicle } from '../../services/VehicleService';
+import { getLayoutById } from '../../services/LayoutService';
 import { validateMasterPassword, formatDate } from '../../utils/utils';
-import { getMasterPasswordStatus } from '../../services/AuthService';  
+import { getMasterPasswordStatus } from '../../services/AuthService';
 import { useDrawer } from '../../contexts/DrawerContext';
 
 const drawerWidth = 240;
@@ -29,10 +30,12 @@ const drawerWidth = 240;
 function TravelDetails() {
   const { travelId } = useParams();
   const [travel, setTravel] = useState(null);
-  const [availableSeatsAndar1, setAvailableSeatsAndar1] = useState([]);
+  const [layoutAndar1, setLayoutAndar1] = useState([]);  // Armazena o layout do 1º andar
+  const [layoutAndar2, setLayoutAndar2] = useState([]);  // Armazena o layout do 2º andar
+  const [reservedSeats, setReservedSeats] = useState([]);  // Assentos reservados
+  const [selectedSeats, setSelectedSeats] = useState([]);  // Assentos selecionados
+  const [availableSeatsAndar1, setAvailableSeatsAndar1] = useState([]); // Novo estado para assentos disponíveis no 1º andar
   const [availableSeatsAndar2, setAvailableSeatsAndar2] = useState([]);
-  const [reservedSeats, setReservedSeats] = useState([]);
-  const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
@@ -44,48 +47,89 @@ function TravelDetails() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
-  const [masterPasswordActive, setMasterPasswordActive] = useState(false);  // Estado para controlar a senha master
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false); // Estado para controlar a senha master
   const navigate = useNavigate();
   const allocationButtonRef = useRef(null);
   const { openDrawer } = useDrawer();
 
   useEffect(() => {
-    const fetchDetails = async () => {
-      setLoading(true);
-      try {
-        const travelData = await getTravelById(travelId);
-        setTravel(travelData);
-        if (travelData.veiculoId) {
-          const totalSeats = parseInt(travelData.assentosAndar1, 10) + parseInt(travelData.assentosAndar2, 10);
-          const seats = await getAvailableSeats(travelId, totalSeats);
-          const reserved = await getReservedSeats(travelId);
-
-          const activeReservedSeats = reserved.filter(reservation => reservation.status !== 'Cancelada');
-
-          const seatsAndar1 = seats.slice(0, travelData.assentosAndar1);
-          const seatsAndar2 = seats.slice(travelData.assentosAndar1, travelData.assentosAndar1 + travelData.assentosAndar2);
-
-          setAvailableSeatsAndar1(seatsAndar1);
-          setAvailableSeatsAndar2(seatsAndar2);
-          setReservedSeats(activeReservedSeats);
-        }
-      } catch (err) {
-        setError('Falha ao carregar detalhes da viagem: ' + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    window.scrollTo(0, 0);
+    // Buscar diretamente da API os detalhes da viagem
     fetchDetails();
 
+    // Verificar o status da senha mestre
     const fetchMasterPasswordStatus = async () => {
-      const isActive = await getMasterPasswordStatus();  // Verifique o estado da senha master
+      const isActive = await getMasterPasswordStatus();
       setMasterPasswordActive(isActive);
     };
 
     fetchMasterPasswordStatus();
-
   }, [travelId]);
+
+  // Função para buscar detalhes da viagem
+  const fetchDetails = async () => {
+    setLoading(true);
+    try {
+      const travelData = await getTravelById(travelId);
+      setTravel(travelData);
+      console.log('Dados da viagem:', travelData);
+
+      if (travelData.veiculoId) {
+        console.log('Veículo associado (ID):', travelData.veiculoId);
+
+        const layoutData = await fetchLayoutByVehicle(travelData.veiculoId);
+        console.log('Dados do layout (raw):', layoutData);
+
+        // Verificação para lidar com um andar ou dois andares
+        if (Array.isArray(layoutData.firstFloor)) {
+          console.log('Layout Andar 1:', layoutData.firstFloor);
+          setLayoutAndar1(layoutData.firstFloor || []);
+        } else {
+          console.error('Erro: O layout do primeiro andar não está no formato esperado.');
+        }
+
+        // O segundo andar pode ser opcional
+        if (Array.isArray(layoutData.secondFloor)) {
+          console.log('Layout Andar 2:', layoutData.secondFloor);
+          setLayoutAndar2(layoutData.secondFloor || []);
+        } else {
+          console.log('Sem layout para o segundo andar.');
+          setLayoutAndar2([]);  // Garante que seja um array vazio se não houver segundo andar
+        }
+      } else {
+        console.error('Erro: Nenhum veículo associado a esta viagem.');
+      }
+
+      const reserved = await getReservedSeats(travelId);
+      setReservedSeats(reserved.filter(reservation => reservation.status !== 'Cancelada'));
+    } catch (err) {
+      setError('Falha ao carregar detalhes da viagem: ' + err.message);
+      console.error('Erro ao buscar os detalhes da viagem:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLayoutByVehicle = async (vehicleId) => {
+    try {
+      console.log('Buscando layout para o veículo com ID:', vehicleId);
+
+      // Busque o veículo pelo ID
+      const vehicleData = await getVehicleById(vehicleId);
+
+      if (vehicleData && vehicleData.layoutId) {
+        // Obtenha o layout associado ao veículo usando o layoutId
+        const layoutData = await getLayoutById(vehicleData.layoutId);
+        console.log('Layout obtido para o veículo:', layoutData);
+        return layoutData; // Retorne o layout completo
+      } else {
+        throw new Error('Nenhum layoutId associado a este veículo.');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar layout do veículo:', err);
+      return { firstFloor: [], secondFloor: [] }; // Retorno padrão se houver erro
+    }
+  };
 
   const handleEditToggle = () => setEditing(!editing);
 
@@ -94,23 +138,35 @@ function TravelDetails() {
   const saveTravel = useCallback(async (updatedTravel) => {
     setLoading(true);
     try {
+      // Salva a viagem atualizada
       await updateTravel(travelId, updatedTravel);
       const travelData = await getTravelById(travelId);
       setTravel(travelData);
+
+      // Atualiza os dados no localStorage
+      localStorage.setItem(`travelDetails_${travelId}`, JSON.stringify(travelData));
+
+      // Verifica se o veículo foi alterado e atualiza o layout correspondente
       if (updatedTravel.veiculoId) {
+        const layoutData = await fetchLayoutByVehicle(updatedTravel.veiculoId); // Busca o layout do novo veículo
+
+        // Atualiza os estados do layout de ambos os andares
+        setLayoutAndar1(layoutData.firstFloor || []);
+        setLayoutAndar2(layoutData.secondFloor || []);
+
         const totalSeats = parseInt(updatedTravel.assentosAndar1, 10) + parseInt(updatedTravel.assentosAndar2, 10);
         const seats = await getAvailableSeats(travelId, totalSeats);
         const reserved = await getReservedSeats(travelId);
 
         const activeReservedSeats = reserved.filter(reservation => reservation.status !== 'Cancelada');
-
         const seatsAndar1 = seats.slice(0, updatedTravel.assentosAndar1);
         const seatsAndar2 = seats.slice(updatedTravel.assentosAndar1, updatedTravel.assentosAndar1 + updatedTravel.assentosAndar2);
 
-        setAvailableSeatsAndar1(seatsAndar1);
-        setAvailableSeatsAndar2(seatsAndar2);
-        setReservedSeats(activeReservedSeats);
+        setAvailableSeatsAndar1(seatsAndar1); // Atualiza assentos disponíveis para o 1º andar
+        setAvailableSeatsAndar2(seatsAndar2); // Atualiza assentos disponíveis para o 2º andar
+        setReservedSeats(activeReservedSeats); // Atualiza assentos reservados
       }
+
       setEditing(false);
       setError('');
     } catch (err) {
@@ -175,11 +231,9 @@ function TravelDetails() {
   };
 
   const handleSelectSeats = (seats) => {
+    // Atualiza corretamente o estado de selectedSeats com os assentos selecionados
     setSelectedSeats(seats);
-    if (seats.length > 0) {
-      allocationButtonRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  };  
 
   const handleProceedToAllocation = () => {
     navigate(`/viagens/${travelId}/alocar-passageiros`, { state: { selectedSeats } });
@@ -270,17 +324,17 @@ function TravelDetails() {
                 <>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Chip label={travel.status} sx={{ backgroundColor: getStatusColor(travel.status), color: 'white' }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      onClick={handleOpenGoogleMaps}
-                      startIcon={<LocationOnIcon />}
-                      sx={{ borderRadius: '50px' }}
-                    >
-                      Ver Rota no Google Maps
-                    </Button>
-                  </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={handleOpenGoogleMaps}
+                        startIcon={<LocationOnIcon />}
+                        sx={{ borderRadius: '50px' }}
+                      >
+                        Ver Rota no Google Maps
+                      </Button>
+                    </Box>
                     {travel.identificador && (
                       <Chip label={`Identificador: ${travel.identificador}`} color="primary" />
                     )}
@@ -412,12 +466,12 @@ function TravelDetails() {
             </Collapse>
           </CardContent>
         </Card>
-        {travel?.veiculo && (
+        {travel?.veiculoId && (
           <Card raised sx={{ mb: 2 }}>
             <CardContent>
               <SeatSelection
-                seatsAndar1={availableSeatsAndar1}
-                seatsAndar2={availableSeatsAndar2}
+                layoutAndar1={layoutAndar1}
+                layoutAndar2={layoutAndar2}
                 reservedSeats={reservedSeats}
                 onSelectSeat={handleSelectSeats}
               />
@@ -463,113 +517,113 @@ function TravelDetails() {
         )}
       </Box>
       <Dialog open={confirmCancelDialogOpen} onClose={handleCloseConfirmCancelDialog}>
-  <DialogTitle>Confirmar Cancelamento</DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      Tem certeza que deseja cancelar a viagem para <strong>{travel?.destino}</strong>?
-      <br />
-      Data de Ida: <strong>{formatDate(travel?.dataIda)}</strong>
-      <br />
-      {!travel?.somenteIda && (
-        <>
-          Data de Retorno: <strong>{formatDate(travel?.dataRetorno)}</strong>
-          <br />
-        </>
-      )}
-      {reservedSeats.length > 0 && (
-        <strong>Essa viagem tem {reservedSeats.length} reserva(s) associada(s).</strong>
-      )}
-      <br />
-      Cancelar essa viagem também cancelará todas as reservas e pedidos associados. Essa ação não pode ser desfeita.
-    </DialogContentText>
-    {masterPasswordActive && (
-      <TextField
-        margin="normal"
-        fullWidth
-        label="Senha Master"
-        type={showMasterPassword ? 'text' : 'password'}
-        value={masterPassword}
-        onChange={(e) => setMasterPassword(e.target.value)}
-        InputProps={{
-          autoComplete: 'new-password',
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle master password visibility"
-                onClick={handleClickShowMasterPassword}
-                edge="end"
-              >
-                {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        autoComplete="off"
-        disabled={loading}
-      />
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
-      Voltar
-    </Button>
-    <Button onClick={handleConfirmCancelTravel} variant="contained" color="error" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
-      {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
-    </Button>
-  </DialogActions>
-</Dialog>
-<Dialog open={confirmDeleteDialogOpen} onClose={handleCloseConfirmDeleteDialog}>
-  <DialogTitle>Confirmar Exclusão</DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      Tem certeza que deseja excluir a viagem para <strong>{travel?.destino}</strong>?
-      <br />
-      Data de Ida: <strong>{formatDate(travel?.dataIda)}</strong>
-      <br />
-      {!travel?.somenteIda && (
-        <>
-          Data de Retorno: <strong>{formatDate(travel?.dataRetorno)}</strong>
-          <br />
-        </>
-      )}
-      Essa ação excluirá todas as reservas e pedidos relacionados a essa viagem. Isso não pode ser desfeito.
-    </DialogContentText>
-    {masterPasswordActive && (
-      <TextField
-        margin="normal"
-        fullWidth
-        label="Senha Master"
-        type={showMasterPassword ? 'text' : 'password'}
-        value={masterPassword}
-        onChange={(e) => setMasterPassword(e.target.value)}
-        InputProps={{
-          autoComplete: 'new-password',
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle master password visibility"
-                onClick={handleClickShowMasterPassword}
-                edge="end"
-              >
-                {showMasterPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        autoComplete="off"
-        disabled={loading}
-      />
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
-      Voltar
-    </Button>
-    <Button onClick={handleConfirmDeleteTravel} variant="contained" color="error" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
-      {loading ? <CircularProgress size={24} /> : 'Excluir'}
-    </Button>
-  </DialogActions>
-</Dialog>
+        <DialogTitle>Confirmar Cancelamento</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja cancelar a viagem para <strong>{travel?.destino}</strong>?
+            <br />
+            Data de Ida: <strong>{formatDate(travel?.dataIda)}</strong>
+            <br />
+            {!travel?.somenteIda && (
+              <>
+                Data de Retorno: <strong>{formatDate(travel?.dataRetorno)}</strong>
+                <br />
+              </>
+            )}
+            {reservedSeats.length > 0 && (
+              <strong>Essa viagem tem {reservedSeats.length} reserva(s) associada(s).</strong>
+            )}
+            <br />
+            Cancelar essa viagem também cancelará todas as reservas e pedidos associados. Essa ação não pode ser desfeita.
+          </DialogContentText>
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmCancelDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
+            Voltar
+          </Button>
+          <Button onClick={handleConfirmCancelTravel} variant="contained" color="error" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
+            {loading ? <CircularProgress size={24} /> : 'Cancelar viagem'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={confirmDeleteDialogOpen} onClose={handleCloseConfirmDeleteDialog}>
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja excluir a viagem para <strong>{travel?.destino}</strong>?
+            <br />
+            Data de Ida: <strong>{formatDate(travel?.dataIda)}</strong>
+            <br />
+            {!travel?.somenteIda && (
+              <>
+                Data de Retorno: <strong>{formatDate(travel?.dataRetorno)}</strong>
+                <br />
+              </>
+            )}
+            Essa ação excluirá todas as reservas e pedidos relacionados a essa viagem. Isso não pode ser desfeito.
+          </DialogContentText>
+          {masterPasswordActive && (
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Senha Master"
+              type={showMasterPassword ? 'text' : 'password'}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              InputProps={{
+                autoComplete: 'new-password',
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle master password visibility"
+                      onClick={handleClickShowMasterPassword}
+                      edge="end"
+                    >
+                      {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }}>
+            Voltar
+          </Button>
+          <Button onClick={handleConfirmDeleteTravel} variant="contained" color="error" autoFocus disabled={masterPasswordActive && !masterPassword || loading} sx={{ color: 'white', borderRadius: '50px' }}>
+            {loading ? <CircularProgress size={24} /> : 'Excluir'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={vehicleModalOpen} onClose={() => setVehicleModalOpen(false)} fullWidth maxWidth="sm">
         <DialogContent>
           <VehicleForm onSave={handleAddVehicle} onCancel={() => setVehicleModalOpen(false)} />

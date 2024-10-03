@@ -33,8 +33,17 @@ export const addTravel = async (travel) => {
   const userId = auth.currentUser.uid;
   const userDocRef = doc(db, 'usuarios', userId);
   const travelCollectionRef = collection(userDocRef, 'viagens');
-  const travelWithStatus = { ...travel, status: getStatus(travel), estaAtivo: true };
-  return await addDoc(travelCollectionRef, travelWithStatus);
+  
+  const dataAdicionado = new Date().toISOString(); // Adiciona a data de criação
+  const travelWithStatus = { 
+    ...travel, 
+    status: getStatus(travel), 
+    estaAtivo: true, 
+    dataAdicionado // Inclui a data de adição no objeto de viagem
+  };
+  
+  const travelDoc = await addDoc(travelCollectionRef, travelWithStatus);
+  return { travelId: travelDoc.id, dataAdicionado }; // Retorna o ID da viagem e a data
 };
 
 // Função para atualizar uma viagem
@@ -52,9 +61,10 @@ export const updateTravel = async (travelId, travelData) => {
 export const deleteTravel = async (travelId) => {
   const userId = auth.currentUser.uid;
   const travelDocRef = doc(db, 'usuarios', userId, 'viagens', travelId);
+  const dataExclusao = new Date().toISOString(); // Captura a data de exclusão
   return await updateDoc(travelDocRef, {
     estaAtivo: false,
-    deletedAt: new Date()
+    deletedAt: dataExclusao // Usa dataExclusao ao invés de new Date()
   });
 };
 

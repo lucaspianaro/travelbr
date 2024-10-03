@@ -1,53 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Grid, Typography, Tooltip } from '@mui/material';
+import { AirlineSeatReclineNormal, Wc, Stairs, Kitchen, Block } from '@mui/icons-material';
 
-const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }) => {
+const SeatSelection = ({ layoutAndar1 = [], layoutAndar2 = [], reservedSeats = [], onSelectSeat }) => {
   const [selectedSeats, setSelectedSeats] = useState([]);
 
   useEffect(() => {
-    onSelectSeat(Array.isArray(selectedSeats) ? selectedSeats : []);
+    // Notificar o componente pai sobre a mudança nos assentos selecionados
+    onSelectSeat(selectedSeats);
   }, [selectedSeats, onSelectSeat]);
 
-  // Função para alternar a seleção de um assento
+  // Alternar a seleção de um assento com base no número do assento
   const toggleSeatSelection = (seat) => {
     setSelectedSeats((prevSelected) =>
-      prevSelected.includes(seat)
-        ? prevSelected.filter((s) => s !== seat)
-        : [...prevSelected, seat]
+      prevSelected.some((s) => s.number === seat.number)
+        ? prevSelected.filter((s) => s.number !== seat.number) // Desseleciona o assento pelo número
+        : [...prevSelected, seat] // Seleciona o assento
     );
   };
 
-  // Função para renderizar os assentos em uma grade
-  const renderSeats = (seats) => {
-    const rows = [];
-    // Divide os assentos em linhas de 4 com um corredor no meio
-    for (let i = 0; i < seats.length; i += 4) {
-      const row = [];
-      for (let j = i; j < i + 4; j += 2) {
-        if (j < seats.length) {
-          row.push(seats[j]);
-        } else {
-          row.push(null);
-        }
-        if (j + 1 < seats.length) {
-          row.push(seats[j + 1]);
-        } else {
-          row.push(null);
-        }
-      }
-      rows.push(row);
-    }
+  // Converter o layout para matriz 2D
+  const unflattenLayout = (flatLayout) => {
+    const rows = Math.max(...flatLayout.map((cell) => cell.row)) + 1;
+    const cols = Math.max(...flatLayout.map((cell) => cell.col)) + 1;
 
-    // Renderiza cada linha de assentos
-    return rows.map((row, rowIndex) => (
-      <Grid container justifyContent="center" key={rowIndex} sx={{ marginBottom: '8px' }}>
-        {row.map((seat, colIndex) => {
-          const reservedSeat = reservedSeats.find(reserved => reserved.number === seat?.number);
+    const layout = Array.from({ length: rows }, () => Array(cols).fill({ type: 'empty', number: null }));
+
+    flatLayout.forEach((cell) => {
+      layout[cell.row][cell.col] = {
+        type: cell.type || 'empty',
+        number: cell.number ?? null,
+      };
+    });
+
+    return layout;
+  };
+
+  // Renderizar o layout do andar
+  const renderLayout = (layout) => {
+    if (!Array.isArray(layout) || layout.length === 0) return null;
+
+    return layout.map((row, rowIndex) => (
+      <Grid container key={rowIndex} justifyContent="center" sx={{ marginBottom: '8px' }}>
+        {row.map((cell, colIndex) => {
+          const reservedSeat = reservedSeats.find((reserved) => reserved.number === cell.number);
           const isReserved = reservedSeat && reservedSeat.status !== 'Cancelada';
 
           const passengerInfo = reservedSeat?.passenger 
-            ? `${reservedSeat.passenger.nome} (${reservedSeat.passenger.cpf || reservedSeat.passenger.passaporte || reservedSeat.passenger.rg})`
+            ? `${reservedSeat.passenger.nome} (${reservedSeat.passenger.cpf || reservedSeat.passaporte || reservedSeat.passenger.rg})`
             : '';
+
+          let tooltipText = '';
+          if (cell.type === 'seat' && cell.number) {
+            tooltipText = isReserved ? passengerInfo : `Assento ${cell.number}`;
+          } else if (cell.type === 'bathroom') {
+            tooltipText = 'Banheiro';
+          } else if (cell.type === 'stair') {
+            tooltipText = 'Escada';
+          } else if (cell.type === 'fridge') {
+            tooltipText = 'Frigobar';
+          }
 
           return (
             <React.Fragment key={colIndex}>
@@ -55,29 +67,37 @@ const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }
                 <Grid item key={`aisle-${rowIndex}`} sx={{ width: '20px' }} /> // Espaço do corredor
               )}
               <Grid item>
-                {seat ? (
-                  <Tooltip title={isReserved ? passengerInfo : ''} arrow>
-                    <span>
-                      <Button
-                        variant={selectedSeats.includes(seat) ? 'contained' : 'outlined'}
-                        onClick={() => toggleSeatSelection(seat)}
-                        disabled={isReserved}
-                        sx={{
-                          minWidth: '40px',
-                          minHeight: '40px',
-                          margin: '4px',
-                          backgroundColor: isReserved ? 'gray' : selectedSeats.includes(seat) ? 'primary.main' : 'initial',
-                          color: isReserved ? 'white' : selectedSeats.includes(seat) ? 'white' : 'initial',
-                          cursor: isReserved ? 'not-allowed' : 'pointer'
-                        }}
-                      >
-                        {seat.number}
-                      </Button>
-                    </span>
-                  </Tooltip>
-                ) : (
-                  <Box sx={{ minWidth: '40px', minHeight: '40px', margin: '4px' }} />
-                )}
+                <Tooltip title={tooltipText} arrow>
+                  <span>
+                    <Button
+                      variant={selectedSeats.some((selected) => selected.number === cell.number) ? 'contained' : 'outlined'}
+                      onClick={() => toggleSeatSelection(cell)}
+                      disabled={isReserved || cell.type !== 'seat'}
+                      sx={{
+                        width: '48px',   // Largura consistente para todas as células
+                        height: '48px',  // Altura consistente para todas as células
+                        margin: '4px',
+                        display: 'flex',  // Garantir que o conteúdo esteja centralizado
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: isReserved
+                          ? 'gray'
+                          : selectedSeats.some((selected) => selected.number === cell.number)
+                          ? 'primary.main'  // Fundo azul quando selecionado
+                          : 'initial',       // Padrão quando não selecionado
+                        color: isReserved
+                          ? 'white'
+                          : selectedSeats.some((selected) => selected.number === cell.number)
+                          ? 'white'          // Texto branco quando selecionado
+                          : 'initial',
+                        cursor: isReserved || cell.type !== 'seat' ? 'not-allowed' : 'pointer',
+                        visibility: cell.type === 'empty' ? 'hidden' : 'visible',
+                      }}
+                    >
+                      {renderCellContent(cell)}
+                    </Button>
+                  </span>
+                </Tooltip>
               </Grid>
             </React.Fragment>
           );
@@ -86,17 +106,33 @@ const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }
     ));
   };
 
+  // Renderizar o conteúdo de cada célula
+  const renderCellContent = (cell) => {
+    switch (cell.type) {
+      case 'seat':
+        return cell.number ? `${cell.number}` : <AirlineSeatReclineNormal />;
+      case 'bathroom':
+        return <Wc />;
+      case 'stair':
+        return <Stairs />;
+      case 'fridge':
+        return <Kitchen />;
+      case 'empty':
+      default:
+        return <Block />;
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h6" sx={{ marginBottom: '16px' }}>Selecione os Assentos</Typography>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-        {/* Legenda dos assentos */}
         <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
           <Button
             variant="outlined"
             sx={{
-              minWidth: '40px',
-              minHeight: '40px',
+              width: '48px',
+              height: '48px',
               margin: '4px',
               backgroundColor: 'gray',
               color: 'white'
@@ -110,8 +146,8 @@ const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }
           <Button
             variant="outlined"
             sx={{
-              minWidth: '40px',
-              minHeight: '40px',
+              width: '48px',
+              height: '48px',
               margin: '4px',
               backgroundColor: 'white',
               borderColor: 'primary.main'
@@ -124,8 +160,8 @@ const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }
           <Button
             variant="outlined"
             sx={{
-              minWidth: '40px',
-              minHeight: '40px',
+              width: '48px',
+              height: '48px',
               margin: '4px',
               backgroundColor: 'primary.main',
               color: 'white'
@@ -136,19 +172,19 @@ const SeatSelection = ({ seatsAndar1, seatsAndar2, reservedSeats, onSelectSeat }
           <Typography variant="body2" sx={{ marginLeft: '8px' }}>Selecionado</Typography>
         </Box>
       </Box>
-      {/* Renderização dos assentos do 1° Andar */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="subtitle1" sx={{ marginBottom: '8px' }}>1° Andar</Typography>
-        <Box sx={{ border: '1px solid #ccc', padding: '16px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-          {renderSeats(seatsAndar1)}
-        </Box>
-      </Box>
-      {/* Renderização dos assentos do 2° Andar, se houver */}
-      {seatsAndar2.length > 0 && (
-        <Box>
-          <Typography variant="subtitle1" sx={{ marginBottom: '8px' }}>2° Andar</Typography>
+      {layoutAndar1.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="subtitle1" sx={{ marginBottom: '8px' }}>1º Andar</Typography>
           <Box sx={{ border: '1px solid #ccc', padding: '16px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-            {renderSeats(seatsAndar2)}
+            {renderLayout(unflattenLayout(layoutAndar1))}
+          </Box>
+        </Box>
+      )}
+      {layoutAndar2.length > 0 && (
+        <Box>
+          <Typography variant="subtitle1" sx={{ marginBottom: '8px' }}>2º Andar</Typography>
+          <Box sx={{ border: '1px solid #ccc', padding: '16px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+            {renderLayout(unflattenLayout(layoutAndar2))}
           </Box>
         </Box>
       )}

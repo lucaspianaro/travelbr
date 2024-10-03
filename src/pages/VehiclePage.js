@@ -9,11 +9,13 @@ import VehicleDetails from '../components/vehicles/VehicleDetails';
 import VehicleCard from '../components/vehicles/VehicleCard';
 import VehicleForm from '../components/vehicles/VehicleForm';
 import { addVehicle, getAllVehicles, updateVehicle, deleteVehicle, getVehicleTravels } from '../services/VehicleService';
+import { getAllLayouts } from '../services/LayoutService'; // Importar a função para buscar layouts
 import { validateMasterPassword } from '../utils/utils';
 import { getMasterPasswordStatus } from '../services/AuthService';
 
 const VehiclePage = () => {
   const [vehicles, setVehicles] = useState([]);
+  const [layouts, setLayouts] = useState([]); // Estado para armazenar layouts
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -34,7 +36,7 @@ const VehiclePage = () => {
   const [masterPasswordActive, setMasterPasswordActive] = useState(false);
 
   useEffect(() => {
-    fetchVehicles();
+    fetchVehiclesAndLayouts(); // Chama a função que busca veículos e layouts
     checkMasterPasswordStatus();
   }, []);
 
@@ -43,9 +45,10 @@ const VehiclePage = () => {
     setMasterPasswordActive(isActive);
   };
 
-  const fetchVehicles = useCallback(async () => {
+  const fetchVehiclesAndLayouts = useCallback(async () => {
     setLoading(true);
     try {
+      // Buscar veículos
       const fetchedVehicles = await getAllVehicles();
       const vehiclesWithTravels = await Promise.all(
         fetchedVehicles.map(async (vehicle) => {
@@ -55,11 +58,14 @@ const VehiclePage = () => {
         })
       );
 
+      // Buscar layouts
+      const fetchedLayouts = await getAllLayouts();
       setVehicles(vehiclesWithTravels);
+      setLayouts(fetchedLayouts); // Armazena os layouts no estado
       setLoading(false);
     } catch (err) {
-      setError('Erro ao buscar veículos');
-      setSnackbarMessage('Erro ao buscar veículos');
+      setError('Erro ao buscar veículos ou layouts');
+      setSnackbarMessage('Erro ao buscar veículos ou layouts');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
       setLoading(false);
@@ -69,7 +75,7 @@ const VehiclePage = () => {
   const handleAddVehicle = async (vehicle) => {
     try {
       await addVehicle(vehicle);
-      fetchVehicles();
+      fetchVehiclesAndLayouts();
       setSnackbarMessage('Veículo adicionado com sucesso!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
@@ -85,7 +91,7 @@ const VehiclePage = () => {
   const handleEditVehicle = async (vehicle) => {
     try {
       await updateVehicle(vehicle.id, vehicle);
-      fetchVehicles();
+      fetchVehiclesAndLayouts();
       setSnackbarMessage('Veículo atualizado com sucesso!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
@@ -106,7 +112,7 @@ const VehiclePage = () => {
         await validateMasterPassword(masterPassword);
       }
       await deleteVehicle(vehicleToDelete.id);
-      fetchVehicles();
+      fetchVehiclesAndLayouts();
       setSnackbarMessage('Veículo excluído com sucesso!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
@@ -158,18 +164,26 @@ const VehiclePage = () => {
   };
 
   const handleCardClick = (vehicle) => {
-    setSelectedVehicle(vehicle);
+    const layout = getVehicleLayout(vehicle.layoutId);
+    setSelectedVehicle({ ...vehicle, layout });
   };
 
   const handleClickShowMasterPassword = () => {
     setShowMasterPassword(!showMasterPassword);
   };
 
-  const sortedVehicles = vehicles.sort((a, b) => {
-    const totalAssentosA = a.assentosAndar1 + a.assentosAndar2;
-    const totalAssentosB = b.assentosAndar1 + b.assentosAndar2;
+  // Busca o layout associado ao veículo
+  const getVehicleLayout = (layoutId) => {
+    return layouts.find(layout => layout.id === layoutId);
+  };
 
-    return sortOrder === 'asc' ? totalAssentosA - totalAssentosB : totalAssentosB - totalAssentosA;
+  const sortedVehicles = vehicles.sort((a, b) => {
+    const layoutA = getVehicleLayout(a.layoutId);
+    const layoutB = getVehicleLayout(b.layoutId);
+    const totalSeatsA = layoutA?.totalSeats || 0;
+    const totalSeatsB = layoutB?.totalSeats || 0;
+
+    return sortOrder === 'asc' ? totalSeatsA - totalSeatsB : totalSeatsB - totalSeatsA;
   });
 
   const filteredVehicles = sortedVehicles.filter(vehicle => {
@@ -200,7 +214,7 @@ const VehiclePage = () => {
           {filtersVisible ? 'Ocultar Filtros' : 'Mostrar Filtros'}
         </Button>
       </Box>
-      
+
       <Collapse in={filtersVisible}>
         <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <FormControl variant="outlined" sx={{ minWidth: 200 }}>
@@ -225,7 +239,7 @@ const VehiclePage = () => {
           />
         </Box>
       </Collapse>
-      
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
@@ -234,16 +248,20 @@ const VehiclePage = () => {
         <>
           <Grid container spacing={2}>
             {filteredVehicles.length > 0 ? (
-              filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={vehicle.id}>
-                  <VehicleCard
-                    vehicle={vehicle}
-                    onEdit={startEditing}
-                    onDelete={openConfirmDeleteDialog}
-                    onCardClick={handleCardClick}
-                  />
-                </Grid>
-              ))
+              filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle) => {
+                const layout = getVehicleLayout(vehicle.layoutId); // Obtém o layout associado
+                return (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={vehicle.id}>
+                    <VehicleCard
+                      vehicle={vehicle}
+                      layout={layout} // Passa o layout associado para o cartão
+                      onEdit={startEditing}
+                      onDelete={openConfirmDeleteDialog}
+                      onCardClick={handleCardClick}
+                    />
+                  </Grid>
+                );
+              })
             ) : (
               <Grid item xs={12}>
                 <Typography variant="body1" align="left">Nenhum veículo encontrado.</Typography>
@@ -264,7 +282,7 @@ const VehiclePage = () => {
       )}
       <Modal open={openModal} onClose={handleCancel}>
         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
-          <VehicleForm onSave={editingVehicle ? handleEditVehicle : handleAddVehicle} initialVehicle={editingVehicle} onCancel={handleCancel} fetchVehicles={fetchVehicles} />
+          <VehicleForm onSave={editingVehicle ? handleEditVehicle : handleAddVehicle} initialVehicle={editingVehicle} onCancel={handleCancel} fetchVehicles={fetchVehiclesAndLayouts} />
         </Box>
       </Modal>
       <Dialog open={confirmDeleteOpen} onClose={closeConfirmDeleteDialog}>
@@ -302,7 +320,7 @@ const VehiclePage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px'}} >
+          <Button onClick={closeConfirmDeleteDialog} variant="contained" disabled={loading} color="cancelar" sx={{ borderRadius: '50px' }} >
             Voltar
           </Button>
           <Button
@@ -310,7 +328,7 @@ const VehiclePage = () => {
             variant="contained"
             color="error"
             disabled={masterPasswordActive && !masterPassword || loading}
-            sx={{ color: 'white', borderRadius: '50px' }} 
+            sx={{ color: 'white', borderRadius: '50px' }}
           >
             {loading ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>
@@ -319,6 +337,7 @@ const VehiclePage = () => {
       {selectedVehicle && (
         <VehicleDetails
           vehicle={selectedVehicle}
+          layout={selectedVehicle.layout} // Passa o layout associado
           open={Boolean(selectedVehicle)}
           onClose={() => setSelectedVehicle(null)}
         />

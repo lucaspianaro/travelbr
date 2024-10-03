@@ -8,10 +8,11 @@ import PaymentDetailsForm from './PaymentDetailsForm';
 import PaymentRecords from './PaymentRecords';
 import PassengerForm from '../passengers/PassengerForm';
 import SeatChangeDialog from './SeatChangeDialog';
-import { getTravelById } from '../../services/TravelService';
-import { addOrder, addReservation, getReservationsByTravelId, updateReservation, updateOrder, getOrderById, getAvailableSeats, getReservedSeats } from '../../services/OrderService';
+import { getTravelById, getVehicleById } from '../../services/TravelService';
 import { getAllPassengers } from '../../services/PassengerService';
-import { formatCPF, unformatCPF, validarCPF } from '../../utils/utils';
+import { addOrder, updateOrder, getOrderById, addReservation, updateReservation, getReservationsByTravelId, getAvailableSeats, getReservedSeats } from '../../services/OrderService';
+import { validarCPF, unformatCPF } from '../../utils/utils';
+import { getLayoutById } from '../../services/LayoutService';
 
 const PassengerAllocation = () => {
   const { travelId } = useParams();
@@ -48,9 +49,9 @@ const PassengerAllocation = () => {
   });
 
   const [detalhesPagamento, setPaymentDetails] = useState(
-    editingReservation && Array.isArray(editingReservation) && editingReservation[0].detalhesPagamento 
-    ? editingReservation[0].detalhesPagamento 
-    : initialReservation
+    editingReservation && Array.isArray(editingReservation) && editingReservation[0].detalhesPagamento
+      ? editingReservation[0].detalhesPagamento
+      : initialReservation
   );
   const [errors, setErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -62,6 +63,8 @@ const PassengerAllocation = () => {
   const [openFormDialog, setOpenFormDialog] = useState(false);
   const [openSeatSelectionDialog, setOpenSeatSelectionDialog] = useState(false);
   const [selectedReservationIndex, setSelectedReservationIndex] = useState(null);
+  const [layoutAndar1, setLayoutAndar1] = useState([]);
+  const [layoutAndar2, setLayoutAndar2] = useState([]);
   const [editedPassenger, setEditedPassenger] = useState({});
   const [editing, setEditing] = useState(false);
   const [duplicateWarnings, setDuplicateWarnings] = useState(
@@ -74,12 +77,12 @@ const PassengerAllocation = () => {
   const [availableSeatsAndar1, setAvailableSeatsAndar1] = useState([]);
   const [availableSeatsAndar2, setAvailableSeatsAndar2] = useState([]);
   const [reservedSeats, setReservedSeats] = useState([]);
-  const [loading, setLoading] = useState(false); 
-
+  const [loading, setLoading] = useState(false);
+  
   const fetchPassengers = useCallback(async () => {
     setLoadingPassengers(true);
     const fetchedPassengers = await getAllPassengers();
-    fetchedPassengers.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordenar passageiros por nome em ordem alfabética
+    fetchedPassengers.sort((a, b) => a.nome.localeCompare(b.nome));
     setPassengers(fetchedPassengers);
     setLoadingPassengers(false);
   }, []);
@@ -104,30 +107,52 @@ const PassengerAllocation = () => {
     }
   };
 
+  const fetchLayoutByVehicle = async (vehicleId) => {
+    try {
+      console.log('Buscando layout para o veículo com ID:', vehicleId);
+
+      const vehicleData = await getVehicleById(vehicleId);
+
+      if (vehicleData && vehicleData.layoutId) {
+        const layoutData = await getLayoutById(vehicleData.layoutId);
+        console.log('Layout obtido para o veículo:', layoutData);
+        return layoutData;
+      } else {
+        throw new Error('Nenhum layoutId associado a este veículo.');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar layout do veículo:', err);
+      return { firstFloor: [], secondFloor: [] };
+    }
+  };
+
+
   const fetchSeatData = async () => {
     try {
       const travelData = await getTravelById(travelId);
       const totalSeats = travelData.assentosAndar1 + travelData.assentosAndar2;
-      const allAvailableSeats = await getAvailableSeats(travelId, totalSeats);
-      const allReservedSeats = await getReservedSeats(travelId);
+      
+      if (travelData.veiculoId) {
+        // Chama a função fetchLayoutByVehicle para buscar o layout
+        const layoutData = await fetchLayoutByVehicle(travelData.veiculoId);
+        
+        setLayoutAndar1(layoutData.firstFloor || []);  // Certifique-se de estar usando a estrutura correta
+        setLayoutAndar2(layoutData.secondFloor || []); // Certifique-se de estar usando a estrutura correta
+      } else {
+        console.error('Nenhum veículo associado à viagem.');
+      }
 
-      const activeReservedSeats = allReservedSeats.filter(
-        (reservation) => reservation.status !== 'Cancelada'
-      );
+      const allReservedSeats = await getReservedSeats(travelId);
+      const activeReservedSeats = allReservedSeats.filter(reservation => reservation.status !== 'Cancelada');
 
       setReservedSeats(activeReservedSeats);
-
-      const seatsAndar1 = allAvailableSeats.slice(0, travelData.assentosAndar1);
-      const seatsAndar2 = allAvailableSeats.slice(travelData.assentosAndar1, totalSeats);
-
-      setAvailableSeatsAndar1(seatsAndar1);
-      setAvailableSeatsAndar2(seatsAndar2);
     } catch (error) {
       console.error('Erro ao buscar dados de assentos:', error);
     }
-  };
+};
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     fetchExistingReservations();
     fetchPassengers();
     fetchSeatData();
@@ -179,10 +204,10 @@ const PassengerAllocation = () => {
 
   const validatePaymentField = (name, value) => {
     let error = '';
-  
+
     if (name === 'nomePagador' && (!value.trim() || value.length > 255)) {
       error = 'Nome do pagador é obrigatório e deve ter no máximo 255 caracteres.';
-    } else if (name === 'cpfPagador' && (!value.trim() || !validarCPF(unformatCPF(value)))) { 
+    } else if (name === 'cpfPagador' && (!value.trim() || !validarCPF(unformatCPF(value)))) {
       error = 'CPF do pagador é obrigatório e deve ser válido.';
     } else if (name === 'metodoPagamento' && !value.trim()) {
       error = 'Método de pagamento é obrigatório.';
@@ -191,7 +216,7 @@ const PassengerAllocation = () => {
     } else if (name === 'informacoesAdicionais' && value.length > 255) {
       error = 'Informações adicionais de pagamento devem ter no máximo 255 caracteres.';
     }
-  
+
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: error
@@ -204,19 +229,18 @@ const PassengerAllocation = () => {
         reservation.passengerId &&
         Object.keys(errors).every((key) => !errors[key])
     );
-  
+
     const detalhesPagamentoValid = detalhesPagamento && // Adicionando verificação para garantir que detalhesPagamento existe
       detalhesPagamento.nomePagador &&
       detalhesPagamento.cpfPagador &&
       detalhesPagamento.metodoPagamento &&
       detalhesPagamento.valorTotal &&
       Object.keys(errors).every((key) => !errors[key]);
-  
+
     const paymentRecordsValid = !errors.paymentRecord;
-  
+
     return passengerDetailsValid && detalhesPagamentoValid && paymentRecordsValid;
   };
-  
 
   const checkDuplicatePassengerInTrip = (
     newPassengerId,
@@ -306,76 +330,75 @@ const PassengerAllocation = () => {
     event.preventDefault();
 
     if (!isFormValid()) {
-        setSnackbarMessage('Preencha todos os campos obrigatórios corretamente.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
-        return;
+      setSnackbarMessage('Preencha todos os campos obrigatórios corretamente.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
 
-    setLoading(true); 
+    setLoading(true);
 
     try {
-        let orderId = editingOrderId || null;
+      let orderId = editingOrderId || null;
 
-        if (!orderId) {
-            const order = {
-                travelId,
-                detalhesPagamento: {
-                    ...detalhesPagamento,
-                    criadoEm: new Date().toISOString().split('T')[0],
-                    pagamentos: paymentRecords
-                }
-            };
-            orderId = await addOrder(order);
-        } else {
-            // Garantir que `orderId` e `travelId` estejam definidos
-            if (!orderId || !travelId) {
-                throw new Error('orderId ou travelId está indefinido');
-            }
-            await updateOrder(orderId, {
-                travelId,
-                detalhesPagamento: {
-                    ...detalhesPagamento,
-                    editadoEm: new Date().toISOString().split('T')[0],
-                    pagamentos: paymentRecords
-                }
-            });
+      if (!orderId) {
+        const order = {
+          travelId,
+          detalhesPagamento: {
+            ...detalhesPagamento,
+            criadoEm: new Date().toISOString().split('T')[0],
+            pagamentos: paymentRecords
+          }
+        };
+        orderId = await addOrder(order);
+      } else {
+        // Garantir que `orderId` e `travelId` estejam definidos
+        if (!orderId || !travelId) {
+          throw new Error('orderId ou travelId está indefinido');
         }
+        await updateOrder(orderId, {
+          travelId,
+          detalhesPagamento: {
+            ...detalhesPagamento,
+            editadoEm: new Date().toISOString().split('T')[0],
+            pagamentos: paymentRecords
+          }
+        });
+      }
 
-        for (const reservation of reservations) {
-            if (reservation.id) {
-                await updateReservation(reservation.id, {
-                    ...reservation,
-                    travelId,
-                    orderId,
-                    editadoEm: new Date().toISOString().split('T')[0]
-                });
-            } else {
-                await addReservation(orderId, {
-                    ...reservation,
-                    travelId,
-                    criadoEm: new Date().toISOString().split('T')[0]
-                });
-            }
-        }
-        setSnackbarMessage('Reservas salvas com sucesso!');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-        if (previousPage) {
-            navigate(previousPage);
+      for (const reservation of reservations) {
+        if (reservation.id) {
+          await updateReservation(reservation.id, {
+            ...reservation,
+            travelId,
+            orderId,
+            editadoEm: new Date().toISOString().split('T')[0]
+          });
         } else {
-            navigate(-1);
+          await addReservation(orderId, {
+            ...reservation,
+            travelId,
+            criadoEm: new Date().toISOString().split('T')[0]
+          });
         }
+      }
+      setSnackbarMessage('Reservas salvas com sucesso!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      if (previousPage) {
+        navigate(previousPage);
+      } else {
+        navigate(-1);
+      }
     } catch (err) {
-        console.error('Erro ao salvar reservas:', err);
-        setSnackbarMessage('Erro ao salvar reservas. Por favor, tente novamente.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+      console.error('Erro ao salvar reservas:', err);
+      setSnackbarMessage('Erro ao salvar reservas. Por favor, tente novamente.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     } finally {
-        setLoading(false); 
+      setLoading(false);
     }
-};
-
+  };
 
   const handleOpenFormDialog = () => {
     setOpenFormDialog(true);
@@ -392,17 +415,17 @@ const PassengerAllocation = () => {
     setOpenSeatSelectionDialog(true);
   };
 
-  const currentlyAllocatedSeats = reservations.map(reservation => reservation.numeroAssento);
-
   const handleCloseSeatSelection = () => {
     setOpenSeatSelectionDialog(false);
   };
+
+  const currentlyAllocatedSeats = reservations.map(reservation => reservation.numeroAssento);
 
   const handleSeatChange = (seatNumber) => {
     setReservations((prevReservations) => {
       const newReservations = [...prevReservations];
       if (selectedReservationIndex !== null) {
-        newReservations[selectedReservationIndex].numeroAssento = seatNumber; 
+        newReservations[selectedReservationIndex].numeroAssento = seatNumber;
       }
       return sortReservationsBySeatNumber(newReservations);
     });
@@ -410,7 +433,7 @@ const PassengerAllocation = () => {
   };
 
   const handleRemoveReservation = (index) => {
-    if (reservations.length > 1) { 
+    if (reservations.length > 1) {
       setReservations((prevReservations) => {
         const newReservations = prevReservations.filter((_, idx) => idx !== index);
         return newReservations;
@@ -471,17 +494,17 @@ const PassengerAllocation = () => {
             <form onSubmit={handleSubmit} noValidate>
               <Box sx={{ mb: 3 }}>
                 <PassengerSelection
-                   reservations={reservations}
-                   passengers={passengers}
-                   duplicateWarnings={duplicateWarnings}
-                   underageWarnings={underageWarnings}
-                   loadingPassengers={loadingPassengers}
-                   handleInputChange={handleInputChange}
-                   handlePayerChange={handlePayerChange}
-                   handleOpenFormDialog={handleOpenFormDialog}
-                   handleOpenSeatSelection={handleOpenSeatSelection}
-                   handleRemoveReservation={handleRemoveReservation} 
-                   editingReservation={editingReservation} 
+                  reservations={reservations}
+                  passengers={passengers}
+                  duplicateWarnings={duplicateWarnings}
+                  underageWarnings={underageWarnings}
+                  loadingPassengers={loadingPassengers}
+                  handleInputChange={handleInputChange}
+                  handlePayerChange={handlePayerChange}
+                  handleOpenFormDialog={handleOpenFormDialog}
+                  handleOpenSeatSelection={handleOpenSeatSelection}
+                  handleRemoveReservation={handleRemoveReservation}
+                  editingReservation={editingReservation}
                 />
               </Box>
               <Divider sx={{ my: 3 }} />
@@ -512,11 +535,11 @@ const PassengerAllocation = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={!isFormValid() || loading} 
-                  startIcon={loading && <CircularProgress size={20} />} 
+                  disabled={!isFormValid() || loading}
+                  startIcon={loading && <CircularProgress size={20} />}
                   sx={{ borderRadius: '50px' }}
                 >
-                  {editingReservation 
+                  {editingReservation
                     ? reservations.length > 1 ? 'Atualizar Reservas' : 'Atualizar Reserva'
                     : reservations.length > 1 ? 'Salvar Reservas' : 'Salvar Reserva'}
                 </Button>
@@ -550,14 +573,14 @@ const PassengerAllocation = () => {
           </DialogContent>
         </Dialog>
         <SeatChangeDialog
-           open={openSeatSelectionDialog}
-           onClose={handleCloseSeatSelection}
-           currentSeat={selectedReservationIndex !== null ? reservations[selectedReservationIndex].numeroAssento : null}
-           availableSeatsAndar1={availableSeatsAndar1}
-           availableSeatsAndar2={availableSeatsAndar2}
-           reservedSeats={reservedSeats}
-           allocatedSeats={currentlyAllocatedSeats} 
-           onSeatChange={handleSeatChange}
+          open={openSeatSelectionDialog}
+          onClose={handleCloseSeatSelection}
+          currentSeat={selectedReservationIndex !== null ? reservations[selectedReservationIndex].numeroAssento : null}
+          layoutAndar1={layoutAndar1}  // Passa o layout do 1º andar
+          layoutAndar2={layoutAndar2}  // Passa o layout do 2º andar
+          reservedSeats={reservedSeats}
+          allocatedSeats={currentlyAllocatedSeats}
+          onSeatChange={handleSeatChange}
         />
         <Snackbar
           open={snackbarOpen}

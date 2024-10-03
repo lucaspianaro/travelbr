@@ -5,18 +5,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import BusinessIcon from '@mui/icons-material/Business';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
-import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { formatPlate } from '../../utils/utils';
 
 /**
  * Componente que exibe informações de um veículo em um cartão.
  * @param {Object} vehicle - Objeto contendo os dados do veículo.
+ * @param {Object} layout - Objeto contendo os dados do layout associado.
  * @param {Function} onEdit - Função a ser chamada quando o botão de editar for clicado.
  * @param {Function} onDelete - Função a ser chamada quando o botão de excluir for clicado.
  * @param {Function} onCardClick - Função a ser chamada quando o cartão for clicado.
  */
-const VehicleCard = ({ vehicle, onEdit, onDelete, onCardClick }) => {
+const VehicleCard = ({ vehicle, layout, onEdit, onDelete, onCardClick }) => {
   return (
     <Card
       onClick={() => onCardClick(vehicle)}
@@ -65,16 +65,20 @@ const VehicleCard = ({ vehicle, onEdit, onDelete, onCardClick }) => {
             <BusinessIcon fontSize="small" />
             <Typography variant="caption">Empresa: {vehicle.empresa}</Typography>
           </Box>
+
+          {/* Exibir o layout associado com total de assentos */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <EventSeatIcon fontSize="small" />
             <Typography variant="caption">
-              Assentos Totais: {parseInt(vehicle.assentosAndar1) + parseInt(vehicle.assentosAndar2)}
+              {layout ? (
+                `Layout: ${layout.name ? layout.name : 'Sem nome'} - ${layout.assentosTotais} assentos`
+              ) : (
+                'Nenhum layout associado'
+              )}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <DoubleArrowIcon fontSize="small" />
-            <Typography variant="caption">Dois Andares: {vehicle.doisAndares ? 'Sim' : 'Não'}</Typography>
-          </Box>
+
+          {/* Exibe o número de viagens alocadas */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <TravelExploreIcon fontSize="small" />
             <Typography variant="caption">Viagens Alocadas: {vehicle.numTravels || 0}</Typography>
