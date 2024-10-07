@@ -1,28 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Card, CardContent, Avatar, Box, Typography, Divider, IconButton, Tooltip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, CircularProgress
+    Card, CardContent, Avatar, Box, Typography, Divider, IconButton, Tooltip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, CircularProgress, TextField, InputAdornment
 } from '@mui/material';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { validateMasterPassword } from '../../utils/utils';
+import { getMasterPasswordStatus } from '../../services/AuthService'; // Ajuste aqui para a função que retorna apenas o isActive
 
 const LayoutCard = ({ layout, onEdit, onDelete }) => {
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [masterPassword, setMasterPassword] = useState('');
+    const [showMasterPassword, setShowMasterPassword] = useState(false);
+    const [masterPasswordActive, setMasterPasswordActive] = useState(false);
+
+    useEffect(() => {
+        // Busca se a senha master está ativa
+        const fetchMasterPasswordStatus = async () => {
+            const isActive = await getMasterPasswordStatus();
+            setMasterPasswordActive(isActive);
+        };
+        fetchMasterPasswordStatus();
+    }, []);
 
     const handleDelete = async () => {
         setLoading(true);
         try {
+            if (masterPasswordActive) {
+                // Valida a senha master apenas se estiver ativa
+                await validateMasterPassword(masterPassword);
+            }
             await onDelete(layout.id); // Chama a função de exclusão
-            setConfirmDeleteOpen(false);
+            setConfirmDeleteOpen(false); // Fecha o diálogo de confirmação após exclusão
+            setMasterPassword(''); // Limpa o campo de senha após a exclusão
         } catch (err) {
             console.error("Erro ao excluir layout:", err);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleClickShowMasterPassword = () => setShowMasterPassword(!showMasterPassword);
 
     return (
         <>
@@ -47,7 +70,7 @@ const LayoutCard = ({ layout, onEdit, onDelete }) => {
                             <Box>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                                    {layout.name || 'Sem nome'}
-                                </Typography> {/* Nome do layout */}
+                                </Typography>
                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                                     ID: {layout.id}
                                 </Typography>
@@ -88,8 +111,35 @@ const LayoutCard = ({ layout, onEdit, onDelete }) => {
                 <DialogTitle>Confirmar Exclusão</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Tem certeza que deseja excluir o layout selecionado? Esta ação não pode ser desfeita.
+                        Tem certeza que deseja excluir o layout <strong>{layout.name || 'Sem nome'}</strong> com ID <strong>{layout.id}</strong>?
+                        Este layout tem <strong>{layout.assentosTotais}</strong> assentos e é {layout.doisAndares ? 'um layout de dois andares' : 'um layout de um andar'}. 
+                        Esta ação não pode ser desfeita.
                     </DialogContentText>
+                    {masterPasswordActive && (
+                        <TextField
+                            margin="normal"
+                            fullWidth
+                            label="Senha Master"
+                            type={showMasterPassword ? 'text' : 'password'}
+                            value={masterPassword}
+                            onChange={(e) => setMasterPassword(e.target.value)}
+                            InputProps={{
+                                autoComplete: 'new-password',
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={handleClickShowMasterPassword}
+                                            edge="end"
+                                        >
+                                            {showMasterPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                            disabled={loading}
+                        />
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setConfirmDeleteOpen(false)} variant="contained" color="cancelled" sx={{ borderRadius: '50px' }}>

@@ -32,7 +32,7 @@ export const registerWithEmailPassword = async (email, senha, displayName) => {
 // Função para lidar com o login do usuário
 export const loginWithEmailPassword = async (email, senha) => {
   try {
-    console.log('Tentando fazer login com:', email); 
+    console.log('Tentando fazer login com:', email);
     const userCredential = await signInWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
@@ -120,11 +120,34 @@ export const getMasterPasswordStatus = async () => {
 
     if (userDoc.exists()) {
       const data = userDoc.data();
+      const isActive = typeof data.masterPasswordActive === 'boolean' ? data.masterPasswordActive : false;
 
-      // Verificação explícita do campo masterPasswordActive
+      console.log('Status da senha master (isActive):', isActive);
+      return isActive;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Erro ao obter o status da senha master:', error);
+    throw new Error(mapFirebaseError(error));
+  }
+};
+
+export const getMasterPasswordFullStatus = async () => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) throw new Error('Usuário não está autenticado.');
+
+    const userDocRef = doc(db, 'usuarios', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const data = userDoc.data();
       const isActive = typeof data.masterPasswordActive === 'boolean' ? data.masterPasswordActive : false;
       const isDefined = !!data.masterPassword;
 
+      console.log('Status da senha master:', { isActive, isDefined });
       return { isActive, isDefined };
     }
 
@@ -134,6 +157,7 @@ export const getMasterPasswordStatus = async () => {
     throw new Error(mapFirebaseError(error));
   }
 };
+
 
 // Função para alternar o status da senha master (ativar/desativar)
 export const toggleMasterPasswordActive = async (isActive) => {

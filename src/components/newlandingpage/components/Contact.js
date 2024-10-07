@@ -11,13 +11,19 @@ import Typography from '@mui/material/Typography';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import { styled, useTheme } from '@mui/material/styles';
-import ContactSvg from '../../../assets/landingpage/contact-us-animate.svg'; // Substitua com o caminho correto do seu SVG ou imagem
+import ContactSvg from '../../../assets/landingpage/contact-us-animate.svg'; 
+import { init, sendForm } from 'emailjs-com'; // Importa emailjs-com
+import Alert from '@mui/material/Alert';
+
+// Inicializa o EmailJS com seu User ID
+init("8hcdiwwyR5OXExsP2");
 
 const contactInfo = [
   {
     icon: <EmailRoundedIcon fontSize="large" />,
     title: 'E-mail',
     description: 'travelbruepg2024@gmail.com',
+    href: 'mailto:travelbruepg2024@gmail.com', // Adicionando link mailto
   },
   {
     icon: <LocationOnRoundedIcon fontSize="large" />,
@@ -43,35 +49,50 @@ export default function Contact() {
   const [formValues, setFormValues] = useState({
     name: '',
     email: '',
+    telefone: '',
     message: '',
   });
 
   const [formErrors, setFormErrors] = useState({
     name: false,
     email: false,
+    telefone: false,
     message: false,
   });
 
   const [formFeedback, setFormFeedback] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormValues({ ...formValues, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const validateForm = (data) => {
     const errors = {
-      name: formValues.name === '',
-      email: !/\S+@\S+\.\S+/.test(formValues.email),
-      message: formValues.message === '',
+      name: data.name.trim() === '',
+      email: !/\S+@\S+\.\S+/.test(data.email),
+      telefone: data.telefone.trim() === '',
+      message: data.message.trim() === '',
     };
     setFormErrors(errors);
+    return !Object.values(errors).some(Boolean);
+  };
 
-    const isValid = !Object.values(errors).some(Boolean);
-    if (isValid) {
-      setFormFeedback('Mensagem enviada com sucesso!');
-      setFormValues({ name: '', email: '', message: '' });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm(formValues)) {
+      sendForm("default_service", "template_67ky9kq", "#contact-form")
+        .then(() => {
+          setSuccess(true);
+          setFormFeedback("Mensagem enviada com sucesso!");
+          setFormValues({ name: '', email: '', telefone: '', message: '' });
+          setFormErrors({ name: false, email: false, telefone: false, message: false });
+        })
+        .catch(() => {
+          setSuccess(false);
+          setFormFeedback("Erro ao enviar a mensagem. Tente novamente.");
+        });
     } else {
       setFormFeedback('Por favor, corrija os erros no formulário.');
     }
@@ -141,12 +162,25 @@ export default function Contact() {
               >
                 <Box sx={{ opacity: '50%' }}>{item.icon}</Box>
                 <div>
-                  <Typography gutterBottom sx={{ fontWeight: 'medium' }}>
-                    {item.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                    {item.description}
-                  </Typography>
+                  {item.href ? (
+                    <a href={item.href} style={{ textDecoration: 'none', color: theme.palette.primary.main }}>
+                      <Typography gutterBottom sx={{ fontWeight: 'medium' }}>
+                        {item.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                        {item.description}
+                      </Typography>
+                    </a>
+                  ) : (
+                    <>
+                      <Typography gutterBottom sx={{ fontWeight: 'medium' }}>
+                        {item.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                        {item.description}
+                      </Typography>
+                    </>
+                  )}
                 </div>
               </Stack>
             </Grid>
@@ -175,6 +209,7 @@ export default function Contact() {
           <Grid item xs={12} md={6}>
             <Box
               component="form"
+              id="contact-form"
               onSubmit={handleSubmit}
               sx={{
                 display: 'flex',
@@ -206,27 +241,26 @@ export default function Contact() {
                 helperText={formErrors.email ? 'E-mail inválido' : ''}
               />
               <TextField
+                label="Telefone"
+                variant="outlined"
+                fullWidth
+                required
+                name="telefone"
+                value={formValues.telefone}
+                onChange={handleInputChange}
+                error={formErrors.telefone}
+                helperText={formErrors.telefone ? 'Campo obrigatório' : ''}
+              />
+              <TextField
                 label="Mensagem"
                 variant="outlined"
                 fullWidth
                 required
-                multiline
-                rows={4}
                 name="message"
                 value={formValues.message}
                 onChange={handleInputChange}
                 error={formErrors.message}
                 helperText={formErrors.message ? 'Campo obrigatório' : ''}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    alignItems: 'flex-start', // Alinha o texto corretamente no topo
-                    paddingTop: '10px', // Garante o espaçamento superior dentro do campo
-                  },
-                  '& .MuiInputBase-input': {
-                    height: 'auto', // Permite o ajuste dinâmico de altura para o multiline
-                  },
-                  minHeight: '56px', // Mantém uma altura mínima igual aos outros campos
-                }}
               />
               <AnimatedButton
                 variant="contained"
@@ -243,7 +277,7 @@ export default function Contact() {
             {formFeedback && (
               <Typography
                 variant="body2"
-                sx={{ mt: 2, color: formFeedback.includes('sucesso') ? 'green' : 'red', textAlign: 'center' }}
+                sx={{ mt: 2, color: success ? 'green' : 'red', textAlign: 'center' }}
               >
                 {formFeedback}
               </Typography>

@@ -15,7 +15,7 @@ const PassengerPage = () => {
   const [errors, setErrors] = useState({});
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); 
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openDialog, setOpenDialog] = useState(false);
   const [editing, setEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,7 +37,7 @@ const PassengerPage = () => {
       setPassageiros(fetchedPassageiros);
     } catch (error) {
       setSnackbarMessage('Erro ao buscar passageiros: ' + error.message);
-      setSnackbarSeverity('error');  
+      setSnackbarSeverity('error');
       setOpenSnackbar(true);
     } finally {
       setLoading(false);
@@ -97,12 +97,12 @@ const PassengerPage = () => {
     try {
       await deletePassengers([id]);
       setSnackbarMessage('Passageiro excluído com sucesso.');
-      setSnackbarSeverity('success');  
+      setSnackbarSeverity('success');
       setOpenSnackbar(true);
       fetchPassageiros();
     } catch (error) {
       setSnackbarMessage('Erro ao excluir passageiro: ' + error.message);
-      setSnackbarSeverity('error');  
+      setSnackbarSeverity('error');
       setOpenSnackbar(true);
     } finally {
       setDeleting(false);
@@ -223,7 +223,7 @@ const PassengerPage = () => {
           />
         </DialogContent>
       </Dialog>
-      
+
       <Snackbar open={openSnackbar} autoHideDuration={2000} onClose={() => setOpenSnackbar(false)}>
         <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}

@@ -13,7 +13,7 @@ import Layout from '../components/common/Layout';
 import UpdateProfileForm from '../components/account/UpdateProfileForm';
 import ChangePasswordForm from '../components/account/ChangePasswordForm';
 import SetMasterPasswordForm from '../components/account/SetMasterPasswordForm';
-import { getMasterPasswordStatus, toggleMasterPasswordActive } from '../services/AuthService';
+import { getMasterPasswordFullStatus, toggleMasterPasswordActive } from '../services/AuthService';
 import { validateMasterPassword } from '../utils/utils';
 
 function MyAccount() {
@@ -29,7 +29,7 @@ function MyAccount() {
 
   useEffect(() => {
     const fetchMasterPasswordStatus = async () => {
-      const { isActive, isDefined } = await getMasterPasswordStatus(); // Ajuste para desestruturar a resposta detalhada
+      const { isActive, isDefined } = await getMasterPasswordFullStatus(); // Ajuste para desestruturar a resposta detalhada
       setMasterPasswordActive(isActive);
       setMasterPasswordDefined(isDefined);
     };
@@ -160,14 +160,14 @@ function MyAccount() {
                     variant="contained"
                     onClick={() => setOpenMasterPassword(!openMasterPassword)}
                     endIcon={openMasterPassword ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                    sx={{ borderRadius: '50px'}}
+                    sx={{ borderRadius: '50px' }}
                   >
                     {openMasterPassword ? 'Fechar' : 'Abrir'}
                   </Button>
                 </CardActions>
                 <Collapse in={openMasterPassword} timeout="auto" unmountOnExit>
                   <CardContent>
-                    <SetMasterPasswordForm 
+                    <SetMasterPasswordForm
                       masterPasswordActive={masterPasswordActive}
                     />
                   </CardContent>

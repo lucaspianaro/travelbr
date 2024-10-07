@@ -25,7 +25,7 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
   useEffect(() => {
     const fetchMasterPasswordStatus = async () => {
       const isActive = await getMasterPasswordStatus();
-      setMasterPasswordActive(isActive);
+      setMasterPasswordActive(isActive); // Definindo se a senha master está ativa
     };
     fetchMasterPasswordStatus();
   }, []);
@@ -47,7 +47,7 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
     if (!isDeleting) {
       setOpen(false);
       setPassengerToDelete(null);
-      setMasterPassword('');
+      setMasterPassword(''); // Limpa o campo de senha quando o diálogo fecha
     }
   };
 
@@ -55,6 +55,7 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
     setIsDeleting(true);
     try {
       if (masterPasswordActive) {
+        // Valida a senha master apenas se estiver ativa
         await validateMasterPassword(masterPassword);
       }
       await handleDeletePassenger(passengerToDelete.id);
@@ -174,6 +175,7 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
             Tem certeza de que deseja excluir o passageiro {passengerToDelete?.nome}? Esta ação irá cancelar todas as reservas deste passageiro e não pode ser desfeita.
           </DialogContentText>
           {masterPasswordActive && (
+            // Campo de senha master só aparece se `masterPasswordActive` for true
             <TextField
               margin="normal"
               fullWidth
@@ -204,13 +206,13 @@ const PassengerCard = ({ passengers, setPassengers, startEditing, handleDeletePa
           <Button onClick={handleClose} color="cancelar" variant="contained" disabled={isDeleting} sx={{ borderRadius: '50px' }} >
             Voltar
           </Button>
-          <Button 
-            onClick={handleConfirmDelete} 
-            variant="contained" 
-            color="error" 
-            disabled={masterPasswordActive && !masterPassword || isDeleting} 
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            disabled={masterPasswordActive && !masterPassword || isDeleting}
             autoFocus
-            sx={{ color: 'white', borderRadius: '50px' }} 
+            sx={{ color: 'white', borderRadius: '50px' }}
           >
             {isDeleting ? <CircularProgress size={24} /> : 'Excluir'}
           </Button>
