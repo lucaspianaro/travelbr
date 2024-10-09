@@ -10,7 +10,7 @@ import 'jspdf-autotable';
  * @param {Array} passengers - Lista de passageiros associados aos pedidos.
  */
 export const exportOrdersToPDF = (travel, orders, passengers) => {
-  const doc = new jsPDF('p', 'pt');
+  const doc = new jsPDF('landscape', 'pt');
 
   // Função auxiliar para truncar texto
   const truncateText = (text, maxLength) => {
@@ -43,21 +43,30 @@ export const exportOrdersToPDF = (travel, orders, passengers) => {
       .join('; ');
 
     const nomePagador = order.detalhesPagamento?.nomePagador || 'Não informado';
-    const cpfPagador = order.detalhesPagamento?.cpfPagador ? formatCPF(order.detalhesPagamento.cpfPagador) : 'Não informado';
-    const rgPagador = order.detalhesPagamento?.rgPagador || 'Não informado';
+    // Verifica se o pagador é estrangeiro e exibe o passaporte, caso contrário exibe CPF e RG
+    const cpfPagador = order.detalhesPagamento?.passaportePagador
+      ? `Passaporte: ${order.detalhesPagamento.passaportePagador}`
+      : order.detalhesPagamento?.cpfPagador
+        ? formatCPF(order.detalhesPagamento.cpfPagador)
+        : 'Não informado';
+
+    const rgPagador = order.detalhesPagamento?.passaportePagador
+      ? 'Não aplicável'
+      : order.detalhesPagamento?.rgPagador || 'Não informado';
+
     const valorTotal = order.detalhesPagamento?.valorTotal ? `R$ ${Number(order.detalhesPagamento.valorTotal).toFixed(2)}` : 'Não informado';
     const metodoPagamento = order.detalhesPagamento?.metodoPagamento || 'Não informado';
 
     return {
       orderId: order.id,
-      numerosAssentos: truncateText(assentos, 50),
-      nomePagador: truncateText(nomePagador, 30),
-      cpfPagador: truncateText(cpfPagador, 30),
-      rgPagador: truncateText(rgPagador, 30),
+      numerosAssentos: assentos,  // Exibe os assentos completos
+      nomePagador: nomePagador,  // Exibe o nome completo
+      cpfPagador: cpfPagador,  // Exibe o CPF completo
+      rgPagador: rgPagador,  // Exibe o RG completo
       valorTotal: valorTotal,
-      metodoPagamento: truncateText(metodoPagamento, 30),
+      metodoPagamento: metodoPagamento,  // Exibe o método de pagamento completo
       status: order.status,
-      informacoesAdicionais: truncateText(informacoesAdicionais, 50)
+      informacoesAdicionais: truncateText(informacoesAdicionais, 50)  // Mantém o truncamento das informações adicionais
     };
   });
 

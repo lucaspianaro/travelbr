@@ -20,6 +20,8 @@ const PassengerAllocation = () => {
   const { selectedSeats = [], editingReservation, editingOrderId, previousPage } = location.state || {};
   const navigate = useNavigate();
 
+  const [loadingData, setLoadingData] = useState(true); // Novo estado para controle de carregamento dos dados principais
+
   const initialReservation = {
     nomePagador: '',
     cpfPagador: '',
@@ -41,10 +43,10 @@ const PassengerAllocation = () => {
         ? [...editingReservation]
         : [{ ...editingReservation }]
       : (Array.isArray(selectedSeats) ? selectedSeats : []).map((seat) => ({
-          numeroAssento: seat.number,
-          passengerId: null,
-          pagador: false
-        }));
+        numeroAssento: seat.number,
+        passengerId: null,
+        pagador: false
+      }));
     return sortReservationsBySeatNumber(initialReservations);
   });
 
@@ -78,7 +80,7 @@ const PassengerAllocation = () => {
   const [availableSeatsAndar2, setAvailableSeatsAndar2] = useState([]);
   const [reservedSeats, setReservedSeats] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   const fetchPassengers = useCallback(async () => {
     setLoadingPassengers(true);
     const fetchedPassengers = await getAllPassengers();
@@ -131,11 +133,11 @@ const PassengerAllocation = () => {
     try {
       const travelData = await getTravelById(travelId);
       const totalSeats = travelData.assentosAndar1 + travelData.assentosAndar2;
-      
+
       if (travelData.veiculoId) {
         // Chama a função fetchLayoutByVehicle para buscar o layout
         const layoutData = await fetchLayoutByVehicle(travelData.veiculoId);
-        
+
         setLayoutAndar1(layoutData.firstFloor || []);  // Certifique-se de estar usando a estrutura correta
         setLayoutAndar2(layoutData.secondFloor || []); // Certifique-se de estar usando a estrutura correta
       } else {
@@ -149,17 +151,26 @@ const PassengerAllocation = () => {
     } catch (error) {
       console.error('Erro ao buscar dados de assentos:', error);
     }
-};
+  };
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    fetchExistingReservations();
-    fetchPassengers();
-    fetchSeatData();
-    if (editingOrderId) {
-      fetchOrderDetails(editingOrderId);
-    }
+    const fetchAllData = async () => {
+      try {
+        window.scrollTo(0, 0);
+        setLoadingData(true); // Inicia o estado de carregamento
+        await fetchExistingReservations();
+        await fetchPassengers();
+        await fetchSeatData();
+        if (editingOrderId) {
+          await fetchOrderDetails(editingOrderId);
+        }
+      } finally {
+        setLoadingData(false); // Finaliza o estado de carregamento
+      }
+    };
+    fetchAllData();
   }, [travelId, editingOrderId, fetchPassengers]);
+
 
   const handleInputChange = (index, event, newValue) => {
     const passengerId = newValue ? newValue.id : null;
@@ -230,9 +241,13 @@ const PassengerAllocation = () => {
         Object.keys(errors).every((key) => !errors[key])
     );
 
-    const detalhesPagamentoValid = detalhesPagamento && // Adicionando verificação para garantir que detalhesPagamento existe
+    const detalhesPagamentoValid = detalhesPagamento &&
       detalhesPagamento.nomePagador &&
-      detalhesPagamento.cpfPagador &&
+      // Validação para CPF ou passaporte
+      (
+        (detalhesPagamento.cpfPagador && validarCPF(unformatCPF(detalhesPagamento.cpfPagador))) ||
+        (detalhesPagamento.passaportePagador && detalhesPagamento.passaportePagador.trim() !== '')
+      ) &&
       detalhesPagamento.metodoPagamento &&
       detalhesPagamento.valorTotal &&
       Object.keys(errors).every((key) => !errors[key]);
@@ -464,7 +479,8 @@ const PassengerAllocation = () => {
             ...prevDetails,
             nomePagador: payerPassenger.nome,
             cpfPagador: payerPassenger.cpf,
-            rgPagador: payerPassenger.rg
+            rgPagador: payerPassenger.rg,
+            passaportePagador: payerPassenger.passaporte
           }));
         }
       } else {
@@ -472,7 +488,8 @@ const PassengerAllocation = () => {
           ...prevDetails,
           nomePagador: '',
           cpfPagador: '',
-          rgPagador: ''
+          rgPagador: '',
+          passaportePagador: ''
         }));
       }
 
@@ -483,118 +500,134 @@ const PassengerAllocation = () => {
   return (
     <Layout>
       <Box sx={{ p: 3 }}>
-        <Fade in={true}>
-          <IconButton onClick={() => navigate(previousPage || -1)} sx={{ mb: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-        </Fade>
-        <Card variant="outlined" sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>Alocar Passageiros</Typography>
-            <form onSubmit={handleSubmit} noValidate>
-              <Box sx={{ mb: 3 }}>
-                <PassengerSelection
-                  reservations={reservations}
-                  passengers={passengers}
-                  duplicateWarnings={duplicateWarnings}
-                  underageWarnings={underageWarnings}
-                  loadingPassengers={loadingPassengers}
-                  handleInputChange={handleInputChange}
-                  handlePayerChange={handlePayerChange}
-                  handleOpenFormDialog={handleOpenFormDialog}
-                  handleOpenSeatSelection={handleOpenSeatSelection}
-                  handleRemoveReservation={handleRemoveReservation}
-                  editingReservation={editingReservation}
-                />
-              </Box>
-              <Divider sx={{ my: 3 }} />
-              <Box sx={{ mb: 3 }}>
-                <PaymentDetailsForm
-                  detalhesPagamento={detalhesPagamento}
-                  handlePaymentDetailChange={handlePaymentDetailChange}
+        {loadingData ? (
+          <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center', // Centraliza horizontalmente
+            alignItems: 'flex-start', // Alinha os itens no topo
+            height: 'auto', // Define a altura como automática
+            marginTop: '20px', // Adiciona uma margem superior para afastar do topo, ajuste conforme necessário
+          }}
+        >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            <Fade in={true}>
+              <IconButton onClick={() => navigate(previousPage || -1)} sx={{ mb: 2 }}>
+                <ArrowBackIcon />
+              </IconButton>
+            </Fade>
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Alocar Passageiros</Typography>
+                <form onSubmit={handleSubmit} noValidate>
+                  <Box sx={{ mb: 3 }}>
+                    <PassengerSelection
+                      reservations={reservations}
+                      passengers={passengers}
+                      duplicateWarnings={duplicateWarnings}
+                      underageWarnings={underageWarnings}
+                      loadingPassengers={loadingPassengers}
+                      handleInputChange={handleInputChange}
+                      handlePayerChange={handlePayerChange}
+                      handleOpenFormDialog={handleOpenFormDialog}
+                      handleOpenSeatSelection={handleOpenSeatSelection}
+                      handleRemoveReservation={handleRemoveReservation}
+                      editingReservation={editingReservation}
+                    />
+                  </Box>
+                  <Divider sx={{ my: 3 }} />
+                  <Box sx={{ mb: 3 }}>
+                    <PaymentDetailsForm
+                      detalhesPagamento={detalhesPagamento}
+                      handlePaymentDetailChange={handlePaymentDetailChange}
+                      errors={errors}
+                      validatePaymentField={validatePaymentField}
+                    />
+                  </Box>
+                  <Divider sx={{ my: 3 }} />
+                  <Box sx={{ mb: 3 }}>
+                    <PaymentRecords
+                      paymentRecords={paymentRecords}
+                      handlePaymentRecordChange={handlePaymentRecordChange}
+                      handleRemovePaymentRecord={handleRemovePaymentRecord}
+                      handleAddPaymentRecord={handleAddPaymentRecord}
+                      detalhesPagamento={detalhesPagamento} // Passado como prop
+                      setErrors={setErrors} // Passar setErrors para atualizações
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Button color="error" onClick={() => navigate(previousPage || -1)}>
+                      {editingReservation ? 'Descartar Alterações' : 'Descartar'}
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      disabled={!isFormValid() || loading}
+                      startIcon={loading && <CircularProgress size={20} />}
+                      sx={{ borderRadius: '50px' }}
+                    >
+                      {editingReservation
+                        ? reservations.length > 1 ? 'Atualizar Reservas' : 'Atualizar Reserva'
+                        : reservations.length > 1 ? 'Salvar Reservas' : 'Salvar Reserva'}
+                    </Button>
+                  </Box>
+                </form>
+                {errors.form && (
+                  <Typography color="error" sx={{ mt: 2 }}>
+                    {errors.form}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+            <Dialog
+              open={openFormDialog}
+              onClose={handleCloseFormDialog}
+              aria-labelledby="form-dialog-title"
+            >
+              <DialogContent>
+                <PassengerForm
+                  editedPassenger={editedPassenger}
+                  setEditedPassenger={setEditedPassenger}
                   errors={errors}
-                  validatePaymentField={validatePaymentField}
+                  setErrors={setErrors}
+                  handleCloseFormDialog={handleCloseFormDialog}
+                  fetchPassageiros={fetchPassengers}
+                  editing={editing}
+                  passageiros={passengers}
+                  setOpenSnackbar={setSnackbarOpen}
+                  setSnackbarMessage={setSnackbarMessage}
                 />
-              </Box>
-              <Divider sx={{ my: 3 }} />
-              <Box sx={{ mb: 3 }}>
-                <PaymentRecords
-                  paymentRecords={paymentRecords}
-                  handlePaymentRecordChange={handlePaymentRecordChange}
-                  handleRemovePaymentRecord={handleRemovePaymentRecord}
-                  handleAddPaymentRecord={handleAddPaymentRecord}
-                  detalhesPagamento={detalhesPagamento} // Passado como prop
-                  setErrors={setErrors} // Passar setErrors para atualizações
-                />
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                <Button color="error" onClick={() => navigate(previousPage || -1)}>
-                  {editingReservation ? 'Descartar Alterações' : 'Descartar'}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={!isFormValid() || loading}
-                  startIcon={loading && <CircularProgress size={20} />}
-                  sx={{ borderRadius: '50px' }}
-                >
-                  {editingReservation
-                    ? reservations.length > 1 ? 'Atualizar Reservas' : 'Atualizar Reserva'
-                    : reservations.length > 1 ? 'Salvar Reservas' : 'Salvar Reserva'}
-                </Button>
-              </Box>
-            </form>
-            {errors.form && (
-              <Typography color="error" sx={{ mt: 2 }}>
-                {errors.form}
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-        <Dialog
-          open={openFormDialog}
-          onClose={handleCloseFormDialog}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogContent>
-            <PassengerForm
-              editedPassenger={editedPassenger}
-              setEditedPassenger={setEditedPassenger}
-              errors={errors}
-              setErrors={setErrors}
-              handleCloseFormDialog={handleCloseFormDialog}
-              fetchPassageiros={fetchPassengers}
-              editing={editing}
-              passageiros={passengers}
-              setOpenSnackbar={setSnackbarOpen}
-              setSnackbarMessage={setSnackbarMessage}
+              </DialogContent>
+            </Dialog>
+            <SeatChangeDialog
+              open={openSeatSelectionDialog}
+              onClose={handleCloseSeatSelection}
+              currentSeat={selectedReservationIndex !== null ? reservations[selectedReservationIndex].numeroAssento : null}
+              layoutAndar1={layoutAndar1}  // Passa o layout do 1º andar
+              layoutAndar2={layoutAndar2}  // Passa o layout do 2º andar
+              reservedSeats={reservedSeats}
+              allocatedSeats={currentlyAllocatedSeats}
+              onSeatChange={handleSeatChange}
             />
-          </DialogContent>
-        </Dialog>
-        <SeatChangeDialog
-          open={openSeatSelectionDialog}
-          onClose={handleCloseSeatSelection}
-          currentSeat={selectedReservationIndex !== null ? reservations[selectedReservationIndex].numeroAssento : null}
-          layoutAndar1={layoutAndar1}  // Passa o layout do 1º andar
-          layoutAndar2={layoutAndar2}  // Passa o layout do 2º andar
-          reservedSeats={reservedSeats}
-          allocatedSeats={currentlyAllocatedSeats}
-          onSeatChange={handleSeatChange}
-        />
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={6000}
+              onClose={() => setSnackbarOpen(false)}
+            >
+              <Alert
+                onClose={() => setSnackbarOpen(false)}
+                severity={snackbarSeverity}
+                sx={{ width: '100%' }}
+              >
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
+          </>
+        )}
       </Box>
     </Layout>
   );

@@ -35,7 +35,7 @@ const exportReservationToPDF = async (reservation, passenger, travel) => {
 
   const img = new Image();
   img.src = logo;
-  
+
   // Inicializando o doc depois de carregar a logo
   img.onload = async () => {
     doc.addImage(img, 'PNG', 14, 5, 50, 40);
@@ -131,24 +131,34 @@ const exportReservationToPDF = async (reservation, passenger, travel) => {
     currentY += passageiroHeight + 8;
 
     // Informações de pagamento e status
+    // Informações de pagamento e status
     const pagadorHeight = 72;
     drawSectionBorder(12, currentY, 180, pagadorHeight);
     doc.setFontSize(14);
     doc.text('Informações do Pagador e Status', 14, currentY + 6);
     doc.setFontSize(12);
     let pagadorStartY = currentY + 12;
+
     if (reservation.detalhesPagamento?.nomePagador) {
       pagadorStartY = addWrappedText(`Nome do Pagador: ${reservation.detalhesPagamento.nomePagador}`, 14, pagadorStartY, 180, 6);
     }
-    if (reservation.detalhesPagamento?.cpfPagador) {
-      pagadorStartY = addWrappedText(`CPF do Pagador: ${formatCPF(reservation.detalhesPagamento.cpfPagador)}`, 14, pagadorStartY, 180, 6);
+
+    // Exibir Passaporte ou CPF/RG com base na nacionalidade do pagador
+    if (reservation.detalhesPagamento?.passaportePagador) {
+      pagadorStartY = addWrappedText(`Passaporte do Pagador: ${reservation.detalhesPagamento.passaportePagador || 'Não informado'}`, 14, pagadorStartY, 180, 6);
+    } else {
+      if (reservation.detalhesPagamento?.cpfPagador) {
+        pagadorStartY = addWrappedText(`CPF do Pagador: ${formatCPF(reservation.detalhesPagamento.cpfPagador)}`, 14, pagadorStartY, 180, 6);
+      }
+      if (reservation.detalhesPagamento?.rgPagador) {
+        pagadorStartY = addWrappedText(`RG do Pagador: ${reservation.detalhesPagamento.rgPagador}`, 14, pagadorStartY, 180, 6);
+      }
     }
-    if (reservation.detalhesPagamento?.rgPagador) {
-      pagadorStartY = addWrappedText(`RG do Pagador: ${reservation.detalhesPagamento.rgPagador}`, 14, pagadorStartY, 180, 6);
-    }
+
     if (reservation.detalhesPagamento?.metodoPagamento) {
       pagadorStartY = addWrappedText(`Método de Pagamento: ${reservation.detalhesPagamento.metodoPagamento}`, 14, pagadorStartY, 180, 6);
     }
+
     const valorTotal = Number(reservation.detalhesPagamento?.valorTotal || 0).toFixed(2);
     const valorPago = Number(reservation.detalhesPagamento?.valorPago || 0).toFixed(2);
     pagadorStartY = addWrappedText(`Valor Total: R$ ${valorTotal}`, 14, pagadorStartY, 180, 6);
@@ -157,6 +167,7 @@ const exportReservationToPDF = async (reservation, passenger, travel) => {
     if (reservation.detalhesPagamento?.informacoesAdicionais) {
       pagadorStartY = addWrappedText(`Informações Adicionais: ${reservation.detalhesPagamento.informacoesAdicionais}`, 14, pagadorStartY, 180, 6);
     }
+
     pagadorStartY = addWrappedText(`Status: ${reservation.status}`, 14, pagadorStartY, 180, 6);
 
     // Salvar o PDF

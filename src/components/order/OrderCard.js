@@ -100,7 +100,6 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hid
             )}
           </Box>
         </Box>
-
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <Divider sx={{ my: 1 }} />
 
@@ -108,8 +107,17 @@ const OrderCard = ({ order, travel, onEditOrder, onCancelOrder, onCardClick, hid
             <Grid item xs={12} sm={6}>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Informações do Pagador:</Typography>
               <Typography variant="body2">Nome: {detalhesPagamento.nomePagador || 'Não informado'}</Typography>
-              <Typography variant="body2">CPF: {detalhesPagamento.cpfPagador ? formatCPF(detalhesPagamento.cpfPagador) : 'Não informado'}</Typography>
-              <Typography variant="body2">RG: {detalhesPagamento.rgPagador || 'Não informado'}</Typography>
+
+              {detalhesPagamento.passaportePagador ? (
+                // Exibe Passaporte quando o pagador for estrangeiro
+                <Typography variant="body2">Passaporte: {detalhesPagamento.passaportePagador || 'Não informado'}</Typography>
+              ) : (
+                <>
+                  <Typography variant="body2">CPF: {detalhesPagamento.cpfPagador ? formatCPF(detalhesPagamento.cpfPagador) : 'Não informado'}</Typography>
+                  <Typography variant="body2">RG: {detalhesPagamento.rgPagador || 'Não informado'}</Typography>
+                </>
+              )}
+
               <Typography variant="body2">Método de Pagamento: {detalhesPagamento.metodoPagamento || 'Não informado'}</Typography>
             </Grid>
 

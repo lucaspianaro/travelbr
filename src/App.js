@@ -74,7 +74,7 @@ function AuthenticatedApp() {
         <Route path="/viagens/:travelId/reservas" element={currentUser ? <TravelOrderReservationPage /> : <Navigate to="/login" />} />
         <Route path="/viagens/:travelId/editar-reserva" element={currentUser ? <PassengerAllocation /> : <Navigate to="/login" />} />
         <Route path="/veiculos" element={currentUser ? <VehiclePage /> : <Navigate to="/login" />} />
-        
+
         {/* Rotas para a gestão de layouts de ônibus */}
         <Route path="/veiculos/layout" element={currentUser ? <ManageBusLayoutPage /> : <Navigate to="/login" />} />
         <Route path="/veiculos/layout/novo" element={currentUser ? <BusLayoutBuilderPage /> : <Navigate to="/login" />} />

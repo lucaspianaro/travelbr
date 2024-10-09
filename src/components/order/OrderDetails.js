@@ -251,15 +251,24 @@ const OrderDetails = ({ order, passengers, travel }) => {
                 <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Nome do Pagador:</strong> {detalhesPagamento.nomePagador}</Typography>
               </Grid>
             )}
-            {detalhesPagamento.cpfPagador && (
+            {/* Exibição condicional para CPF, RG ou Passaporte */}
+            {detalhesPagamento.passaportePagador ? (
               <Grid item xs={12} sm={6}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>CPF do Pagador:</strong> {formatCPF(detalhesPagamento.cpfPagador)}</Typography>
+                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>Passaporte do Pagador:</strong> {detalhesPagamento.passaportePagador}</Typography>
               </Grid>
-            )}
-            {detalhesPagamento.rgPagador && (
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>RG do Pagador:</strong> {detalhesPagamento.rgPagador}</Typography>
-              </Grid>
+            ) : (
+              <>
+                {detalhesPagamento.cpfPagador && (
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>CPF do Pagador:</strong> {formatCPF(detalhesPagamento.cpfPagador)}</Typography>
+                  </Grid>
+                )}
+                {detalhesPagamento.rgPagador && (
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}><strong>RG do Pagador:</strong> {detalhesPagamento.rgPagador}</Typography>
+                  </Grid>
+                )}
+              </>
             )}
             {detalhesPagamento.metodoPagamento && (
               <Grid item xs={12} sm={6}>

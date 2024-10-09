@@ -87,7 +87,15 @@ const ReportPage = () => {
   if (loading) {
     return (
       <Layout>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center', // Centraliza horizontalmente
+            alignItems: 'flex-start', // Alinha os itens no topo
+            height: 'auto', // Define a altura como automática
+            marginTop: '20px', // Adiciona uma margem superior para afastar do topo, ajuste conforme necessário
+          }}
+        >
           <CircularProgress />
         </Box>
       </Layout>

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Grid, TextField, MenuItem, InputAdornment, Typography, Box, Card, CardContent } from '@mui/material';
-import { formatCPF, unformatCPF, validarCPF } from '../../utils/utils';
+import React, { useState, useEffect } from 'react';
+import { Grid, TextField, MenuItem, InputAdornment, Typography, Box, Card, CardContent, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
+import PaymentSummary from './PaymentSummary';
+import { formatCPF, unformatCPF } from '../../utils/utils';
 
 // Função para formatar o valor como moeda
 const formatCurrency = (value) => {
@@ -17,12 +18,35 @@ const unformatCurrency = (value) => {
 };
 
 const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, errors, validatePaymentField }) => {
+  const [pagadorEstrangeiro, setPagadorEstrangeiro] = useState(false);
+
+  // Inicializa o estado com base nos dados existentes
+  useEffect(() => {
+    if (detalhesPagamento.passaportePagador) {
+      setPagadorEstrangeiro(true); // Se houver passaporte, é estrangeiro
+    } else {
+      setPagadorEstrangeiro(false); // Se não houver, assume que é brasileiro
+    }
+  }, [detalhesPagamento]);
 
   const handleNumberInput = (e) => {
     const char = String.fromCharCode(e.which);
-    const isAllowed = /^\d|\.|-$/; 
+    const isAllowed = /^\d|\.|-$/;
     if (!isAllowed.test(char)) {
       e.preventDefault();
+    }
+  };
+
+  const handlePagadorChange = (e) => {
+    const isEstrangeiro = e.target.value === 'estrangeiro';
+    setPagadorEstrangeiro(isEstrangeiro);
+    if (isEstrangeiro) {
+      // Limpa CPF e RG quando o pagador é estrangeiro
+      handlePaymentDetailChange('cpfPagador', '');
+      handlePaymentDetailChange('rgPagador', '');
+    } else {
+      // Limpa Passaporte quando o pagador é brasileiro
+      handlePaymentDetailChange('passaportePagador', '');
     }
   };
 
@@ -31,6 +55,15 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
       <Typography variant="h6" sx={{ mb: 2 }}>
         Informações de Pagamento
       </Typography>
+
+      <FormControl component="fieldset" sx={{ mb: 2 }}>
+        <FormLabel component="legend">Tipo de Pagador</FormLabel>
+        <RadioGroup row value={pagadorEstrangeiro ? 'estrangeiro' : 'brasileiro'} onChange={handlePagadorChange}>
+          <FormControlLabel value="brasileiro" control={<Radio />} label="Pagador Brasileiro" />
+          <FormControlLabel value="estrangeiro" control={<Radio />} label="Pagador Estrangeiro" />
+        </RadioGroup>
+      </FormControl>
+
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <TextField
@@ -44,46 +77,69 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             fullWidth
             required
             inputProps={{ maxLength: 255 }}
-            sx={{ backgroundColor: 'white' }} // White background
+            sx={{ backgroundColor: 'white' }}
           />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            label="CPF do Pagador"
-            name="cpfPagador"
-            value={formatCPF(detalhesPagamento.cpfPagador)}
-            onChange={(e) => handlePaymentDetailChange('cpfPagador', unformatCPF(e.target.value))}
-            onBlur={(e) => validatePaymentField('cpfPagador', e.target.value)}
-            error={!!errors['cpfPagador']}
-            helperText={errors['cpfPagador']}
-            fullWidth
-            required
-            inputProps={{ maxLength: 14 }}
-            sx={{ backgroundColor: 'white' }} // White background
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            label="RG do Pagador"
-            name="rgPagador"
-            value={detalhesPagamento.rgPagador}
-            onChange={(e) => handlePaymentDetailChange('rgPagador', e.target.value)}
-            onBlur={(e) => validatePaymentField('rgPagador', e.target.value)}
-            error={!!errors['rgPagador']}
-            helperText={errors['rgPagador']}
-            fullWidth
-            required
-            inputProps={{ maxLength: 20 }}
-            sx={{ backgroundColor: 'white' }} // White background
-          />
-        </Grid>
+
+        {/* Exibe CPF e RG ou Passaporte com base na escolha do pagador */}
+        {!pagadorEstrangeiro ? (
+          <>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="CPF do Pagador"
+                name="cpfPagador"
+                value={formatCPF(detalhesPagamento.cpfPagador || '')}
+                onChange={(e) => handlePaymentDetailChange('cpfPagador', unformatCPF(e.target.value))}
+                onBlur={(e) => validatePaymentField('cpfPagador', e.target.value)}
+                error={!!errors['cpfPagador']}
+                helperText={errors['cpfPagador']}
+                fullWidth
+                required
+                inputProps={{ maxLength: 14 }}
+                sx={{ backgroundColor: 'white' }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="RG do Pagador"
+                name="rgPagador"
+                value={detalhesPagamento.rgPagador || ''}
+                onChange={(e) => handlePaymentDetailChange('rgPagador', e.target.value)}
+                onBlur={(e) => validatePaymentField('rgPagador', e.target.value)}
+                error={!!errors['rgPagador']}
+                helperText={errors['rgPagador']}
+                fullWidth
+                required
+                inputProps={{ maxLength: 20 }}
+                sx={{ backgroundColor: 'white' }}
+              />
+            </Grid>
+          </>
+        ) : (
+          <Grid item xs={12} md={6}>
+            <TextField
+              label="Passaporte do Pagador"
+              name="passaportePagador"
+              value={detalhesPagamento.passaportePagador || ''}
+              onChange={(e) => handlePaymentDetailChange('passaportePagador', e.target.value)}
+              onBlur={(e) => validatePaymentField('passaportePagador', e.target.value)}
+              error={!!errors['passaportePagador']}
+              helperText={errors['passaportePagador']}
+              fullWidth
+              required
+              inputProps={{ maxLength: 20 }}
+              sx={{ backgroundColor: 'white' }}
+            />
+          </Grid>
+        )}
+
         <Grid item xs={12} md={6}>
           <TextField
             label="Valor Total do Pedido"
             name="valorTotal"
             type="text"
             value={formatCurrency(detalhesPagamento.valorTotal)} // Formatação em tempo real
-            onChange={(e) => handlePaymentDetailChange('valorTotal', unformatCurrency(e.target.value))} 
+            onChange={(e) => handlePaymentDetailChange('valorTotal', unformatCurrency(e.target.value))}
             onBlur={(e) => validatePaymentField('valorTotal', e.target.value)}
             error={!!errors['valorTotal']}
             helperText={errors['valorTotal']}
@@ -93,9 +149,10 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
               startAdornment: <InputAdornment position="start"></InputAdornment>,
               inputProps: { min: 0 },
             }}
-            sx={{ backgroundColor: 'white' }} // White background
+            sx={{ backgroundColor: 'white' }}
           />
         </Grid>
+
         <Grid item xs={12} md={6}>
           <TextField
             select
@@ -108,7 +165,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             helperText={errors['metodoPagamento']}
             fullWidth
             required
-            sx={{ backgroundColor: 'white' }} // White background
+            sx={{ backgroundColor: 'white' }}
           >
             <MenuItem value="Dinheiro">Dinheiro</MenuItem>
             <MenuItem value="Pix">Pix</MenuItem>
@@ -117,6 +174,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             <MenuItem value="Outro">Outro</MenuItem>
           </TextField>
         </Grid>
+
         <Grid item xs={12}>
           <TextField
             label="Informações Adicionais da Reserva"
@@ -130,24 +188,15 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             multiline
             maxRows={4}
             inputProps={{ maxLength: 255 }}
-            sx={{ backgroundColor: 'white' }} // White background
+            sx={{ backgroundColor: 'white' }}
           />
         </Grid>
       </Grid>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-        <Card variant="outlined" sx={{ flex: 1, mr: 1, p: 2 }}>
-          <CardContent sx={{ paddingBottom: '8px !important' }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Valor Pago:</Typography>
-            <Typography variant="h6" color="success.main">{formatCurrency(detalhesPagamento.valorPago)}</Typography>
-          </CardContent>
-        </Card>
-        <Card variant="outlined" sx={{ flex: 1, ml: 1, p: 2 }}>
-          <CardContent sx={{ paddingBottom: '8px !important' }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Valor Restante a Ser Pago:</Typography>
-            <Typography variant="h6" color="error.main">{formatCurrency(detalhesPagamento.valorRestante)}</Typography>
-          </CardContent>
-        </Card>
-      </Box>
+
+      <PaymentSummary
+        valorPago={detalhesPagamento.valorPago}
+        valorRestante={detalhesPagamento.valorRestante}
+      />
     </Box>
   );
 };

@@ -12,7 +12,7 @@ import 'jspdf-autotable';
  * @param {Array} passengers - Lista de passageiros associados às reservas.
  */
 export const exportToPDF = (travel, reservations, passengers) => {
-  const doc = new jsPDF('p', 'pt');
+  const doc = new jsPDF('landscape', 'pt');
 
   // Função auxiliar para truncar texto
   const truncateText = (text, maxLength) => {
@@ -42,11 +42,11 @@ export const exportToPDF = (travel, reservations, passengers) => {
 
     return {
       numeroAssento: reservation.numeroAssento,
-      passengerNome: truncateText(passenger.nome, 30),
-      passengerDocumentos: truncateText(documentos.trim(), 50),
-      passengerEndereco: truncateText(passenger.endereco, 30),
+      passengerNome: passenger.nome || 'Não informado',  // Exibir nome completo sem truncamento
+      passengerDocumentos: documentos.trim(),  // Exibir documentos completos
+      passengerEndereco: truncateText(passenger.endereco, 30),  // Se deseja truncar endereço, pode manter
       informacoesAdicionais: truncateText(`${menorDeIdade} ${reservation.detalhesPagamento?.informacoesAdicionais || ''}`, 50)
-    };
+    };    
   });
 
   // Adiciona cabeçalho e rodapé
@@ -84,13 +84,13 @@ export const exportToPDF = (travel, reservations, passengers) => {
     startY: 180,
     theme: 'striped',
     margin: { top: 10, bottom: 30, left: 20, right: 20 },
-    styles: { fontSize: 10, halign: 'center' },
+    styles: { fontSize: 10, halign: 'center', cellPadding: 3 },  // Adicione mais espaçamento nas células se necessário
     headStyles: { fillColor: [40, 60, 100], textColor: [255, 255, 255] },
     alternateRowStyles: { fillColor: [240, 240, 240] },
     didDrawPage: function (data) {
       doc.setFontSize(10);
       doc.setTextColor(40);
-
+  
       var str = 'Página ' + doc.internal.getNumberOfPages();
       if (typeof doc.putTotalPages === 'function') {
         str = str + ' de ' + doc.internal.getNumberOfPages();
@@ -98,7 +98,7 @@ export const exportToPDF = (travel, reservations, passengers) => {
       doc.setFontSize(10);
       doc.text(str, data.settings.margin.left, pageHeight - 10);
     },
-  });
+  });  
 
   // Define o nome do arquivo e salva o PDF
   const identifier = travel?.identificador || 'sem-identificador';
