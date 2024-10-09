@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, TextField, MenuItem, InputAdornment, Typography, Box, Card, CardContent, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
+import { Grid, TextField, MenuItem, InputAdornment, Typography, Box, FormControl, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import PaymentSummary from './PaymentSummary';
 import { formatCPF, unformatCPF } from '../../utils/utils';
 
-// Função para formatar o valor como moeda
+// Função para formatar o valor como moeda sem o símbolo R$
 const formatCurrency = (value) => {
   if (!value) return '';
   return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2
+    minimumFractionDigits: 2,
   }).format(parseFloat(value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0);
 };
 
@@ -19,24 +17,24 @@ const unformatCurrency = (value) => {
 
 const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, errors, validatePaymentField }) => {
   const [pagadorEstrangeiro, setPagadorEstrangeiro] = useState(false);
-  const [valorTotalTemp, setValorTotalTemp] = useState(detalhesPagamento.valorTotal || ''); // Mantém valor sem formatação
+  const [valorTotalTemp, setValorTotalTemp] = useState(detalhesPagamento.valorTotal || ''); // Mantém o valor temporário sem formatação durante a digitação
 
   // Inicializa o estado com base nos dados existentes
   useEffect(() => {
     if (detalhesPagamento.passaportePagador) {
-      setPagadorEstrangeiro(true); // Se houver passaporte, é estrangeiro
+      setPagadorEstrangeiro(true);
     } else {
-      setPagadorEstrangeiro(false); // Se não houver, assume que é brasileiro
+      setPagadorEstrangeiro(false);
     }
   }, [detalhesPagamento]);
 
   const handleBlurValorTotal = () => {
     const formattedValue = formatCurrency(valorTotalTemp);
-    handlePaymentDetailChange('valorTotal', unformatCurrency(valorTotalTemp));
-    setValorTotalTemp(formattedValue); // Atualiza com a formatação correta
+    handlePaymentDetailChange('valorTotal', unformatCurrency(valorTotalTemp)); // Envia o valor não formatado
+    setValorTotalTemp(formattedValue); // Atualiza o valor no campo com a formatação
   };
 
-  // Controla o valor durante a digitação, sem formatar
+  // Controla o valor durante a digitação sem formatá-lo, para evitar atritos com a digitação
   const handleChangeValorTotal = (e) => {
     const unformattedValue = e.target.value.replace(/[^\d,]/g, ''); // Permite apenas números e vírgula
     setValorTotalTemp(unformattedValue); // Atualiza o valor temporário sem formatação
@@ -46,11 +44,9 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
     const isEstrangeiro = e.target.value === 'estrangeiro';
     setPagadorEstrangeiro(isEstrangeiro);
     if (isEstrangeiro) {
-      // Limpa CPF e RG quando o pagador é estrangeiro
       handlePaymentDetailChange('cpfPagador', '');
       handlePaymentDetailChange('rgPagador', '');
     } else {
-      // Limpa Passaporte quando o pagador é brasileiro
       handlePaymentDetailChange('passaportePagador', '');
     }
   };
@@ -62,7 +58,6 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
       </Typography>
 
       <FormControl component="fieldset" sx={{ mb: 2 }}>
-        <FormLabel component="legend">Tipo de Pagador</FormLabel>
         <RadioGroup row value={pagadorEstrangeiro ? 'estrangeiro' : 'brasileiro'} onChange={handlePagadorChange}>
           <FormControlLabel value="brasileiro" control={<Radio />} label="Pagador Brasileiro" />
           <FormControlLabel value="estrangeiro" control={<Radio />} label="Pagador Estrangeiro" />
@@ -86,7 +81,6 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
           />
         </Grid>
 
-        {/* Exibe CPF e RG ou Passaporte com base na escolha do pagador */}
         {!pagadorEstrangeiro ? (
           <>
             <Grid item xs={12} md={6}>
@@ -143,15 +137,15 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             label="Valor Total do Pedido"
             name="valorTotal"
             type="text"
-            value={valorTotalTemp} // Exibe o valor temporário durante a digitação
-            onChange={handleChangeValorTotal} // Atualiza o valor durante a digitação
-            onBlur={handleBlurValorTotal} // Formata o valor ao sair do campo
+            value={valorTotalTemp} // Exibe o valor sem formatação temporária
+            onChange={handleChangeValorTotal} // Atualiza o valor enquanto o usuário digita
+            onBlur={handleBlurValorTotal} // Formata o valor ao perder o foco
             error={!!errors['valorTotal']}
             helperText={errors['valorTotal']}
             fullWidth
             required
             InputProps={{
-              startAdornment: <InputAdornment position="start"></InputAdornment>,
+              startAdornment: <InputAdornment position="start">R$</InputAdornment>, // Garante que R$ seja sempre fixo
               inputProps: { min: 0 },
             }}
             sx={{ backgroundColor: 'white' }}

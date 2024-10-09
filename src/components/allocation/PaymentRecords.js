@@ -3,13 +3,11 @@ import { Grid, TextField, MenuItem, InputAdornment, Tooltip, IconButton, Button,
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
-// Função para formatar o valor como moeda
+// Função para formatar o valor como moeda sem o símbolo R$
 const formatCurrency = (value) => {
   if (!value) return '';
   return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2
+    minimumFractionDigits: 2,
   }).format(parseFloat(value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0);
 };
 
@@ -186,6 +184,7 @@ const PaymentRecords = ({
                 error={!!localErrors[`valor-${index}`]}
                 helperText={localErrors[`valor-${index}`]}
                 InputProps={{
+                  startAdornment: <InputAdornment position="start">R$</InputAdornment>, // Garante que R$ seja sempre fixo
                   inputProps: { min: 0 },
                 }}
               />
