@@ -19,6 +19,7 @@ const unformatCurrency = (value) => {
 
 const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, errors, validatePaymentField }) => {
   const [pagadorEstrangeiro, setPagadorEstrangeiro] = useState(false);
+  const [valorTotalTemp, setValorTotalTemp] = useState(detalhesPagamento.valorTotal || ''); // Mantém valor sem formatação
 
   // Inicializa o estado com base nos dados existentes
   useEffect(() => {
@@ -29,12 +30,16 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
     }
   }, [detalhesPagamento]);
 
-  const handleNumberInput = (e) => {
-    const char = String.fromCharCode(e.which);
-    const isAllowed = /^\d|\.|-$/;
-    if (!isAllowed.test(char)) {
-      e.preventDefault();
-    }
+  const handleBlurValorTotal = () => {
+    const formattedValue = formatCurrency(valorTotalTemp);
+    handlePaymentDetailChange('valorTotal', unformatCurrency(valorTotalTemp));
+    setValorTotalTemp(formattedValue); // Atualiza com a formatação correta
+  };
+
+  // Controla o valor durante a digitação, sem formatar
+  const handleChangeValorTotal = (e) => {
+    const unformattedValue = e.target.value.replace(/[^\d,]/g, ''); // Permite apenas números e vírgula
+    setValorTotalTemp(unformattedValue); // Atualiza o valor temporário sem formatação
   };
 
   const handlePagadorChange = (e) => {
@@ -138,9 +143,9 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
             label="Valor Total do Pedido"
             name="valorTotal"
             type="text"
-            value={formatCurrency(detalhesPagamento.valorTotal)} // Formatação em tempo real
-            onChange={(e) => handlePaymentDetailChange('valorTotal', unformatCurrency(e.target.value))}
-            onBlur={(e) => validatePaymentField('valorTotal', e.target.value)}
+            value={valorTotalTemp} // Exibe o valor temporário durante a digitação
+            onChange={handleChangeValorTotal} // Atualiza o valor durante a digitação
+            onBlur={handleBlurValorTotal} // Formata o valor ao sair do campo
             error={!!errors['valorTotal']}
             helperText={errors['valorTotal']}
             fullWidth

@@ -14,7 +14,7 @@ const formatCurrency = (value) => {
 };
 
 const unformatCurrency = (value) => {
-  return value.replace(/[^\d,.-]/g, '').replace(',', '.');
+  return value.replace(/[^\d,-]/g, '').replace(',', '.');
 };
 
 const PaymentRecords = ({
@@ -27,6 +27,7 @@ const PaymentRecords = ({
 }) => {
   const [localErrors, setLocalErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
+  const [tempValues, setTempValues] = useState(paymentRecords.map(record => record.valor || '')); // Controla valores sem formatação
 
   useEffect(() => {
     validateAllPayments(paymentRecords);
@@ -104,12 +105,26 @@ const PaymentRecords = ({
     }));
   };
 
-  const handleNumberInput = (e) => {
-    const char = String.fromCharCode(e.which);
-    const isAllowed = /^\d|\.|-$/;
-    if (!isAllowed.test(char)) {
-      e.preventDefault();
-    }
+  const handleBlurValor = (index) => {
+    const updatedValue = formatCurrency(tempValues[index]);
+    const newRecords = [...paymentRecords];
+    newRecords[index].valor = unformatCurrency(tempValues[index]);
+    setTempValues((prev) => {
+      const newTempValues = [...prev];
+      newTempValues[index] = updatedValue;
+      return newTempValues;
+    });
+    handlePaymentRecordChange(index, 'valor', unformatCurrency(tempValues[index]));
+  };
+
+  const handleChangeValor = (index, newValue) => {
+    // Permite números, vírgula e ponto
+    const unformattedValue = newValue.replace(/[^0-9,]/g, ''); 
+    setTempValues((prev) => {
+      const newTempValues = [...prev];
+      newTempValues[index] = unformattedValue;
+      return newTempValues;
+    });
   };
 
   return (
@@ -159,13 +174,13 @@ const PaymentRecords = ({
               <TextField
                 label="Valor do Pagamento"
                 type="text"
-                value={formatCurrency(record.valor)} // Aplicação da máscara
+                value={tempValues[index]} // Exibe o valor temporário
                 onChange={(e) => {
-                  const newValue = unformatCurrency(e.target.value);
-                  handlePaymentRecordChange(index, 'valor', newValue);
+                  const newValue = e.target.value;
+                  handleChangeValor(index, newValue);
                   validatePayment(index, 'valor', newValue, paymentRecords);
                 }}
-                onKeyPress={handleNumberInput}
+                onBlur={() => handleBlurValor(index)} // Formata o valor ao sair do campo
                 fullWidth
                 required
                 error={!!localErrors[`valor-${index}`]}

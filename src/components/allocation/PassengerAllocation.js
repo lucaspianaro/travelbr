@@ -27,7 +27,7 @@ const PassengerAllocation = () => {
     cpfPagador: '',
     rgPagador: '',
     metodoPagamento: '',
-    valorTotal: '0',
+    valorTotal: '',
     valorPago: '0',
     valorRestante: '0',
     informacoesAdicionais: ''
@@ -325,62 +325,64 @@ const PassengerAllocation = () => {
   };
 
   const handlePaymentDetailChange = (name, value) => {
-    const numericValue = parseFloat(value.replace(',', '.'));
-
     setPaymentDetails((prevDetails) => {
       const updatedDetails = {
         ...prevDetails,
-        [name]: value,
+        [name]: value || '', // Define uma string vazia se o valor for undefined
       };
-
+  
       if (name === 'valorTotal') {
+        const numericValue = parseFloat(value.replace(',', '.')) || 0;
         updatedDetails.valorRestante = (numericValue - parseFloat(prevDetails.valorPago.replace(',', '.'))).toFixed(2);
       }
-
+  
       return updatedDetails;
     });
-  };
+  };  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     if (!isFormValid()) {
       setSnackbarMessage('Preencha todos os campos obrigatórios corretamente.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
       let orderId = editingOrderId || null;
-
+  
+      const cleanDetalhesPagamento = {
+        ...detalhesPagamento,
+        passaportePagador: detalhesPagamento.passaportePagador || '', // Garantir que passaportePagador nunca seja undefined
+        cpfPagador: detalhesPagamento.cpfPagador || '', // Garantir que cpfPagador também não seja undefined
+        rgPagador: detalhesPagamento.rgPagador || '',  // Garantir que rgPagador não seja undefined
+        pagamentos: paymentRecords,
+      };
+  
       if (!orderId) {
         const order = {
           travelId,
           detalhesPagamento: {
-            ...detalhesPagamento,
+            ...cleanDetalhesPagamento,
             criadoEm: new Date().toISOString().split('T')[0],
-            pagamentos: paymentRecords
           }
         };
         orderId = await addOrder(order);
       } else {
-        // Garantir que `orderId` e `travelId` estejam definidos
-        if (!orderId || !travelId) {
-          throw new Error('orderId ou travelId está indefinido');
-        }
         await updateOrder(orderId, {
           travelId,
           detalhesPagamento: {
-            ...detalhesPagamento,
+            ...cleanDetalhesPagamento,
             editadoEm: new Date().toISOString().split('T')[0],
-            pagamentos: paymentRecords
           }
         });
       }
-
+  
+      // Processamento das reservas continua como antes
       for (const reservation of reservations) {
         if (reservation.id) {
           await updateReservation(reservation.id, {
@@ -413,7 +415,7 @@ const PassengerAllocation = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const handleOpenFormDialog = () => {
     setOpenFormDialog(true);
