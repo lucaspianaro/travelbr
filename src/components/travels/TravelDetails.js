@@ -11,6 +11,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatReclineNormal';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Layout from '../common/Layout';
@@ -243,16 +244,11 @@ function TravelDetails() {
     navigate(`/viagens/${travelId}/reservas`);
   };
 
-  const handleNavigateToVehicles = () => {
-    navigate('/veiculos');
+  const handleViewCosts = (travelId, e) => {
+    navigate(`/viagens/${travelId}/custos`);
   };
 
   const handleClickShowMasterPassword = () => setShowMasterPassword(!showMasterPassword);
-
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-    setSnackbarMessage('');
-  };
 
   const handleAddVehicle = async (newVehicle) => {
     try {
@@ -410,7 +406,7 @@ function TravelDetails() {
                         <Typography variant="body2" color="error">
                           Para adicionar reservas, por favor, associe um veículo à viagem através do botão <strong>Editar</strong>. Caso ainda não tenha veículos cadastrados:
                         </Typography>
-                        <Button variant="contained" color="primary" onClick={() => setVehicleModalOpen(true)} sx={{ ml: 2 }}>
+                        <Button variant="contained" color="primary" onClick={() => setVehicleModalOpen(true)} sx={{ ml: 2, borderRadius: '50px' }}>
                           Adicionar Veículo
                         </Button>
                       </Box>
@@ -434,6 +430,16 @@ function TravelDetails() {
                     <Button startIcon={<ListIcon />} variant="outlined" color="primary" onClick={handleViewReservations} sx={{ flex: 1, borderRadius: '50px' }}>
                       Reservas
                     </Button>
+                    <Button
+                          size="small"
+                          variant="outlined"
+                          color="success"
+                          startIcon={<AttachMoneyIcon />}
+                          onClick={(e) => handleViewCosts(travel.id, e)}
+                          sx={{ flex: 1, borderRadius: '50px' }}
+                        >
+                          Custos
+                        </Button>
                     {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
                       <Button startIcon={<CancelIcon />} variant="outlined" color="error" onClick={handleOpenConfirmCancelDialog} sx={{ flex: 1, borderRadius: '50px' }}>
                         Cancelar Viagem

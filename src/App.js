@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import PassengerPage from './pages/PassengerPage';
 import TravelPage from './pages/TravelPage';
 import TravelDetails from './components/travels/TravelDetails';
+import TravelCosts from './pages/TravelCosts';
 import PassengerAllocation from './components/allocation/PassengerAllocation';
 import TravelOrderReservationPage from './components/travels/TravelOrderReservationPage';
 import VehiclePage from './pages/VehiclePage';
@@ -72,6 +73,7 @@ function AuthenticatedApp() {
         <Route path="/viagens/:travelId" element={currentUser ? <TravelDetails /> : <Navigate to="/login" />} />
         <Route path="/viagens/:travelId/alocar-passageiros" element={currentUser ? <PassengerAllocation /> : <Navigate to="/login" />} />
         <Route path="/viagens/:travelId/reservas" element={currentUser ? <TravelOrderReservationPage /> : <Navigate to="/login" />} />
+        <Route path="/viagens/:travelId/custos" element={currentUser ? <TravelCosts /> : <Navigate to="/login" />} />
         <Route path="/viagens/:travelId/editar-reserva" element={currentUser ? <PassengerAllocation /> : <Navigate to="/login" />} />
         <Route path="/veiculos" element={currentUser ? <VehiclePage /> : <Navigate to="/login" />} />
 

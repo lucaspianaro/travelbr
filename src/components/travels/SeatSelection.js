@@ -46,9 +46,11 @@ const SeatSelection = ({ layoutAndar1 = [], layoutAndar2 = [], reservedSeats = [
           const reservedSeat = reservedSeats.find((reserved) => reserved.number === cell.number);
           const isReserved = reservedSeat && reservedSeat.status !== 'Cancelada';
 
-          const passengerInfo = reservedSeat?.passenger 
-            ? `${reservedSeat.passenger.nome} (${reservedSeat.passenger.cpf || reservedSeat.passaporte || reservedSeat.passenger.rg})`
+          // Verificar o documento do passageiro (CPF, RG ou Passaporte)
+          const passengerInfo = reservedSeat?.passenger
+            ? `${reservedSeat.passenger.nome} (${reservedSeat.passenger.cpf || reservedSeat.passenger.passaporte || reservedSeat.passenger.rg})`
             : '';
+
 
           let tooltipText = '';
           if (cell.type === 'seat' && cell.number) {
@@ -83,13 +85,13 @@ const SeatSelection = ({ layoutAndar1 = [], layoutAndar2 = [], reservedSeats = [
                         backgroundColor: isReserved
                           ? 'gray'
                           : selectedSeats.some((selected) => selected.number === cell.number)
-                          ? 'primary.main'  // Fundo azul quando selecionado
-                          : 'initial',       // Padrão quando não selecionado
+                            ? 'primary.main'  // Fundo azul quando selecionado
+                            : 'initial',       // Padrão quando não selecionado
                         color: isReserved
                           ? 'white'
                           : selectedSeats.some((selected) => selected.number === cell.number)
-                          ? 'white'          // Texto branco quando selecionado
-                          : 'initial',
+                            ? 'white'          // Texto branco quando selecionado
+                            : 'initial',
                         cursor: isReserved || cell.type !== 'seat' ? 'not-allowed' : 'pointer',
                         visibility: cell.type === 'empty' ? 'hidden' : 'visible',
                       }}

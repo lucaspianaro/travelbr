@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, IconButton, Box, Tooltip, Button, Grid, Card, CardContent, CardActions, Divider, Chip } from '@mui/material';
+import {
+  Typography, IconButton, Box, Tooltip, Button, Grid, Card, CardContent, CardActions, Divider, Chip, Menu, MenuItem
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ListIcon from '@mui/icons-material/List';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DateRangeIcon from '@mui/icons-material/DateRange';
@@ -25,6 +29,8 @@ const statusStyles = {
 function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideActions, stacked }) {
   const navigate = useNavigate();
   const [reservedSeatsData, setReservedSeatsData] = useState({});
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentTravel, setCurrentTravel] = useState(null);
 
   useEffect(() => {
     const fetchReservedSeats = async () => {
@@ -40,11 +46,43 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
   }, [travels]);
 
   const handleViewReservations = (travelId, e) => {
-    e.stopPropagation();
+    e.stopPropagation();  // Evita o clique no card
     navigate(`/viagens/${travelId}/reservas`);
   };
 
-  const buttonStyle = { flex: 1, minWidth: '100px', maxWidth: '150px', borderRadius: '50px' };
+  const handleViewCosts = (travelId, e) => {
+    e.stopPropagation();  // Evita o clique no card
+    navigate(`/viagens/${travelId}/custos`);
+  };
+
+  const handleOpenMenu = (e, travel) => {
+    e.stopPropagation();  // Evita o clique no card
+    setAnchorEl(e.currentTarget);
+    setCurrentTravel(travel);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setCurrentTravel(null);
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();  // Evita o clique no card
+    startEditing(currentTravel);
+    handleCloseMenu();
+  };
+
+  const handleCancelTravel = (e) => {
+    e.stopPropagation();  // Evita o clique no card
+    handleCancel(currentTravel);
+    handleCloseMenu();
+  };
+
+  const handleDeleteTravel = (e) => {
+    e.stopPropagation();  // Evita o clique no card
+    handleDelete(currentTravel);
+    handleCloseMenu();
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -81,6 +119,15 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
                     <Chip label={status.text} sx={{ backgroundColor: status.color, color: 'white' }} />
                     {travel.identificador && (
                       <Chip label={`ID: ${travel.identificador}`} color="primary" />
+                    )}
+                    {!hideActions && travel.status !== 'Cancelada' && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleOpenMenu(e, travel)}
+                        sx={{ alignSelf: 'flex-start' }}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
                     )}
                   </Box>
                   <CardContent sx={{ flexGrow: 1 }}>
@@ -143,24 +190,29 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
                   </CardContent>
 
                   {!hideActions && (
-                    <CardActions sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
+                    <CardActions sx={{ justifyContent: 'space-between', padding: 0 }}>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        {travel.status !== 'Cancelada' && (
-                          <Button size="small" variant="outlined" color="primary" startIcon={<EditIcon />} sx={buttonStyle} onClick={(e) => { e.stopPropagation(); startEditing(travel); }}>Editar</Button>
-                        )}
-                        <Button size="small" variant="outlined" color="primary" startIcon={<ListIcon />} sx={buttonStyle} onClick={(e) => handleViewReservations(travel.id, e)}>Reservas</Button>
-                        {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
-                          <Button size="small" variant="outlined" color="error" startIcon={<CancelIcon />} sx={buttonStyle} onClick={(e) => { e.stopPropagation(); handleCancel(travel); }}>Cancelar</Button>
-                        )}
-                      </Box>
-                      <Tooltip title="Excluir">
-                        <IconButton
+                        <Button
                           size="small"
-                          onClick={(e) => { e.stopPropagation(); handleDelete(travel); }}
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<ListIcon />}
+                          onClick={(e) => handleViewReservations(travel.id, e)}
+                          sx={{ borderRadius: '50px' }}
                         >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+                          Reservas
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="success"
+                          startIcon={<AttachMoneyIcon />}
+                          onClick={(e) => handleViewCosts(travel.id, e)}
+                          sx={{ borderRadius: '50px' }}
+                        >
+                          Custos
+                        </Button>
+                      </Box>
                     </CardActions>
                   )}
                 </Card>
@@ -173,6 +225,35 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
           </Typography>
         )}
       </Grid>
+
+      {/* Menu de opções para editar, cancelar ou excluir */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleCloseMenu}
+        PaperProps={{
+          style: {
+            maxHeight: 48 * 4.5,
+            width: '20ch',
+          },
+        }}
+      >
+        {currentTravel && currentTravel.status !== 'Cancelada' && (
+          <MenuItem onClick={handleEdit}>
+            <EditIcon fontSize="small" /> Editar
+          </MenuItem>
+        )}
+        {currentTravel && currentTravel.status !== 'Encerrada' && currentTravel.status !== 'Cancelada' && (
+          <MenuItem onClick={handleCancelTravel}>
+            <CancelIcon fontSize="small" /> Cancelar
+          </MenuItem>
+        )}
+        {currentTravel && currentTravel.status !== 'Encerrada' && currentTravel.status !== 'Cancelada' && (
+          <MenuItem onClick={handleDeleteTravel}>
+            <DeleteIcon fontSize="small" /> Excluir
+          </MenuItem>
+        )}
+      </Menu>
     </Box>
   );
 }
