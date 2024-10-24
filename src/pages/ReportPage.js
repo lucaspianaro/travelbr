@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart
 import { Box, Typography, CircularProgress, Paper, useMediaQuery, useTheme, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import { getTravelReportData } from '../services/ReportService';
 import Layout from '../components/common/Layout';
+import ReportPageHelp from '../components/reports/ReportPageHelp'
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -105,7 +106,9 @@ const ReportPage = () => {
   return (
     <Layout>
       <Box sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>Relatórios de Viagens</Typography>
+        <Typography variant="h6" gutterBottom>Relatórios de Viagens
+          <ReportPageHelp />
+        </Typography>
 
         {/* Seção de seleção de ano e botão de exportação para PDF */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

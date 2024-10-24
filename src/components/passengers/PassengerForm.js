@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, TextField, Button, Typography, CircularProgress, FormControlLabel, Checkbox, Snackbar, Alert, Radio, RadioGroup, FormControl, FormLabel, Autocomplete } from '@mui/material';
 import { addPassenger, updatePassenger, getPassengerById, validateDocumentDuplication } from '../../services/PassengerService';
 import { formatCPF, formatRG, formatTelefone, validarCPF, unformatCPF } from '../../utils/utils';
+import PassengerFormHelp from './PassengerFormHelp';
 
 // Função para criar um campo de texto com validação e atributos personalizados
 const renderTextField = (label, field, value, onChange, error, helperText, required = false, type = 'text', inputProps = {}) => (
@@ -352,6 +353,7 @@ const PassengerForm = ({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" component="div">
           {editing ? 'Editar Passageiro' : 'Cadastrar Novo Passageiro'}
+          <PassengerFormHelp />
         </Typography>
         <Typography variant="body2" color="textSecondary">
           * Campos obrigatórios
@@ -359,29 +361,29 @@ const PassengerForm = ({
       </Box>
       <FormControlLabel
         control={<Checkbox checked={passengerIsForeign} onChange={(e) => handleForeignChange(e, 'passenger')} name="estrangeiro" color="primary" />}
-        label="Estrangeiro"
+        label="Passageiro Estrangeiro"
       />
-      {renderTextField("Nome Completo", "nome", editedPassenger.nome, e => handleInputChange(e, 'nome', 'passenger'), errors.nome, errors.nome, true)}
-      {renderTextField("Data de Nascimento", "dataNascimento", editedPassenger.dataNascimento, e => handleInputChange(e, 'dataNascimento', 'passenger'), errors.dataNascimento, errors.dataNascimento, true, 'date', { max: new Date().toISOString().split("T")[0] })}
+      {renderTextField("Nome Completo do Passageiro", "nome", editedPassenger.nome, e => handleInputChange(e, 'nome', 'passenger'), errors.nome, errors.nome, true)}
+      {renderTextField("Data de Nascimento do Passageiro", "dataNascimento", editedPassenger.dataNascimento, e => handleInputChange(e, 'dataNascimento', 'passenger'), errors.dataNascimento, errors.dataNascimento, true, 'date', { max: new Date().toISOString().split("T")[0] })}
 
       {!passengerIsForeign && (
         <>
-          {renderTextField("CPF", "cpf", formatCPF(editedPassenger.cpf), e => handleNumericInputChange(e, 'cpf', 'passenger'), errors.cpf, errors.cpf, !isUnderage, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
-          {renderTextField(isUnderage ? "RG ou Certidão de Nascimento" : "RG", "rg", editedPassenger.rg, e => handleInputChange(e, 'rg', 'passenger'), errors.rg, errors.rg, true)}
+          {renderTextField("CPF do Passageiro", "cpf", formatCPF(editedPassenger.cpf), e => handleNumericInputChange(e, 'cpf', 'passenger'), errors.cpf, errors.cpf, !isUnderage, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
+          {renderTextField(isUnderage ? "RG ou Certidão de Nascimento do Passageiro" : "RG do Passageiro", "rg", editedPassenger.rg, e => handleInputChange(e, 'rg', 'passenger'), errors.rg, errors.rg, true)}
         </>
       )}
 
       {passengerIsForeign && (
-        renderTextField("Número do Passaporte", "passaporte", editedPassenger.passaporte, e => handleInputChange(e, 'passaporte', 'passenger'), errors.passaporte, errors.passaporte, true)
+        renderTextField("Número do Passaporte do Passageiro", "passaporte", editedPassenger.passaporte, e => handleInputChange(e, 'passaporte', 'passenger'), errors.passaporte, errors.passaporte, true)
       )}
 
-      {renderTextField("Telefone", "telefone", formatTelefone(editedPassenger.telefone), e => handleNumericInputChange(e, 'telefone', 'passenger'), errors.telefone, errors.telefone, true, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
-      {renderTextField("Endereço", "endereco", editedPassenger.endereco, e => handleInputChange(e, 'endereco', 'passenger'), errors.endereco, errors.endereco)}
+      {renderTextField("Telefone do Passageiro", "telefone", formatTelefone(editedPassenger.telefone), e => handleNumericInputChange(e, 'telefone', 'passenger'), errors.telefone, errors.telefone, true, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
+      {renderTextField("Logradouro do Passageiro", "endereco", editedPassenger.endereco, e => handleInputChange(e, 'endereco', 'passenger'), errors.endereco, errors.endereco)}
 
       {isUnderage && (
         <>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, marginTop: 2 }}>
-            Dados do Responsável
+            Dados do Responsável do Passageiro
           </Typography>
 
           <FormControl component="fieldset">
@@ -438,7 +440,7 @@ const PassengerForm = ({
           {responsavelFlow === 'new' && (
             <>
               {renderTextField("Nome do Responsável", "nomeResponsavel", responsavelData.nomeResponsavel, e => handleInputChange(e, 'nomeResponsavel', 'responsavel'), errors.nomeResponsavel, errors.nomeResponsavel, true)}
-              {renderTextField("Data de Nascimento", "dataNascimentoResponsavel", responsavelData.dataNascimentoResponsavel, e => handleInputChange(e, 'dataNascimentoResponsavel', 'responsavel'), errors.dataNascimentoResponsavel, errors.dataNascimentoResponsavel, true, 'date', { max: new Date().toISOString().split("T")[0] })}
+              {renderTextField("Data de Nascimento do Responsável", "dataNascimentoResponsavel", responsavelData.dataNascimentoResponsavel, e => handleInputChange(e, 'dataNascimentoResponsavel', 'responsavel'), errors.dataNascimentoResponsavel, errors.dataNascimentoResponsavel, true, 'date', { max: new Date().toISOString().split("T")[0] })}
               {checkUnderage(responsavelData.dataNascimentoResponsavel) && <Typography color="error">O responsável deve ter 18 anos ou mais.</Typography>}
               <FormControlLabel
                 control={<Checkbox checked={responsavelIsForeign} onChange={(e) => handleForeignChange(e, 'responsavel')} name="estrangeiroResponsavel" color="primary" />}
@@ -452,15 +454,15 @@ const PassengerForm = ({
               )}
               {responsavelIsForeign && renderTextField("Passaporte do Responsável", "passaporteResponsavel", responsavelData.passaporteResponsavel, e => handleInputChange(e, 'passaporteResponsavel', 'responsavel'), errors.passaporteResponsavel, errors.passaporteResponsavel, true)}
               {renderTextField("Telefone do Responsável", "telefoneResponsavel", formatTelefone(responsavelData.telefoneResponsavel), e => handleNumericInputChange(e, 'telefoneResponsavel', 'responsavel'), errors.telefoneResponsavel, errors.telefoneResponsavel, true, 'text', { inputMode: 'numeric', pattern: '[0-9]*' })}
-              {renderTextField("Endereço do Responsável", "enderecoResponsavel", responsavelData.enderecoResponsavel, e => handleInputChange(e, 'enderecoResponsavel', 'responsavel'), errors.enderecoResponsavel, errors.enderecoResponsavel, false)}
+              {renderTextField("Logradouro do Responsável", "enderecoResponsavel", responsavelData.enderecoResponsavel, e => handleInputChange(e, 'enderecoResponsavel', 'responsavel'), errors.enderecoResponsavel, errors.enderecoResponsavel, false)}
             </>
           )}
         </>
       )}
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-        <Button onClick={handleCloseFormDialog} color="error" disabled={isSubmitting} sx={{ borderRadius: '50px' }}>
-          {editing ? 'Descartar Alterações' : 'Descartar'}
+        <Button onClick={handleCloseFormDialog} color="cancelar" variant="contained" disabled={isSubmitting} sx={{ borderRadius: '50px' }}>
+          {editing ? 'Descartar Alterações' : 'Voltar'}
         </Button>
         <Button
           onClick={handleAddOrUpdatePassenger}

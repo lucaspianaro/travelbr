@@ -192,7 +192,7 @@ const PaymentRecords = ({
             <Grid item xs={12} sm={3}>
               <TextField
                 select
-                label="Método"
+                label="Método de Pagamento"
                 value={record.metodoPagamento}
                 onChange={(e) => {
                   handlePaymentRecordChange(index, 'metodoPagamento', e.target.value);

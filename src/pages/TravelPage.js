@@ -8,6 +8,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import TravelForm from '../components/travels/TravelForm';
 import TravelCard from '../components/travels/TravelCard';
 import Layout from '../components/common/Layout';
+import TravelPageHelp from '../components/travels/TravelPageHelp';
 import { addTravel, getAllTravels, updateTravel, deleteTravel, cancelTravel, updateInactiveTravels } from '../services/TravelService';
 import { validateMasterPassword, formatDate } from '../utils/utils';
 import { getMasterPasswordStatus } from '../services/AuthService';  
@@ -270,6 +271,7 @@ const TravelPage = () => {
       <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h6" component="div">
           Gerenciamento de Viagens
+          <TravelPageHelp />
         </Typography>
         <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenModal} sx={{ borderRadius: '50px' }}>
           Adicionar

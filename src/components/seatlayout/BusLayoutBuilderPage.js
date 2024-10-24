@@ -3,6 +3,7 @@ import { Box, Button, Grid, Typography, Snackbar, Alert, Dialog, DialogActions, 
 import { Add, Remove, AirlineSeatReclineNormal, Wc, Stairs, Block, Info, Kitchen } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../common/Layout';
+import BusLayoutBuilderPageHelp from './BusLayoutBuilderPageHelp';
 import { addLayout, updateLayout, getLayoutById } from '../../services/LayoutService';
 
 const BusLayoutBuilderPage = () => {
@@ -302,7 +303,8 @@ const BusLayoutBuilderPage = () => {
       <Box sx={{ padding: 2, position: 'relative' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
           <Typography variant="h6" gutterBottom sx={{ flexGrow: 1 }}>
-            {id ? `Editar Layout: ${layoutName}` : 'Criar Novo Layout de Ônibus'}
+            {id ? `Editar Layout: ${layoutName}` : 'Criar Novo Layout de Veículo'}
+            <BusLayoutBuilderPageHelp />
           </Typography>
           <Tooltip title="Legenda">
             <IconButton onClick={() => setInfoDialogOpen(true)} color="info">
@@ -390,10 +392,10 @@ const BusLayoutBuilderPage = () => {
 
         {/* Botões de ação */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          <Button variant="outlined" color="secondary" onClick={() => navigate('/veiculos/layout')}>
-            Descartar
+          <Button color="cancelar" variant="contained" sx={{ borderRadius: '50px' }} onClick={() => navigate('/veiculos/layout')}>
+            Voltar
           </Button>
-          <Button variant="contained" color="primary" onClick={handleSaveLayout}>
+          <Button variant="contained" color="primary" onClick={handleSaveLayout} sx={{ borderRadius: '50px' }}>
             {id ? 'Atualizar Layout' : 'Salvar Layout'}
           </Button>
         </Box>
@@ -401,7 +403,7 @@ const BusLayoutBuilderPage = () => {
 
       {/* Diálogo para editar célula */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Editar Célula</DialogTitle>
+        <DialogTitle>Editar Célula do Layout</DialogTitle>
         <DialogContent dividers sx={{ padding: '24px' }}>
           <FormControl fullWidth sx={{ marginBottom: 3 }}>
             <InputLabel>Tipo de Célula</InputLabel>

@@ -561,8 +561,8 @@ const PassengerAllocation = () => {
                     />
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                    <Button color="error" onClick={() => navigate(previousPage || -1)}>
-                      {editingReservation ? 'Descartar Alterações' : 'Descartar'}
+                    <Button color="cancelar" variant="contained"sx={{ borderRadius: '50px' }} onClick={() => navigate(previousPage || -1)}>
+                      {editingReservation ? 'Descartar Alterações' : 'Voltar'}
                     </Button>
                     <Button
                       type="submit"

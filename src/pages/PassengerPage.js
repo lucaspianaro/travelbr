@@ -7,6 +7,7 @@ import Layout from '../components/common/Layout';
 import PassengerCard from '../components/passengers/PassengerCard';
 import PassengerForm from '../components/passengers/PassengerForm';
 import { getAllPassengers, deletePassengers } from '../services/PassengerService';
+import PassengerPageHelp from '../components/passengers/PassengerPageHelp';
 
 const PassengerPage = () => {
   const [passageiros, setPassageiros] = useState([]);
@@ -122,6 +123,7 @@ const PassengerPage = () => {
       <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
         <Typography variant="h6" component="div">
           Gerenciamento de Passageiros
+          <PassengerPageHelp />
         </Typography>
         <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenFormDialog} sx={{ borderRadius: '50px' }}>
           Adicionar

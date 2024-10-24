@@ -3,6 +3,7 @@ import { Box, Button, TextField, Typography, Grid, Snackbar, Alert, IconButton, 
 import debounce from 'lodash.debounce';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
+import VehicleFormHelp from './VehicleFormHelp';
 import { checkVehiclePlateUnique } from '../../services/VehicleService';
 import { getAllLayouts } from '../../services/LayoutService';
 import { useNavigate } from 'react-router-dom';
@@ -151,6 +152,7 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" component="div">
           {initialVehicle ? 'Editar Veículo' : 'Adicionar Novo Veículo'}
+          <VehicleFormHelp />
         </Typography>
         <Typography variant="caption" display="block" gutterBottom>
           * Campos Obrigatórios
@@ -183,7 +185,7 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
         </Grid>
         <Grid item xs={12}>
           <TextField
-            label="Empresa"
+            label="Empresa do Veículo"
             name="empresa"
             value={vehicle.empresa}
             onChange={handleInputChange}
@@ -203,8 +205,8 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Associar Layout (Opcional)"
-                placeholder="Busque por nome ou ID"
+                label="Associar Layout ao Veículo (Opcional)"
+                placeholder="Busque por nome ou ID do Layout"
                 onChange={handleLayoutSearch} // Busca layouts por nome ou ID
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
@@ -229,8 +231,8 @@ const VehicleForm = ({ onSave, onCancel, initialVehicle }) => {
         </Grid>
 
         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-          <Button onClick={onCancel} color="error">
-            {initialVehicle ? 'Descartar Alterações' : 'Descartar'}
+          <Button onClick={onCancel} color="cancelar" variant="contained" sx={{ borderRadius: '50px' }}>
+            {initialVehicle ? 'Descartar Alterações' : 'Voltar'}
           </Button>
           <Button variant="contained" color="primary" type="submit" disabled={!isFormValid()} sx={{ borderRadius: '50px' }}>
             {initialVehicle ? 'Salvar Alterações' : 'Adicionar Veículo'}

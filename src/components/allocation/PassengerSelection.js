@@ -24,7 +24,7 @@ const PassengerSelection = ({
         <React.Fragment key={reservation.id || index}>
           <Grid item xs={12} container alignItems="center">
             {!editingReservation && reservations.length > 1 && (
-              <Tooltip title="Remover assento">
+              <Tooltip title="Remover assento do pedido">
                 <IconButton
                   onClick={() => handleRemoveReservation(index)}
                 >
@@ -125,7 +125,7 @@ const PassengerSelection = ({
                   disabled={reservation.status === 'Cancelada'}
                 />
               }
-              label="É o pagador"
+              label="É o pagador do pedido"
             />
           </Grid>
           {reservation.status === 'Cancelada' && (

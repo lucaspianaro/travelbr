@@ -126,7 +126,7 @@ const SeatChangeDialog = ({ open, onClose, currentSeat, layoutAndar1 = [], layou
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogContent>
-        <Typography variant="h6" sx={{ marginBottom: '16px' }}>Selecionar Novo Assento</Typography>
+        <Typography variant="h6" sx={{ marginBottom: '16px' }}>Trocar assento</Typography>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
             <CircularProgress />

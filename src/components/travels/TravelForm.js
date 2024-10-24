@@ -7,6 +7,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
 import LocationSelector from './LocationSelector';
 import VehicleForm from '../vehicles/VehicleForm';
+import TravelFormHelp from './TravelFormHelp';
 import { checkTravelIdentifierUnique, getMaxTravelIdentifier } from '../../services/TravelService';
 import { getReservationsByTravelId } from '../../services/OrderService';
 import { getAllVehicles, checkVehicleTravelConflict, addVehicle } from '../../services/VehicleService';
@@ -395,6 +396,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                 sx={{ marginBottom: { xs: 1, md: 0 } }}
               >
                 {initialTravel ? 'Editar Viagem' : 'Nova Viagem'}
+                <TravelFormHelp />
               </Typography>
               <Typography variant="caption" display="block" gutterBottom>
                 * Campos Obrigatórios
@@ -438,14 +440,14 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
               </Grid>
               <Grid item xs={12} md={6}>
                 <LocationSelector
-                  label="Origem"
+                  label="Local de Origem"
                   value={travel.origem}
                   onChange={(value) => handleLocationChange('origem', value)}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <LocationSelector
-                  label="Destino"
+                  label="Local de Destino"
                   value={travel.destino}
                   onChange={(value) => handleLocationChange('destino', value)}
                 />
@@ -454,7 +456,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                 <TextField
                   error={!!errors.dataIda}
                   helperText={errors.dataIda}
-                  label="Data de Ida"
+                  label="Data de Ida da Viagem"
                   name="dataIda"
                   type="date"
                   value={travel.dataIda}
@@ -468,7 +470,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                 <TextField
                   error={!!errors.horarioIda}
                   helperText={errors.horarioIda}
-                  label="Horário de Ida"
+                  label="Horário de Ida da Viagem"
                   name="horarioIda"
                   type="time"
                   value={travel.horarioIda}
@@ -482,7 +484,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                 <TextField
                   error={!!errors.dataRetorno}
                   helperText={errors.dataRetorno}
-                  label="Data de Retorno"
+                  label="Data de Retorno da Viagem"
                   name="dataRetorno"
                   type="date"
                   value={travel.dataRetorno}
@@ -496,7 +498,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                 <TextField
                   error={!!errors.horarioRetorno}
                   helperText={errors.horarioRetorno}
-                  label="Horário de Retorno"
+                  label="Horário de Retorno da Viagem"
                   name="horarioRetorno"
                   type="time"
                   value={travel.horarioRetorno}
@@ -516,7 +518,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Veículo (Opcional)"
+                      label="Veículo da Viagem(Opcional)"
                       placeholder="Busque por Identificador, Placa ou Empresa"
                       InputLabelProps={{ shrink: true }}
                       error={!!errors.veiculoId}
@@ -554,7 +556,7 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                   }
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              {/* <Grid item xs={12} md={6}>
                 <TextField
                   label="Assentos 1° Andar"
                   name="assentosAndar1"
@@ -573,12 +575,12 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                   fullWidth
                   disabled
                 />
-              </Grid>
+              </Grid> */}
               <Grid item xs={12}>
                 <TextField
                   error={!!errors.informacoesAdicionais}
                   helperText={errors.informacoesAdicionais}
-                  label="Informações Adicionais"
+                  label="Informações Adicionais da Viagem"
                   name="informacoesAdicionais"
                   value={travel.informacoesAdicionais}
                   onChange={handleInputChange}
@@ -595,8 +597,8 @@ function TravelForm({ travel: initialTravel, saveTravel, cancelForm }) {
                     flexDirection: { xs: 'column', md: 'row' },
                   }}
                 >
-                  <Button color="error" onClick={cancelForm}>
-                    {initialTravel ? 'Descartar alterações' : 'Descartar'}
+                  <Button  onClick={cancelForm} color="cancelar" variant="contained" sx={{ borderRadius: '50px' }} >
+                    {initialTravel ? 'Descartar alterações' : 'Voltar'}
                   </Button>
                   <Button
                     type="submit"

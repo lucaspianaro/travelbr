@@ -87,7 +87,7 @@ const SeatLayoutBuilder = ({ onSaveLayout, initialLayout }) => {
       </Typography>
 
       <FormControl sx={{ minWidth: 120, marginBottom: 2 }}>
-        <InputLabel>Tipo de Célula</InputLabel>
+        <InputLabel>Tipo de Célula do Layout</InputLabel>
         <Select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
           <MenuItem value="seat">Assento</MenuItem>
           <MenuItem value="bathroom">Banheiro</MenuItem>

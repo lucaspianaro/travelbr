@@ -3,6 +3,7 @@ import { Box, Typography, Tabs, Tab, Fade } from '@mui/material';
 import Layout from '../components/common/Layout';
 import OrderReservationList from '../components/payments/OrderReservationList';
 import Receivables from '../components/payments/Receivables';
+import ReceivablesHelp from '../components/payments/ReceivablesHelp';
 
 const PaymentPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -16,6 +17,7 @@ const PaymentPage = () => {
       <Box sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Gestão de Reservas e Pagamentos
+          <ReceivablesHelp />
         </Typography>
         <Tabs value={tabIndex} onChange={handleTabChange}>
           <Tab label="A receber" />

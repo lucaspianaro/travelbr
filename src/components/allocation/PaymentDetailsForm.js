@@ -54,7 +54,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
   return (
     <Box sx={{ mb: 3, p: 2, border: '1px solid #ccc', borderRadius: 2, backgroundColor: '#fafafa' }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        Informações de Pagamento
+        Informações de Pagamento do Pedido
       </Typography>
 
       <FormControl component="fieldset" sx={{ mb: 2 }}>
@@ -155,7 +155,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
         <Grid item xs={12} md={6}>
           <TextField
             select
-            label="Método de Pagamento"
+            label="Método de Pagamento do Pedido"
             name="metodoPagamento"
             value={detalhesPagamento.metodoPagamento}
             onChange={(e) => handlePaymentDetailChange('metodoPagamento', e.target.value)}
@@ -176,7 +176,7 @@ const PaymentDetailsForm = ({ detalhesPagamento, handlePaymentDetailChange, erro
 
         <Grid item xs={12}>
           <TextField
-            label="Informações Adicionais da Reserva"
+            label="Informações Adicionais do Pedido"
             name="informacoesAdicionais"
             value={detalhesPagamento.informacoesAdicionais}
             onChange={(e) => handlePaymentDetailChange('informacoesAdicionais', e.target.value)}

@@ -30,7 +30,7 @@ const CostForm = ({ newCost, setNewCost, handleAddCost, transactionTypes, paymen
           
           {/* Campo de descrição */}
           <TextField
-            label="Descrição"
+            label="Descrição da Transação"
             value={newCost.description}
             onChange={(e) => setNewCost({ ...newCost, description: e.target.value })}
             sx={{ flex: 1, minWidth: '200px' }}
@@ -38,7 +38,7 @@ const CostForm = ({ newCost, setNewCost, handleAddCost, transactionTypes, paymen
 
           {/* Campo de valor */}
           <TextField
-            label="Valor"
+            label="Valor da Transação"
             type="number"
             value={newCost.amount}
             onChange={(e) => setNewCost({ ...newCost, amount: e.target.value })}
@@ -50,7 +50,7 @@ const CostForm = ({ newCost, setNewCost, handleAddCost, transactionTypes, paymen
 
           {/* Campo de data com valor inicial da data atual */}
           <TextField
-            label="Data"
+            label="Data da Transação"
             type="date"
             value={newCost.date || getCurrentDate()}  
             onChange={(e) => setNewCost({ ...newCost, date: e.target.value })}
@@ -60,7 +60,7 @@ const CostForm = ({ newCost, setNewCost, handleAddCost, transactionTypes, paymen
 
           {/* Campo de tipo */}
           <TextField
-            label="Tipo"
+            label="Tipo da Transação"
             select
             value={newCost.type}
             onChange={(e) => setNewCost({ ...newCost, type: e.target.value })}
@@ -75,7 +75,7 @@ const CostForm = ({ newCost, setNewCost, handleAddCost, transactionTypes, paymen
 
           {/* Campo de método de pagamento */}
           <TextField
-            label="Método de Pagamento"
+            label="Método de Pagamento da Transação"
             select
             value={newCost.paymentMethod}
             onChange={(e) => setNewCost({ ...newCost, paymentMethod: e.target.value })}

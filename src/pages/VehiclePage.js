@@ -8,6 +8,7 @@ import Layout from '../components/common/Layout';
 import VehicleDetails from '../components/vehicles/VehicleDetails';
 import VehicleCard from '../components/vehicles/VehicleCard';
 import VehicleForm from '../components/vehicles/VehicleForm';
+import VehiclePageHelp from '../components/vehicles/VehiclePageHelp';
 import { addVehicle, getAllVehicles, updateVehicle, deleteVehicle, getVehicleTravels } from '../services/VehicleService';
 import { getAllLayouts } from '../services/LayoutService'; // Importar a função para buscar layouts
 import { validateMasterPassword } from '../utils/utils';
@@ -206,6 +207,7 @@ const VehiclePage = () => {
       <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h6" component="div">
           Gerenciamento de Veículos
+          <VehiclePageHelp />
         </Typography>
         <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)} sx={{ borderRadius: '50px' }}>
           Adicionar
@@ -281,7 +283,19 @@ const VehiclePage = () => {
         </>
       )}
       <Modal open={openModal} onClose={handleCancel}>
-        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: '20px', // Adicione esta linha para bordas arredondadas
+            overflow: 'hidden', // Para garantir que o conteúdo não saia do Box arredondado
+          }}
+        >
           <VehicleForm onSave={editingVehicle ? handleEditVehicle : handleAddVehicle} initialVehicle={editingVehicle} onCancel={handleCancel} fetchVehicles={fetchVehiclesAndLayouts} />
         </Box>
       </Modal>

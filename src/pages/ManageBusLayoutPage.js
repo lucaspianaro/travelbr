@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Layout from '../components/common/Layout';
 import LayoutCard from '../components/seatlayout/LayoutCard';
+import ManageBusLayoutPageHelp from '../components/seatlayout/ManageBusLayoutPageHelp';
 import { getAllLayouts, deleteLayout } from '../services/LayoutService'; 
 import { useNavigate } from 'react-router-dom';
 
@@ -97,6 +98,7 @@ const ManageBusLayoutPage = () => {
       <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h6" component="div">
           Gerenciamento de Layout de Ônibus
+          <ManageBusLayoutPageHelp />
         </Typography>
         <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => goToLayoutBuilder()} sx={{ borderRadius: '50px' }}>
           Adicionar Novo Layout
