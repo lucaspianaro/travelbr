@@ -37,6 +37,7 @@ import { useDrawer } from '../../contexts/DrawerContext';
 import { useIdleTimer } from 'react-idle-timer';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import ToggleColorMode from '../newlandingpage/components/ToggleColorMode';
 
 const drawerWidth = 240;
 
@@ -49,7 +50,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    marginLeft: showSidebar ? `-${drawerWidth}px` : 0, 
+    marginLeft: showSidebar ? `-${drawerWidth}px` : 0,
     ...(open && showSidebar && {
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.easeOut,
@@ -71,7 +72,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLogout = false }) => {
+const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLogout = false, toggleColorMode, mode }) => {
   const theme = useTheme();
   const { openDrawer, toggleDrawer, closeDrawer } = useDrawer();
   const [loading, setLoading] = useState(false);
@@ -143,6 +144,7 @@ const Layout = ({ children, showSidebar = true, defaultOpenDrawer = true, hideLo
             </Typography>
           </RouterLink>
           <Box sx={{ flexGrow: 1 }} />
+          <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
           <RouterLink to="/central-ajuda" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
             <Tooltip title="Ajuda">
               <IconButton color="inherit">

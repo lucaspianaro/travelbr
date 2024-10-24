@@ -13,7 +13,7 @@ import Footer from './components/Footer';
 import getLPTheme from './theme/getLPTheme';
 import TemplateFrame from './TemplateFrame';
 
-export default function MarketingPage() {
+export default function NewLandingPage() {
   const [mode, setMode] = React.useState('light'); // Tema claro por padrão
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
   
