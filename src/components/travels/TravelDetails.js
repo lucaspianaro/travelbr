@@ -18,6 +18,7 @@ import Layout from '../common/Layout';
 import TravelForm from './TravelForm';
 import SeatSelection from './SeatSelection';
 import VehicleForm from '../vehicles/VehicleForm';
+import TravelDetailsHelp from '../helps/TravelDetailsHelp';
 import { getTravelById, updateTravel, cancelTravel, deleteTravel, getVehicleById } from '../../services/TravelService';
 import { getAvailableSeats, getReservedSeats } from '../../services/OrderService';
 import { addVehicle } from '../../services/VehicleService';
@@ -234,7 +235,7 @@ function TravelDetails() {
   const handleSelectSeats = (seats) => {
     // Atualiza corretamente o estado de selectedSeats com os assentos selecionados
     setSelectedSeats(seats);
-  };  
+  };
 
   const handleProceedToAllocation = () => {
     navigate(`/viagens/${travelId}/alocar-passageiros`, { state: { selectedSeats } });
@@ -300,12 +301,15 @@ function TravelDetails() {
 
   return (
     <Layout>
-      <Box sx={{ p: 3 }}>
-        <Fade in={!loading}>
-          <IconButton onClick={handleGoBack} sx={{ mb: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-        </Fade>
+      <Box sx={{ p: 0 }}>
+        <Box sx={{ p: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Fade in={!loading} mountOnEnter unmountOnExit>
+            <IconButton onClick={handleGoBack} sx={{ mb: 2 }}>
+              <ArrowBackIcon />
+            </IconButton>
+          </Fade>
+          <TravelDetailsHelp />
+        </Box>
         {error && (
           <Snackbar open autoHideDuration={6000} onClose={() => setError('')}>
             <Alert onClose={() => setError('')} severity="error" sx={{ width: '100%' }}>
@@ -431,15 +435,15 @@ function TravelDetails() {
                       Reservas
                     </Button>
                     <Button
-                          size="small"
-                          variant="outlined"
-                          color="success"
-                          startIcon={<AttachMoneyIcon />}
-                          onClick={(e) => handleViewCosts(travel.id, e)}
-                          sx={{ flex: 1, borderRadius: '50px' }}
-                        >
-                          Custos
-                        </Button>
+                      size="small"
+                      variant="outlined"
+                      color="success"
+                      startIcon={<AttachMoneyIcon />}
+                      onClick={(e) => handleViewCosts(travel.id, e)}
+                      sx={{ flex: 1, borderRadius: '50px' }}
+                    >
+                      Custos
+                    </Button>
                     {travel.status !== 'Cancelada' && travel.status !== 'Encerrada' && (
                       <Button startIcon={<CancelIcon />} variant="outlined" color="error" onClick={handleOpenConfirmCancelDialog} sx={{ flex: 1, borderRadius: '50px' }}>
                         Cancelar Viagem

@@ -22,7 +22,7 @@ export default function ManageBusLayoutPageHelp() {
             </Tooltip>
 
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                <DialogTitle>Ajuda - Gerenciamento de Layout de Ônibus</DialogTitle>
+                <DialogTitle>Ajuda - Gerenciamento de Layout de Veículos</DialogTitle>
                 <DialogContent>
                     <Box sx={{ maxHeight: '500px', overflowY: 'auto' }}>
                         <Typography variant="body1" paragraph>

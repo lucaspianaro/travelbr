@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Typography, IconButton, Box, Tooltip, Button, Grid, Card, CardContent, CardActions, Divider, Chip, Menu, MenuItem
+  Typography, IconButton, Box, Button, Grid, Card, CardContent, CardActions, Divider, Chip, Menu, MenuItem
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -86,7 +86,7 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Grid container spacing={stacked ? 0 : 2} direction={stacked ? 'column' : 'row'}>
+      <Grid container spacing={2}>
         {travels.length > 0 ? (
           travels.map(travel => {
             const status = statusStyles[travel.status] || statusStyles['Indefinido'];
@@ -97,8 +97,8 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
               <Grid 
                 item 
                 xs={12} 
-                sm={stacked ? 12 : 6} 
-                md={stacked ? 12 : 4} 
+                sm={6} 
+                md={4} 
                 key={travel.id} 
               >
                 <Card
@@ -113,9 +113,11 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
                     borderRadius: 2,
                     display: 'flex',
                     flexDirection: 'column',
+                    // Ajuste de padding e margens para telas menores
+                    p: { xs: 2, sm: 3 },
                   }}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Chip label={status.text} sx={{ backgroundColor: status.color, color: 'white' }} />
                     {travel.identificador && (
                       <Chip label={`ID: ${travel.identificador}`} color="primary" />
@@ -132,59 +134,51 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
                   </Box>
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <LocationOnIcon sx={{ mr: 1 }} color="primary" />
-                      <Typography variant="h6" noWrap>{travel.origem}</Typography>
+                      <LocationOnIcon sx={{ mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} color="primary" />
+                      <Typography variant="h6" noWrap fontSize={{ xs: '1rem', sm: '1.25rem' }}>{travel.origem}</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <LocationOnIcon sx={{ mr: 1 }} color="secondary" />
-                      <Typography variant="h6" noWrap>{travel.destino}</Typography>
+                      <LocationOnIcon sx={{ mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} color="secondary" />
+                      <Typography variant="h6" noWrap fontSize={{ xs: '1rem', sm: '1.25rem' }}>{travel.destino}</Typography>
                     </Box>
                     <Divider sx={{ my: 1 }} />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <DateRangeIcon sx={{ mr: 1 }} />
-                        <Typography variant="body2">Data de Ida: {formatDate(travel.dataIda)}</Typography>
+                        <DateRangeIcon sx={{ mr: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                        <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>Data de Ida: {formatDate(travel.dataIda)}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <AccessTimeIcon sx={{ mr: 1 }} />
-                        <Typography variant="body2">Hora: {travel.horarioIda}</Typography>
+                        <AccessTimeIcon sx={{ mr: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                        <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>Hora: {travel.horarioIda}</Typography>
                       </Box>
                     </Box>
                     {travel.somenteIda ? (
                       <Box sx={{ mb: 1 }}>
-                        <Typography variant="body2" color="textSecondary">Viagem somente de ida</Typography>
+                        <Typography variant="body2" color="textSecondary" fontSize={{ xs: '0.9rem', sm: '1rem' }}>Viagem somente de ida</Typography>
                       </Box>
                     ) : (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <DateRangeIcon sx={{ mr: 1 }} />
-                          <Typography variant="body2">Data de Retorno: {formatDate(travel.dataRetorno)}</Typography>
+                          <DateRangeIcon sx={{ mr: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                          <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>Data de Retorno: {formatDate(travel.dataRetorno)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <AccessTimeIcon sx={{ mr: 1 }} />
-                          <Typography variant="body2">Hora: {travel.horarioRetorno}</Typography>
+                          <AccessTimeIcon sx={{ mr: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                          <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>Hora: {travel.horarioRetorno}</Typography>
                         </Box>
                       </Box>
                     )}
                     <Divider sx={{ my: 1 }} />
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <DirectionsBusIcon sx={{ mr: 1 }} />
-                      <Typography variant="body2">
-                        {travel.veiculo ? (
-                          `${travel.veiculo.identificadorVeiculo} - ${travel.veiculo.placa} (${travel.veiculo.empresa})`
-                        ) : (
-                          `Nenhum veículo associado`
-                        )}
+                      <DirectionsBusIcon sx={{ mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+                      <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>
+                        {travel.veiculo ? `${travel.veiculo.identificadorVeiculo} - ${travel.veiculo.placa} (${travel.veiculo.empresa})` : `Nenhum veículo associado`}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <AirlineSeatReclineNormalIcon sx={{ mr: 1 }} />
-                      <Typography variant="body2">
-                        {travel.veiculo ? (
-                          `Assentos Ocupados: ${occupiedSeats}/${totalSeats}`
-                        ) : (
-                          `Reservas: ${occupiedSeats || 'Nenhuma Reserva'}`
-                        )}
+                      <AirlineSeatReclineNormalIcon sx={{ mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+                      <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>
+                        {travel.veiculo ? `Assentos Ocupados: ${occupiedSeats}/${totalSeats}` : `Reservas: ${occupiedSeats || 'Nenhuma Reserva'}`}
                       </Typography>
                     </Box>
                   </CardContent>

@@ -97,7 +97,7 @@ const ManageBusLayoutPage = () => {
     <Layout>
       <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h6" component="div">
-          Gerenciamento de Layout de Ônibus
+          Gerenciamento de Layout de Veículo
           <ManageBusLayoutPageHelp />
         </Typography>
         <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => goToLayoutBuilder()} sx={{ borderRadius: '50px' }}>

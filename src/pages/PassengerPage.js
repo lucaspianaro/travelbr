@@ -3,11 +3,14 @@ import { Snackbar, Alert, Button, Typography, TextField, Box, Dialog, DialogActi
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import ViewListIcon from '@mui/icons-material/ViewList';
 import Layout from '../components/common/Layout';
 import PassengerCard from '../components/passengers/PassengerCard';
+import PassengerTable from '../components/passengers/PassengerTable';
 import PassengerForm from '../components/passengers/PassengerForm';
-import { getAllPassengers, deletePassengers } from '../services/PassengerService';
 import PassengerPageHelp from '../components/passengers/PassengerPageHelp';
+import { getAllPassengers, deletePassengers } from '../services/PassengerService';
 
 const PassengerPage = () => {
   const [passageiros, setPassageiros] = useState([]);
@@ -30,6 +33,7 @@ const PassengerPage = () => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [viewMode, setViewMode] = useState(localStorage.getItem('viewMode') || 'card'); // Pega o modo do localStorage ou usa 'card'
 
   const fetchPassageiros = useCallback(async () => {
     setLoading(true);
@@ -118,6 +122,12 @@ const PassengerPage = () => {
     </InputAdornment>
   );
 
+  // Função para alternar entre os modos de visualização e salvar no localStorage
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('viewMode', mode); // Salva a opção de visualização no localStorage
+  };
+
   return (
     <Layout>
       <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
@@ -131,7 +141,17 @@ const PassengerPage = () => {
         <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)} sx={{ borderRadius: '50px' }}>
           {filtersVisible ? 'Ocultar Filtros' : 'Mostrar Filtros'}
         </Button>
+        {/* Alternância de visualização com ícones, posicionado à direita */}
+        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          <IconButton onClick={() => handleViewModeChange('card')} color={viewMode === 'card' ? 'primary' : 'default'}>
+            <ViewModuleIcon />
+          </IconButton>
+          <IconButton onClick={() => handleViewModeChange('table')} color={viewMode === 'table' ? 'primary' : 'default'}>
+            <ViewListIcon />
+          </IconButton>
+        </Box>
       </Box>
+
       <Collapse in={filtersVisible}>
         <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <FormControl variant="outlined" sx={{ minWidth: 240, flexGrow: 1 }}>
@@ -186,17 +206,26 @@ const PassengerPage = () => {
           />
         </Box>
       </Collapse>
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
         </Box>
       ) : (
         <>
-          <PassengerCard
-            passengers={currentPassengers}
-            handleDeletePassenger={handleDeletePassenger}
-            startEditing={startEditing}
-          />
+          {viewMode === 'card' ? (
+            <PassengerCard
+              passengers={currentPassengers}
+              handleDeletePassenger={handleDeletePassenger}
+              startEditing={startEditing}
+            />
+          ) : (
+            <PassengerTable
+              passengers={currentPassengers}
+              handleDeletePassenger={handleDeletePassenger}
+              startEditing={startEditing}
+            />
+          )}
           <Pagination
             count={Math.ceil(filteredPassageiros.length / passengersPerPage)}
             page={currentPage}

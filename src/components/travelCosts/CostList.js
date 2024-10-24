@@ -152,141 +152,155 @@ const CostList = ({
         </Box>
       </Collapse>
 
-      {/* Tabela de Transações */}
-      <TableContainer component={Paper} elevation={2}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Descrição</TableCell>
-              <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Valor</TableCell>
-              <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Data</TableCell>
-              <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Tipo</TableCell>
-              <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Método de Pagamento</TableCell>
-              <TableCell align="right" sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
-                Ações
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {currentCosts.map((cost) => (
-              <TableRow key={cost.id}>
-                {editingCost?.id === cost.id ? (
-                  <>
-                    <TableCell>
-                      <TextField
-                        label="Descrição"
-                        value={editingCost.description}
-                        onChange={(e) =>
-                          setEditingCost({ ...editingCost, description: e.target.value })
-                        }
-                        sx={{ width: '100%' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        label="Valor"
-                        type="number"
-                        value={editingCost.amount}
-                        onChange={(e) =>
-                          setEditingCost({ ...editingCost, amount: e.target.value })
-                        }
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">R$</InputAdornment>
-                          ),
-                        }}
-                        sx={{ width: '100%' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        label="Data"
-                        type="date"
-                        value={editingCost.date}
-                        onChange={(e) =>
-                          setEditingCost({ ...editingCost, date: e.target.value })
-                        }
-                        InputLabelProps={{ shrink: true }}
-                        sx={{ width: '100%' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        label="Tipo"
-                        select
-                        value={editingCost.type}
-                        onChange={(e) =>
-                          setEditingCost({ ...editingCost, type: e.target.value })
-                        }
-                        sx={{ width: '100%' }}
-                      >
-                        {transactionTypes.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        label="Método de Pagamento"
-                        select
-                        value={editingCost.paymentMethod}
-                        onChange={(e) =>
-                          setEditingCost({ ...editingCost, paymentMethod: e.target.value })
-                        }
-                        sx={{ width: '100%' }}
-                      >
-                        {paymentMethods.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton color="primary" onClick={handleUpdateCost}>
-                        <Save />
-                      </IconButton>
-                      <IconButton color="secondary" onClick={handleCancelEdit}>
-                        <Cancel />
-                      </IconButton>
-                    </TableCell>
-                  </>
-                ) : (
-                  <>
-                    <TableCell>{cost.description}</TableCell>
-                    <TableCell>R${cost.amount}</TableCell>
-                    <TableCell>{formatDate(cost.date)}</TableCell> {/* Formatando a data com formatDate */}
-                    <TableCell>{cost.type}</TableCell>
-                    <TableCell>{cost.paymentMethod}</TableCell>
-                    <TableCell align="right">
-                      <IconButton onClick={() => handleEditClick(cost)}>
-                        <Edit />
-                      </IconButton>
-                      <IconButton onClick={() => handleDeleteCost(cost.id)}>
-                        <Delete />
-                      </IconButton>
-                    </TableCell>
-                  </>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* Empty State para quando não houver transações */}
+      {filteredCosts.length === 0 ? (
+        <Paper elevation={1} sx={{ p: 3, mt: 4, textAlign: 'center' }}>
+          <Typography variant="h6" color="textSecondary">
+            Nenhuma transação encontrada
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Ajuste os filtros ou adicione uma nova transação para vê-la aqui.
+          </Typography>
+        </Paper>
+      ) : (
+        <>
+          {/* Tabela de Transações */}
+          <TableContainer component={Paper} elevation={2}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Descrição</TableCell>
+                  <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Valor</TableCell>
+                  <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Data</TableCell>
+                  <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Tipo</TableCell>
+                  <TableCell sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Método de Pagamento</TableCell>
+                  <TableCell align="right" sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
+                    Ações
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {currentCosts.map((cost) => (
+                  <TableRow key={cost.id}>
+                    {editingCost?.id === cost.id ? (
+                      <>
+                        <TableCell>
+                          <TextField
+                            label="Descrição"
+                            value={editingCost.description}
+                            onChange={(e) =>
+                              setEditingCost({ ...editingCost, description: e.target.value })
+                            }
+                            sx={{ width: '100%' }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            label="Valor"
+                            type="number"
+                            value={editingCost.amount}
+                            onChange={(e) =>
+                              setEditingCost({ ...editingCost, amount: e.target.value })
+                            }
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">R$</InputAdornment>
+                              ),
+                            }}
+                            sx={{ width: '100%' }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            label="Data"
+                            type="date"
+                            value={editingCost.date}
+                            onChange={(e) =>
+                              setEditingCost({ ...editingCost, date: e.target.value })
+                            }
+                            InputLabelProps={{ shrink: true }}
+                            sx={{ width: '100%' }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            label="Tipo"
+                            select
+                            value={editingCost.type}
+                            onChange={(e) =>
+                              setEditingCost({ ...editingCost, type: e.target.value })
+                            }
+                            sx={{ width: '100%' }}
+                          >
+                            {transactionTypes.map((option) => (
+                              <MenuItem key={option} value={option}>
+                                {option}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            label="Método de Pagamento"
+                            select
+                            value={editingCost.paymentMethod}
+                            onChange={(e) =>
+                              setEditingCost({ ...editingCost, paymentMethod: e.target.value })
+                            }
+                            sx={{ width: '100%' }}
+                          >
+                            {paymentMethods.map((option) => (
+                              <MenuItem key={option} value={option}>
+                                {option}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton color="primary" onClick={handleUpdateCost}>
+                            <Save />
+                          </IconButton>
+                          <IconButton color="secondary" onClick={handleCancelEdit}>
+                            <Cancel />
+                          </IconButton>
+                        </TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell>{cost.description}</TableCell>
+                        <TableCell>R${cost.amount}</TableCell>
+                        <TableCell>{formatDate(cost.date)}</TableCell> {/* Formatando a data com formatDate */}
+                        <TableCell>{cost.type}</TableCell>
+                        <TableCell>{cost.paymentMethod}</TableCell>
+                        <TableCell align="right">
+                          <IconButton onClick={() => handleEditClick(cost)}>
+                            <Edit />
+                          </IconButton>
+                          <IconButton onClick={() => handleDeleteCost(cost.id)}>
+                            <Delete />
+                          </IconButton>
+                        </TableCell>
+                      </>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-      {/* Paginação */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Pagination
-          count={Math.ceil(filteredCosts.length / ITEMS_PER_PAGE)} // Total de páginas
-          page={currentPage}
-          onChange={handlePageChange}
-          color="primary"
-          shape="rounded"
-          sx={{ borderRadius: '50px' }}
-        />
-      </Box>
+          {/* Paginação */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Pagination
+              count={Math.ceil(filteredCosts.length / ITEMS_PER_PAGE)} // Total de páginas
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+              shape="rounded"
+              sx={{ borderRadius: '50px' }}
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

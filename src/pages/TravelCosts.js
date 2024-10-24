@@ -6,6 +6,7 @@ import Layout from '../components/common/Layout';
 import CostForm from '../components/travelCosts/CostForm';
 import CostList from '../components/travelCosts/CostList';
 import CostSummary from '../components/travelCosts/CostSummary';
+import TravelCostsHelp from '../components/helps/TravelCostsHelp';
 import { getCostsByTravelId, addCost, updateCost, deleteCost } from '../services/TravelCostsService';
 import { getOrdersByTravelId } from '../services/OrderService';
 
@@ -167,7 +168,7 @@ const TravelCosts = () => {
 
   return (
     <Layout>
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 0 }}>
         <Box
           sx={{
             display: 'flex',
@@ -182,7 +183,8 @@ const TravelCosts = () => {
             <IconButton onClick={handleGoBack} sx={{ mr: 1 }}>
               <ArrowBack />
             </IconButton>
-            <Typography variant="h5">Gerenciamento de Custos e Recebimentos</Typography>
+            <Typography variant="h6">Gerenciamento de Custos e Recebimentos</Typography>
+            <TravelCostsHelp />
           </Box>
 
           <CostSummary 

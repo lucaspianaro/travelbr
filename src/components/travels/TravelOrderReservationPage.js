@@ -13,6 +13,7 @@ import OrderCard from '../order/OrderCard';
 import ReservationCard from '../reservation/ReservationCard';
 import OrderDetails from '../order/OrderDetails';
 import ReservationDetails from '../reservation/ReservationDetails';
+import TravelOrderReservationHelp from '../helps/TravelOrderReservationHelp';
 import { getTravelById } from '../../services/TravelService';
 import { getReservationsByTravelId, getOrdersByTravelId, cancelOrder, cancelReservation } from '../../services/OrderService';
 import { getAllPassengers } from '../../services/PassengerService';
@@ -350,6 +351,7 @@ const TravelOrderReservationPage = () => {
           <Typography variant="h6">
             Reservas e Pedidos
           </Typography>
+          <TravelOrderReservationHelp />
         </Box>
         <TravelInfo travel={travel} />
         <Tabs

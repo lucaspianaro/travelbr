@@ -13,6 +13,7 @@ import Layout from '../components/common/Layout';
 import UpdateProfileForm from '../components/account/UpdateProfileForm';
 import ChangePasswordForm from '../components/account/ChangePasswordForm';
 import SetMasterPasswordForm from '../components/account/SetMasterPasswordForm';
+import MyAccountHelp from '../components/helps/MyAccountHelp'
 import { getMasterPasswordFullStatus, toggleMasterPasswordActive } from '../services/AuthService';
 import { validateMasterPassword } from '../utils/utils';
 
@@ -73,8 +74,13 @@ function MyAccount() {
   return (
     <Layout showSidebar={true}>
       <Container component="main" maxWidth="sm">
-        <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
+        <Box sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ marginTop: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ marginRight: 2 }}>
+              Minha Conta
+            </Typography>
+            <MyAccountHelp />
+          </Box>
           <Card variant="outlined" sx={{ width: '100%', mt: 3 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>

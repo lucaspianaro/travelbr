@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Modal, Fade, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Pagination, MenuItem, Select, FormControl, InputLabel, InputAdornment, Collapse } from '@mui/material';
+import { Typography, Button, Box, CircularProgress, Snackbar, Alert, IconButton, Modal, Fade, Dialog, DialogActions, DialogContent, Tooltip, DialogContentText, DialogTitle, TextField, Pagination, MenuItem, Select, FormControl, InputLabel, InputAdornment, Collapse } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import ViewListIcon from '@mui/icons-material/ViewList';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import TravelForm from '../components/travels/TravelForm';
 import TravelCard from '../components/travels/TravelCard';
+import TravelList from '../components/travels/TravelList';
 import Layout from '../components/common/Layout';
 import TravelPageHelp from '../components/travels/TravelPageHelp';
 import { addTravel, getAllTravels, updateTravel, deleteTravel, cancelTravel, updateInactiveTravels } from '../services/TravelService';
 import { validateMasterPassword, formatDate } from '../utils/utils';
-import { getMasterPasswordStatus } from '../services/AuthService';  
+import { getMasterPasswordStatus } from '../services/AuthService';
 import { getReservationsByTravelId } from '../services/OrderService';
 
 const TravelPage = () => {
@@ -39,7 +42,21 @@ const TravelPage = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [reservationsCount, setReservationsCount] = useState(0);
-  const [masterPasswordActive, setMasterPasswordActive] = useState(false);  
+  const [viewMode, setViewMode] = useState('cardView'); // cardView (modo cartão) ou listView (modo lista)
+  const [masterPasswordActive, setMasterPasswordActive] = useState(false);
+
+  useEffect(() => {
+    const savedViewMode = localStorage.getItem('viewMode');
+    if (savedViewMode) {
+      setViewMode(savedViewMode);
+    }
+  }, []);
+
+    // Função para alternar e salvar o modo de visualização
+    const handleViewModeChange = (mode) => {
+      setViewMode(mode);
+      localStorage.setItem('viewMode', mode); // Salva a escolha do usuário no localStorage
+    };  
 
   useEffect(() => {
     const fetchTravelsData = async () => {
@@ -268,17 +285,40 @@ const TravelPage = () => {
           </Alert>
         </Snackbar>
       )}
-      <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Typography variant="h6" component="div">
-          Gerenciamento de Viagens
-          <TravelPageHelp />
-        </Typography>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenModal} sx={{ borderRadius: '50px' }}>
-          Adicionar
-        </Button>
-        <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)} sx={{ borderRadius: '50px' }}>
-          {filtersVisible ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-        </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+        {/* Parte Esquerda: Título e Botões */}
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Typography variant="h6" component="div">
+            Gerenciamento de Viagens
+            <TravelPageHelp />
+          </Typography>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenModal} sx={{ borderRadius: '50px' }}>
+            Adicionar
+          </Button>
+          <Button variant="outlined" color="primary" startIcon={<FilterListIcon />} onClick={() => setFiltersVisible(!filtersVisible)} sx={{ borderRadius: '50px' }}>
+            {filtersVisible ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+          </Button>
+        </Box>
+
+        {/* Parte Direita: Botões para alternar visualização */}
+        <Box>
+          <IconButton
+            color={viewMode === 'cardView' ? 'primary' : 'default'}
+            onClick={() => handleViewModeChange('cardView')}
+          >
+            <Tooltip title="Visualização em Cartões">
+              <ViewModuleIcon />
+            </Tooltip>
+          </IconButton>
+          <IconButton
+            color={viewMode === 'listView' ? 'primary' : 'default'}
+            onClick={() => handleViewModeChange('listView')}
+          >
+            <Tooltip title="Visualização em Lista">
+              <ViewListIcon />
+            </Tooltip>
+          </IconButton>
+        </Box>
       </Box>
       <Collapse in={filtersVisible}>
         <Box sx={{ display: 'flex', gap: 2, marginBottom: 2, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -356,12 +396,21 @@ const TravelPage = () => {
         </Box>
       ) : (
         <>
-          <TravelCard
-            travels={filteredTravels.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
-            startEditing={startEditing}
-            handleDelete={openConfirmDeleteDialog}
-            handleCancel={openConfirmCancelDialog}
-          />
+          {viewMode === 'cardView' ? (
+            <TravelCard
+              travels={filteredTravels.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
+              startEditing={startEditing}
+              handleDelete={openConfirmDeleteDialog}
+              handleCancel={openConfirmCancelDialog}
+            />
+          ) : (
+            <TravelList
+              travels={filteredTravels.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
+              startEditing={startEditing}
+              handleDelete={openConfirmDeleteDialog}
+              handleCancel={openConfirmCancelDialog}
+            />
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Pagination
               count={Math.ceil(filteredTravels.length / itemsPerPage)}
@@ -382,7 +431,7 @@ const TravelPage = () => {
         </Fade>
       </Modal>
       <Dialog open={confirmDeleteOpen} onClose={closeConfirmDeleteDialog}>
-      <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Tem certeza que deseja excluir a viagem para <strong>{travelToDelete?.destino}</strong>?
@@ -434,8 +483,8 @@ const TravelPage = () => {
         </DialogActions>
       </Dialog>
       <Dialog open={confirmCancelOpen} onClose={closeConfirmCancelDialog}>
-      <DialogTitle>Confirmar Cancelamento</DialogTitle>
-      <DialogContent>
+        <DialogTitle>Confirmar Cancelamento</DialogTitle>
+        <DialogContent>
           <DialogContentText>
             Tem certeza que deseja cancelar a viagem para <strong>{travelToCancel?.destino}</strong>?
             <br />
