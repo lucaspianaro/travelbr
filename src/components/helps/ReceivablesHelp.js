@@ -86,7 +86,7 @@ export default function ReceivablesHelp() {
                             Após ações como cancelamentos ou edições, uma notificação (Snackbar) será exibida com o resultado da operação. A cor e o ícone da notificação indicam se a operação foi bem-sucedida ou falhou.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

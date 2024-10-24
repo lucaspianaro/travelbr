@@ -87,7 +87,7 @@ export default function TravelDetailsHelp() {
                             Ao realizar ações sensíveis, como cancelar ou excluir a viagem, um indicador de carregamento é exibido, garantindo que o usuário saiba que a operação está em andamento. Esse feedback visual evita cliques repetidos ou confusões durante a execução de operações mais demoradas.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

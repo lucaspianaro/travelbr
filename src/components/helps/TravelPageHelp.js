@@ -59,7 +59,7 @@ export default function TravelPageHelp() {
                             Caso existam muitas viagens, utilize a navegação de páginas na parte inferior da tela para visualizar todas as viagens. Você pode ajustar o número de itens por página conforme necessário.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

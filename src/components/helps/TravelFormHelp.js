@@ -79,7 +79,7 @@ export default function TravelFormHelp() {
                             Caso você deseje sair do formulário sem salvar, clique no botão "Voltar". Se estiver editando uma viagem, você também pode descartar as alterações feitas.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

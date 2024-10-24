@@ -86,7 +86,7 @@ export default function TravelOrderReservationHelp() {
                             Durante ações sensíveis como cancelamento de reservas ou pedidos, um indicador de carregamento é exibido para que o usuário saiba que a operação está em andamento, evitando cliques repetidos.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

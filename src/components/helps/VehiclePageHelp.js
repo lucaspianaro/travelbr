@@ -64,7 +64,7 @@ export default function VehiclePageHelp() {
                             A lista de veículos é paginada para facilitar a navegação. Use os controles de paginação na parte inferior da lista para navegar entre as páginas e visualizar todos os veículos cadastrados.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

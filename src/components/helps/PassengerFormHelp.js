@@ -54,7 +54,7 @@ export default function PassengerFormHelp() {
                             Caso deseje voltar sem salvar, clique no botão "Descartar Alterações" ou "Voltar". Nenhuma alteração será salva nesse caso.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

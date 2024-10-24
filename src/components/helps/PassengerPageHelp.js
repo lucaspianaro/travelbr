@@ -49,7 +49,7 @@ export default function PassengerPageHelp() {
                             Se a lista de passageiros for longa, use a navegação de páginas na parte inferior para percorrer os passageiros de forma eficiente. Você pode selecionar a página desejada para visualizar um conjunto específico de passageiros.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

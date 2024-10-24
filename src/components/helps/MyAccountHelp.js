@@ -58,7 +58,7 @@ export default function MyAccountHelp() {
                             Durante a confirmação de ações, como a ativação ou desativação da senha master, um círculo de carregamento será exibido enquanto o processo é realizado. Aguarde até que o processo seja concluído antes de tentar realizar outras ações.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

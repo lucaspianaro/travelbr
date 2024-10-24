@@ -67,7 +67,7 @@ export default function BusLayoutBuilderPageHelp() {
                             Utilize o ícone de "info" na tela para visualizar a legenda dos ícones de assentos, banheiros, escadas e frigobar.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2,  borderRadius: '50px' }}>
                         Fechar
                     </Button>
                 </DialogContent>

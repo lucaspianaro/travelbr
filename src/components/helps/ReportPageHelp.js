@@ -75,7 +75,7 @@ export default function ReportPageHelp() {
                             Enquanto os dados estão sendo carregados, um círculo de progresso será exibido. Aguarde o carregamento para que os gráficos possam ser visualizados corretamente.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

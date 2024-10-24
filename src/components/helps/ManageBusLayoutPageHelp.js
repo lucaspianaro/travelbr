@@ -58,7 +58,7 @@ export default function ManageBusLayoutPageHelp() {
                             Sempre que uma ação (como criar, editar ou excluir um layout) for realizada, uma notificação será exibida no topo da página, indicando se a operação foi bem-sucedida ou se houve algum erro.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px' }}>
                         Fechar
                     </Button>
                 </DialogContent>

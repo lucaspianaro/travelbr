@@ -91,7 +91,7 @@ export default function TravelCostsHelp() {
                             Enquanto os dados estão sendo carregados, um indicador de progresso circular é exibido para informar ao usuário que os dados ainda estão sendo processados.
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>

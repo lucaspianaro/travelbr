@@ -265,13 +265,6 @@ const HomePage = () => {
     setCancelDialogOpen(true);
   };
 
-  const handleCancelReservation = (reservationId, orderId, travelId) => {
-    setCancelOrderId(orderId);
-    setCancelReservationId(reservationId);
-    setTravelIdState(travelId);
-    setCancelDialogOpen(true);
-  };
-
   const confirmCancelOrder = async () => {
     setCancelLoading(true);
 

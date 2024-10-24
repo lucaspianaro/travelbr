@@ -54,7 +54,7 @@ export default function VehicleFormHelp() {
                             Após preencher os campos obrigatórios, clique no botão "Adicionar Veículo" para salvar o novo veículo ou "Salvar Alterações" ao editar um veículo existente. Se desejar cancelar a operação, clique em "Voltar" ou "Descartar Alterações".
                         </Typography>
                     </Box>
-                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button onClick={handleClose} variant="contained" color="primary" sx={{ mt: 2, borderRadius: '50px'  }}>
                         Fechar
                     </Button>
                 </DialogContent>
