@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, TextField, Button, Typography, CircularProgress, FormControlLabel, Checkbox, Snackbar, Alert, Radio, RadioGroup, FormControl, FormLabel, Autocomplete } from '@mui/material';
 import { addPassenger, updatePassenger, getPassengerById, validateDocumentDuplication } from '../../services/PassengerService';
 import { formatCPF, formatRG, formatTelefone, validarCPF, unformatCPF } from '../../utils/utils';
-import PassengerFormHelp from './PassengerFormHelp';
+import PassengerFormHelp from '../helps/PassengerFormHelp';
 
 // Função para criar um campo de texto com validação e atributos personalizados
 const renderTextField = (label, field, value, onChange, error, helperText, required = false, type = 'text', inputProps = {}) => (

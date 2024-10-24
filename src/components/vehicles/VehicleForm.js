@@ -3,7 +3,7 @@ import { Box, Button, TextField, Typography, Grid, Snackbar, Alert, IconButton, 
 import debounce from 'lodash.debounce';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
-import VehicleFormHelp from './VehicleFormHelp';
+import VehicleFormHelp from '../helps/VehicleFormHelp';
 import { checkVehiclePlateUnique } from '../../services/VehicleService';
 import { getAllLayouts } from '../../services/LayoutService';
 import { useNavigate } from 'react-router-dom';

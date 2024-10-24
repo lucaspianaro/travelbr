@@ -6,7 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Layout from '../components/common/Layout';
 import LayoutCard from '../components/seatlayout/LayoutCard';
-import ManageBusLayoutPageHelp from '../components/seatlayout/ManageBusLayoutPageHelp';
+import ManageBusLayoutPageHelp from '../components/helps/ManageBusLayoutPageHelp';
 import { getAllLayouts, deleteLayout } from '../services/LayoutService'; 
 import { useNavigate } from 'react-router-dom';
 

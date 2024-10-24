@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Typography, IconButton, Box, Button, Grid, Card, CardContent, CardActions, Divider, Chip, Menu, MenuItem
+  Typography, IconButton, Box, Button, Grid, Card, CardContent, CardActions, Divider, Chip, Menu, MenuItem, CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -29,11 +29,13 @@ const statusStyles = {
 function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideActions, stacked }) {
   const navigate = useNavigate();
   const [reservedSeatsData, setReservedSeatsData] = useState({});
+  const [loadingSeats, setLoadingSeats] = useState(true); // Novo estado de loading
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentTravel, setCurrentTravel] = useState(null);
 
   useEffect(() => {
     const fetchReservedSeats = async () => {
+      setLoadingSeats(true); // Inicia o loading
       const data = {};
       for (const travel of travels) {
         const reservedSeats = await getReservedSeats(travel.id);
@@ -41,6 +43,7 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
         data[travel.id] = activeSeats;
       }
       setReservedSeatsData(data);
+      setLoadingSeats(false); // Termina o loading quando os dados são carregados
     };
     fetchReservedSeats();
   }, [travels]);
@@ -94,12 +97,12 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
             const occupiedSeats = reservedSeatsData[travel.id] || 0;
 
             return (
-              <Grid 
-                item 
-                xs={12} 
-                sm={6} 
-                md={4} 
-                key={travel.id} 
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                key={travel.id}
               >
                 <Card
                   onClick={() => navigate(`/viagens/${travel.id}`)}
@@ -178,8 +181,14 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <AirlineSeatReclineNormalIcon sx={{ mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
                       <Typography variant="body2" fontSize={{ xs: '0.9rem', sm: '1rem' }}>
-                        {travel.veiculo ? `Assentos Ocupados: ${occupiedSeats}/${totalSeats}` : `Reservas: ${occupiedSeats || 'Nenhuma Reserva'}`}
+                        {`Assentos Ocupados: `}
+                        {loadingSeats ? (
+                          <CircularProgress size={12} sx={{ marginLeft: 1 }} />
+                        ) : (
+                          travel.veiculo ? `${occupiedSeats}/${totalSeats}` : `Reservas: ${occupiedSeats || 'Nenhuma Reserva'}`
+                        )}
                       </Typography>
+
                     </Box>
                   </CardContent>
 
@@ -220,7 +229,6 @@ function TravelCard({ travels, startEditing, handleDelete, handleCancel, hideAct
         )}
       </Grid>
 
-      {/* Menu de opções para editar, cancelar ou excluir */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

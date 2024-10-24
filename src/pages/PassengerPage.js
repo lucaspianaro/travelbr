@@ -9,7 +9,8 @@ import Layout from '../components/common/Layout';
 import PassengerCard from '../components/passengers/PassengerCard';
 import PassengerTable from '../components/passengers/PassengerTable';
 import PassengerForm from '../components/passengers/PassengerForm';
-import PassengerPageHelp from '../components/passengers/PassengerPageHelp';
+import PassengerPageHelp from '../components/helps/PassengerPageHelp';
+import { getSavedViewType, saveViewType } from '../utils/localStorageUtils';
 import { getAllPassengers, deletePassengers } from '../services/PassengerService';
 
 const PassengerPage = () => {
@@ -33,7 +34,7 @@ const PassengerPage = () => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const [viewMode, setViewMode] = useState(localStorage.getItem('viewMode') || 'card'); // Pega o modo do localStorage ou usa 'card'
+  const [viewMode, setViewMode] = useState(getSavedViewType()); // Obtem o modo do localStorage
 
   const fetchPassageiros = useCallback(async () => {
     setLoading(true);
@@ -125,7 +126,7 @@ const PassengerPage = () => {
   // Função para alternar entre os modos de visualização e salvar no localStorage
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
-    localStorage.setItem('viewMode', mode); // Salva a opção de visualização no localStorage
+    saveViewType(mode); // Salva a opção de visualização no localStorage
   };
 
   return (

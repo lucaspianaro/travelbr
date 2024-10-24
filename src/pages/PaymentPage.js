@@ -3,7 +3,7 @@ import { Box, Typography, Tabs, Tab, Fade } from '@mui/material';
 import Layout from '../components/common/Layout';
 import OrderReservationList from '../components/payments/OrderReservationList';
 import Receivables from '../components/payments/Receivables';
-import ReceivablesHelp from '../components/payments/ReceivablesHelp';
+import ReceivablesHelp from '../components/helps/ReceivablesHelp';
 
 const PaymentPage = () => {
   const [tabIndex, setTabIndex] = useState(0);

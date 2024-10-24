@@ -11,11 +11,12 @@ import TravelForm from '../components/travels/TravelForm';
 import TravelCard from '../components/travels/TravelCard';
 import TravelList from '../components/travels/TravelList';
 import Layout from '../components/common/Layout';
-import TravelPageHelp from '../components/travels/TravelPageHelp';
+import TravelPageHelp from '../components/helps/TravelPageHelp';
 import { addTravel, getAllTravels, updateTravel, deleteTravel, cancelTravel, updateInactiveTravels } from '../services/TravelService';
 import { validateMasterPassword, formatDate } from '../utils/utils';
 import { getMasterPasswordStatus } from '../services/AuthService';
 import { getReservationsByTravelId } from '../services/OrderService';
+import { getSavedViewType, saveViewType } from '../utils/localStorageUtils';  // Importa as funções utilitárias
 
 const TravelPage = () => {
   const [travels, setTravels] = useState([]);
@@ -42,21 +43,14 @@ const TravelPage = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [reservationsCount, setReservationsCount] = useState(0);
-  const [viewMode, setViewMode] = useState('cardView'); // cardView (modo cartão) ou listView (modo lista)
+  const [viewMode, setViewMode] = useState(getSavedViewType()); // Pega o modo salvo do localStorage
   const [masterPasswordActive, setMasterPasswordActive] = useState(false);
 
-  useEffect(() => {
-    const savedViewMode = localStorage.getItem('viewMode');
-    if (savedViewMode) {
-      setViewMode(savedViewMode);
-    }
-  }, []);
-
-    // Função para alternar e salvar o modo de visualização
-    const handleViewModeChange = (mode) => {
-      setViewMode(mode);
-      localStorage.setItem('viewMode', mode); // Salva a escolha do usuário no localStorage
-    };  
+  // Função para alternar e salvar o modo de visualização
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    saveViewType(mode);  // Salva a escolha do usuário no localStorage
+  };
 
   useEffect(() => {
     const fetchTravelsData = async () => {
@@ -303,16 +297,16 @@ const TravelPage = () => {
         {/* Parte Direita: Botões para alternar visualização */}
         <Box>
           <IconButton
-            color={viewMode === 'cardView' ? 'primary' : 'default'}
-            onClick={() => handleViewModeChange('cardView')}
+            color={viewMode === 'card' ? 'primary' : 'default'}
+            onClick={() => handleViewModeChange('card')} // Usar 'card'
           >
             <Tooltip title="Visualização em Cartões">
               <ViewModuleIcon />
             </Tooltip>
           </IconButton>
           <IconButton
-            color={viewMode === 'listView' ? 'primary' : 'default'}
-            onClick={() => handleViewModeChange('listView')}
+            color={viewMode === 'list' ? 'primary' : 'default'}
+            onClick={() => handleViewModeChange('list')} // Usar 'list'
           >
             <Tooltip title="Visualização em Lista">
               <ViewListIcon />
@@ -396,7 +390,7 @@ const TravelPage = () => {
         </Box>
       ) : (
         <>
-          {viewMode === 'cardView' ? (
+          {viewMode === 'card' ? (
             <TravelCard
               travels={filteredTravels.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
               startEditing={startEditing}

@@ -8,7 +8,7 @@ import Layout from '../components/common/Layout';
 import VehicleDetails from '../components/vehicles/VehicleDetails';
 import VehicleCard from '../components/vehicles/VehicleCard';
 import VehicleForm from '../components/vehicles/VehicleForm';
-import VehiclePageHelp from '../components/vehicles/VehiclePageHelp';
+import VehiclePageHelp from '../components/helps/VehiclePageHelp';
 import { addVehicle, getAllVehicles, updateVehicle, deleteVehicle, getVehicleTravels } from '../services/VehicleService';
 import { getAllLayouts } from '../services/LayoutService'; // Importar a função para buscar layouts
 import { validateMasterPassword } from '../utils/utils';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Typography, Box, IconButton, Tooltip, List, ListItem, ListItemText, ListItemSecondaryAction, Divider, Chip, Menu, MenuItem, Button
+  Typography, Box, IconButton, Tooltip, List, ListItem, ListItemText, ListItemSecondaryAction, Divider, Chip, Menu, MenuItem, Button, CircularProgress 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -24,11 +24,13 @@ const statusStyles = {
 function TravelList({ travels, startEditing, handleDelete, handleCancel }) {
   const navigate = useNavigate();
   const [reservedSeatsData, setReservedSeatsData] = useState({});
+  const [loadingSeats, setLoadingSeats] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentTravel, setCurrentTravel] = useState(null);
 
   useEffect(() => {
     const fetchReservedSeats = async () => {
+      setLoadingSeats(true);
       const data = {};
       for (const travel of travels) {
         const reservedSeats = await getReservedSeats(travel.id);
@@ -36,6 +38,7 @@ function TravelList({ travels, startEditing, handleDelete, handleCancel }) {
         data[travel.id] = activeSeats;
       }
       setReservedSeatsData(data);
+      setLoadingSeats(false);
     };
     fetchReservedSeats();
   }, [travels]);
@@ -104,7 +107,14 @@ function TravelList({ travels, startEditing, handleDelete, handleCancel }) {
                       ) : (
                         <Typography variant="body2" color="textSecondary">Data de Retorno: {formatDate(travel.dataRetorno)}</Typography>
                       )}
-                      <Typography variant="body2" color="textSecondary">Assentos Ocupados: {occupiedSeats}/{totalSeats}</Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Assentos Ocupados:
+                        {loadingSeats ? (
+                          <CircularProgress size={12} sx={{ marginLeft: 1 }} />
+                        ) : (
+                          `${occupiedSeats}/${totalSeats}`
+                        )}
+                      </Typography>
                       <Typography variant="body2" color="textSecondary">Veículo: {travel.veiculo ? `${travel.veiculo.identificadorVeiculo} - ${travel.veiculo.placa}` : 'Nenhum veículo associado'}</Typography>
                     </Box>
 

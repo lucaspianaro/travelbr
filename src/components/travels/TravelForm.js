@@ -7,7 +7,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
 import LocationSelector from './LocationSelector';
 import VehicleForm from '../vehicles/VehicleForm';
-import TravelFormHelp from './TravelFormHelp';
+import TravelFormHelp from '../helps/TravelFormHelp';
 import { checkTravelIdentifierUnique, getMaxTravelIdentifier } from '../../services/TravelService';
 import { getReservationsByTravelId } from '../../services/OrderService';
 import { getAllVehicles, checkVehicleTravelConflict, addVehicle } from '../../services/VehicleService';

@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart
 import { Box, Typography, CircularProgress, Paper, useMediaQuery, useTheme, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import { getTravelReportData } from '../services/ReportService';
 import Layout from '../components/common/Layout';
-import ReportPageHelp from '../components/reports/ReportPageHelp'
+import ReportPageHelp from '../components/helps/ReportPageHelp'
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 

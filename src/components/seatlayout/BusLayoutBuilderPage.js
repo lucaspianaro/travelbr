@@ -3,7 +3,7 @@ import { Box, Button, Grid, Typography, Snackbar, Alert, Dialog, DialogActions, 
 import { Add, Remove, AirlineSeatReclineNormal, Wc, Stairs, Block, Info, Kitchen } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../common/Layout';
-import BusLayoutBuilderPageHelp from './BusLayoutBuilderPageHelp';
+import BusLayoutBuilderPageHelp from '../helps/BusLayoutBuilderPageHelp';
 import { addLayout, updateLayout, getLayoutById } from '../../services/LayoutService';
 
 const BusLayoutBuilderPage = () => {
